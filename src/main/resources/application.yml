@@ -1,3 +1,6 @@
 micronaut:
     application:
         name: sampletracking
+app:
+    address:
+        zip: ${ZIP_CODE}
