@@ -8,6 +8,19 @@ This service is build with [micronaut](https://micronaut.io):
 mn create-app life.qbic.sampletracking --features=groovy --build maven
 ```
 
+### Run locally
+
+```
+./mvnw compile
+./mvnw exec:exec
+```
+
+### Execute tests
+
+```
+./mvnw test 
+```
+
 ## Data model
 The data model that holds sample tracking information is denfined by attributes and relations shown in the following ER diagram.
 
