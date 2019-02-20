@@ -43,28 +43,24 @@ class LocationsController {
     }
   }
 
-  Contact searchPersonByEmail(String email) {
+  List<Contact> searchPersonByEmail(String email) {
     //    logger.info("Looking for user with email " + email + " in the DB");
-    Contact res = null;
-    String sql = "SELECT * from persons WHERE UPPER(email) = UPPER(?)";
-    try {
-      PreparedStatement statement = manager.getConnection().prepareStatement(sql);
-      statement.setString(1, email);
-      ResultSet rs = statement.executeQuery();
-      if (rs.next()) {
-        //        logger.info("email found!");
-        int id = rs.getInt("id");
-        String firstName = rs.getString("first_name");
-        String lastName = rs.getString("family_name");
+    List<Contact> foundContacts = new ArrayList<>()
+    String sql = "SELECT * from persons WHERE UPPER(email) = UPPER(?)"
+    manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+      statement.setString(1, email)
+      statement.executeQuery().withCloseable { ResultSet resultSet ->
+          while (resultSet.next()) {
+              int id = resultSet.getInt("id");
+              String firstName = resultSet.getString("first_name");
+              String lastName = resultSet.getString("family_name");
 
-        Address adr = getAddressByPerson(id);
-        res = new Contact(fullName: firstName+" "+lastName, email: email, address: adr)
+              Address adr = getAddressByPerson(id);
+              foundContacts.add(new Contact(fullName: firstName + " " + lastName, email: email, address: adr))
+          }
+          return foundContacts
       }
-    } catch (SQLException e) {
-      //      logger.error("SQL operation unsuccessful: " + e.getMessage());
-      e.printStackTrace();
     }
-    return res
   }
 
   Address getAddressByPerson(int personID) {

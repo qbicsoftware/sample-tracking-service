@@ -2,6 +2,8 @@ package life.qbic;
 
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.PreparedStatement
+import java.sql.ResultSet
 import java.sql.Statement
 
 import javax.inject.Singleton
@@ -26,14 +28,14 @@ class DBManager {
   private final String driverClass
   private final Connection connection
 
-  DBManager(@Property(name ='app.db.host') String host,
-  @Property(name ='app.db.port') String port,
-  @Property(name ='app.db.name') String name,
-  @Property(name ='app.db.user') String user,
-  @Property(name ='app.db.pw') String pw,
-  @Property(name ='app.db.driver.class') String driverClass,
-  @Property(name ='app.db.driver.prefix') String driverPrefix) {
-    this.dbURL = driverPrefix +"://"+ host + ":" + port + "/"+ name
+  DBManager(@Property(name = 'app.db.host') String host,
+            @Property(name = 'app.db.port') String port,
+            @Property(name = 'app.db.name') String name,
+            @Property(name = 'app.db.user') String user,
+            @Property(name = 'app.db.pw') String pw,
+            @Property(name = 'app.db.driver.class') String driverClass,
+            @Property(name = 'app.db.driver.prefix') String driverPrefix) {
+    this.dbURL = driverPrefix + "://" + host + ":" + port + "/" + name
     this.userName = user
     this.password = pw
     this.driverClass = driverClass
@@ -42,11 +44,11 @@ class DBManager {
 
   private void logout(Connection conn) {
     if (conn != null)
-    conn.close()
+      conn.close()
   }
-  
+
   Connection getConnection() {
-    return connection;
+    return connection
   }
 
   private Connection login() {
