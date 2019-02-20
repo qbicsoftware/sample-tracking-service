@@ -45,45 +45,40 @@ class LocationsController {
 
   List<Contact> searchPersonByEmail(String email) {
     //    logger.info("Looking for user with email " + email + " in the DB");
-    List<Contact> foundContacts = new ArrayList<>()
-    String sql = "SELECT * from persons WHERE UPPER(email) = UPPER(?)"
-    manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
-      statement.setString(1, email)
-      statement.executeQuery().withCloseable { ResultSet resultSet ->
-          while (resultSet.next()) {
-              int id = resultSet.getInt("id");
-              String firstName = resultSet.getString("first_name");
-              String lastName = resultSet.getString("family_name");
+      List<Contact> foundContacts = new ArrayList<>()
+      String sql = "SELECT * from persons WHERE UPPER(email) = UPPER(?)"
+      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+          statement.setString(1, email)
+          statement.executeQuery().withCloseable { ResultSet resultSet ->
+              while (resultSet.next()) {
+                  int id = resultSet.getInt("id");
+                  String firstName = resultSet.getString("first_name");
+                  String lastName = resultSet.getString("family_name");
 
-              Address adr = getAddressByPerson(id);
-              foundContacts.add(new Contact(fullName: firstName + " " + lastName, email: email, address: adr))
+                  Address adr = getAddressByPerson(id);
+                  foundContacts.add(new Contact(fullName: firstName + " " + lastName, email: email, address: adr))
+              }
+            return foundContacts
           }
-          return foundContacts
       }
-    }
   }
 
-  Address getAddressByPerson(int personID) {
+  List<Address> getAddressByPerson(int personID) {
     //    logger.info("Looking for user with email " + email + " in the DB");
-    Address res = null;
-    String sql = "SELECT * from organizations inner join persons_organizations on organizations.id = persons_organizations.organization_id person_id = ?";
-    try {
-      PreparedStatement statement = manager.getConnection().prepareStatement(sql);
-      statement.setInt(1, personID);
-      ResultSet rs = statement.executeQuery();
-      if (rs.next()) {
-        //        logger.info("email found!");
-        String affiliation = rs.getString("institute");
-        String street = rs.getString("street");
-        String country = rs.getString("country");
-        int zip = rs.getInt("zip_code");
-
-        res = new Address(affiliation: affiliation, street: street, zipCode: zip, country: country)
+      List<Address> addresses = new ArrayList<>()
+      String sql = "SELECT * from organizations inner join persons_organizations on organizations.id = persons_organizations.organization_id person_id = ?";
+      manager.connection.prepareStatement(sql).withCloseable { statement ->
+          statement.setInt(1, personID)
+          statement.executeQuery().withCloseable { resultSet ->
+              while (resultSet.next()) {
+                  String affiliation = resultSet.getString("institute")
+                  String street = resultSet.getString("street")
+                  String country = resultSet.getString("country")
+                  int zip = resultSet.getInt("zip_code")
+                  addresses.add(new Address(affiliation: affiliation, street: street, zipCode: zip, country: country))
+              }
+              return addresses
+          }
       }
-    } catch (SQLException e) {
-      //      logger.error("SQL operation unsuccessful: " + e.getMessage());
-      e.printStackTrace();
-    }
-    return res
   }
 }
