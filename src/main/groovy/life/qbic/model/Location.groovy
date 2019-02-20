@@ -6,17 +6,21 @@ import io.micronaut.context.annotation.Requires
 
 import javax.inject.Singleton
 
-class Address  {
+@Singleton
+@Requires(property = "app.address.zip")
+class Location  {
 
   private String affiliation
 
   private String street
 
+  private Integer number
+
   private Integer zipCode
 
   private String country
 
-  Address(@Property(name ='app.address.zip') Integer zip){
+  Location(@Property(name ='app.address.zip') Integer zip){
     this.zipCode = zip
   }
 
@@ -34,7 +38,7 @@ class Address  {
     this.affiliation = affiliation;
   }
 
-  public Address affiliation(String affiliation) {
+  public Location affiliation(String affiliation) {
     this.affiliation = affiliation;
     return this;
   }
@@ -52,28 +56,28 @@ class Address  {
     this.street = street;
   }
 
-  public Address street(String street) {
+  public Location street(String street) {
     this.street = street;
     return this;
   }
-//
-// /**
-//   * Get number
-//   * @return number
-//  **/
-//  @JsonProperty("number")
-//  public Integer getNumber() {
-//    return number;
-//  }
-//
-//  public void setNumber(Integer number) {
-//    this.number = number;
-//  }
-//
-//  public Address number(Integer number) {
-//    this.number = number;
-//    return this;
-//  }
+
+ /**
+   * Get number
+   * @return number
+  **/
+  @JsonProperty("number")
+  public Integer getNumber() {
+    return number;
+  }
+
+  public void setNumber(Integer number) {
+    this.number = number;
+  }
+
+  public Location number(Integer number) {
+    this.number = number;
+    return this;
+  }
 
  /**
    * Get zipCode
@@ -88,7 +92,7 @@ class Address  {
     this.zipCode = zipCode;
   }
 
-  public Address zipCode(Integer zipCode) {
+  public Location zipCode(Integer zipCode) {
     this.zipCode = zipCode;
     return this;
   }
@@ -106,7 +110,7 @@ class Address  {
     this.country = country;
   }
 
-  public Address country(String country) {
+  public Location country(String country) {
     this.country = country;
     return this;
   }
@@ -119,7 +123,7 @@ class Address  {
     
     sb.append("    affiliation: ").append(toIndentedString(affiliation)).append("\n");
     sb.append("    street: ").append(toIndentedString(street)).append("\n");
-//    sb.append("    number: ").append(toIndentedString(number)).append("\n");
+    sb.append("    number: ").append(toIndentedString(number)).append("\n");
     sb.append("    zipCode: ").append(toIndentedString(zipCode)).append("\n");
     sb.append("    country: ").append(toIndentedString(country)).append("\n");
     sb.append("}");
