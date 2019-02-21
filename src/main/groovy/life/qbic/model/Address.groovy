@@ -16,10 +16,6 @@ class Address  {
 
   private String country
 
-  Address(@Property(name ='app.address.zip') Integer zip){
-    this.zipCode = zip
-  }
-
 
  /**
    * Get affiliation
