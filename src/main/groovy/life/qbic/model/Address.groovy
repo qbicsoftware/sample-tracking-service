@@ -9,17 +9,9 @@ import javax.inject.Singleton
 class Address  {
 
   private String affiliation
-
   private String street
-
   private Integer zipCode
-
   private String country
-
-  Address(@Property(name ='app.address.zip') Integer zip){
-    this.zipCode = zip
-  }
-
 
  /**
    * Get affiliation

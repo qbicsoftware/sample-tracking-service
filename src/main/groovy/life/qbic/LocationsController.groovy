@@ -28,8 +28,7 @@ class LocationsController {
     this.manager = manager
   }
 
-  @Get("/contacts/{email}")
-  @Produces(MediaType.APPLICATION_JSON)
+  @Get(uri = "/contacts/{email}", produces = MediaType.APPLICATION_JSON)
   HttpResponse<Contact> contacts(@Parameter('email') String email){
     if(!RegExValidator.isValidMail(email))
     {
@@ -70,18 +69,18 @@ class LocationsController {
   Address getAddressByPerson(int personID) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Address res = null;
-    String sql = "SELECT * from organizations inner join persons_organizations on organizations.id = persons_organizations.organization_id person_id = ?";
+    String sql = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id WHERE person_id = ?";
     try {
       PreparedStatement statement = manager.getConnection().prepareStatement(sql);
       statement.setInt(1, personID);
       ResultSet rs = statement.executeQuery();
       if (rs.next()) {
         //        logger.info("email found!");
-        String affiliation = rs.getString("institute");
+        String affiliation = rs.getString("name");
         String street = rs.getString("street");
-        String country = rs.getString("country");
         int zip = rs.getInt("zip_code");
-
+        String country = rs.getString("country");
+        
         res = new Address(affiliation: affiliation, street: street, zipCode: zip, country: country)
       }
     } catch (SQLException e) {

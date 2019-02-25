@@ -3,133 +3,167 @@ package life.qbic.model
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.annotation.Requires
-
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import javax.inject.Singleton
 
-@Singleton
-@Requires(property = "app.address.zip")
 class Location  {
 
-  private String affiliation
+  private String name
+  private String responsiblePerson
+  private String responsibleEmail
+  private Address address
+  private Status status
+  private Date arrivalDate
+  private Date forwardDate
 
-  private String street
-
-  private Integer number
-
-  private Integer zipCode
-
-  private String country
-
-  Location(@Property(name ='app.address.zip') Integer zip){
-    this.zipCode = zip
+  /**
+   * Get name
+   * @return name
+   **/
+  @JsonProperty("name")
+  public String getName() {
+    return name;
   }
 
-
- /**
-   * Get affiliation
-   * @return affiliation
-  **/
-  @JsonProperty("affiliation")
-  public String getAffiliation() {
-    return affiliation;
+  public void setName(String name) {
+    this.name = name;
   }
 
-  public void setAffiliation(String affiliation) {
-    this.affiliation = affiliation;
-  }
-
-  public Location affiliation(String affiliation) {
-    this.affiliation = affiliation;
+  public Location name(String name) {
+    this.name = name;
     return this;
   }
 
- /**
-   * Get street
-   * @return street
-  **/
-  @JsonProperty("street")
-  public String getStreet() {
-    return street;
+  /**
+   * Get responsiblePerson
+   * @return responsiblePerson
+   **/
+  @JsonProperty("responsible_person")
+  public String getResponsiblePerson() {
+    return responsiblePerson;
   }
 
-  public void setStreet(String street) {
-    this.street = street;
+  public void setResponsiblePerson(String responsiblePerson) {
+    this.responsiblePerson = responsiblePerson;
   }
 
-  public Location street(String street) {
-    this.street = street;
+  public Location responsiblePerson(String responsiblePerson) {
+    this.responsiblePerson = responsiblePerson;
+    return this;
+  }
+  
+  /**
+   * Get responsibleEmail
+   * @return responsibleEmail
+   **/
+  @JsonProperty("responsible_person_email")
+  public String getResponsibleEmail() {
+    return responsibleEmail;
+  }
+
+  public void setResponsibleEmail(String responsibleEmail) {
+    this.responsibleEmail = responsibleEmail;
+  }
+
+  public Location responsibleEmail(String responsibleEmail) {
+    this.responsibleEmail = responsibleEmail;
+    return this;
+  }
+  
+  /**
+   * Get address
+   * @return address
+   **/
+  @JsonProperty("address")
+  public Address getAddress() {
+    return address;
+  }
+
+  public void setAddress(Address address) {
+    this.address = address;
+  }
+
+  public Location address(Address address) {
+    this.address = address;
     return this;
   }
 
- /**
-   * Get number
-   * @return number
-  **/
-  @JsonProperty("number")
-  public Integer getNumber() {
-    return number;
+  /**
+   * Get sample status
+   * @return status
+   **/
+  @JsonProperty("sample_status")
+  public Status getStatus() {
+    return status;
   }
 
-  public void setNumber(Integer number) {
-    this.number = number;
+  public void setStatus(Status status) {
+    this.status = status;
   }
 
-  public Location number(Integer number) {
-    this.number = number;
+  public Location status(Status status) {
+    this.status = status;
     return this;
   }
 
- /**
-   * Get zipCode
-   * @return zipCode
-  **/
-  @JsonProperty("zip_code")
-  public Integer getZipCode() {
-    return zipCode;
+  /**
+   * Get arrival_date
+   * @return arrivalDate
+   **/
+  @JsonProperty("arrival_date")
+  public Date getArrivalDate() {
+    return arrivalDate;
   }
 
-  public void setZipCode(Integer zipCode) {
-    this.zipCode = zipCode;
+  public void setArrivalDate(Date arrivalDate) {
+    this.arrivalDate = arrivalDate;
   }
 
-  public Location zipCode(Integer zipCode) {
-    this.zipCode = zipCode;
+  public Location arrivalDate(Date arrivalDate) {
+    this.arrivalDate = arrivalDate;
     return this;
   }
 
- /**
-   * Get country
-   * @return country
-  **/
-  @JsonProperty("country")
-  public String getCountry() {
-    return country;
+  /**
+   * Get forward_date
+   * @return forwardDate
+   **/
+  @JsonProperty("forward_date")
+  public Date getforwardDate() {
+    return forwardDate;
   }
 
-  public void setCountry(String country) {
-    this.country = country;
+  public void setforwardDate(Date forwardDate) {
+    this.forwardDate = forwardDate;
   }
 
-  public Location country(String country) {
-    this.country = country;
+  public Location forwardDate(Date forwardDate) {
+    this.forwardDate = forwardDate;
     return this;
   }
-
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    sb.append("class Address {\n");
-    
-    sb.append("    affiliation: ").append(toIndentedString(affiliation)).append("\n");
-    sb.append("    street: ").append(toIndentedString(street)).append("\n");
-    sb.append("    number: ").append(toIndentedString(number)).append("\n");
-    sb.append("    zipCode: ").append(toIndentedString(zipCode)).append("\n");
-    sb.append("    country: ").append(toIndentedString(country)).append("\n");
+    sb.append("class Location {\n");
+
+    sb.append("    name: ").append(toIndentedString(name)).append("\n");
+    sb.append("    responsible person: ").append(toIndentedString(responsiblePerson)).append("\n");
+    sb.append("    address: ").append(toIndentedString(address)).append("\n");
+    sb.append("    sample status: ").append(toIndentedString(status)).append("\n");
+    sb.append("    arrival date: ").append(toIndentedString(parseDate(arrivalDate))).append("\n");
+    sb.append("    forward date: ").append(toIndentedString(parseDate(forwardDate))).append("\n");
     sb.append("}");
     return sb.toString();
   }
 
+  public String parseDate(Date date) {
+    return date;
+//    DateFormat df = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+//    return df.format(date);
+  }
+  
   /**
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).

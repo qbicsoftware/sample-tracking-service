@@ -5,16 +5,16 @@ import javax.validation.Valid;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Sample  {
-  
-  private String code = null;
 
-//  @Valid
-//  private Address address = null;
+  private String code
+  private Location currentLocation
+  private List<String> pastLocations
 
- /**
+  /**
    * Get code
    * @return code
-  **/
+   **/
+  @JsonProperty("code")
   public String getCode() {
     return code;
   }
@@ -28,11 +28,49 @@ public class Sample  {
     return this;
   }
 
+  /**
+   * Get currentLocation
+   * @return currentLocation
+   **/
+  @JsonProperty("current_location")
+  public Location getCurrentLocation() {
+    return currentLocation;
+  }
+
+  public void setCurrentLocation(Location currentLocation) {
+    this.currentLocation = currentLocation;
+  }
+
+  public Sample currentLocation(Location currentLocation) {
+    this.currentLocation = currentLocation;
+    return this;
+  }
+
+  /**
+   * Get pastLocations
+   * @return pastLocations
+   **/
+  @JsonProperty("past_locations")
+  public List<Location> getpastLocations() {
+    return pastLocations;
+  }
+
+  public void setPastLocations(List<Location> pastLocations) {
+    this.pastLocations = pastLocations;
+  }
+
+  public Sample pastLocations(List<Location> pastLocations) {
+    this.pastLocations = pastLocations;
+    return this;
+  }
+
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class Sample {\n");
-    sb.append("    code: ").append(toIndentedString(code)).append("\n");
+    sb.append("    sample code: ").append(toIndentedString(code)).append("\n");
+    sb.append("    current location: ").append(toIndentedString(currentLocation)).append("\n");
+    sb.append("    past locations: ").append(toIndentedString(pastLocations)).append("\n");
     sb.append("}");
     return sb.toString();
   }
