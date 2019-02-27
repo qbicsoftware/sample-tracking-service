@@ -19,7 +19,7 @@ import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
-import java.util.Date
+import java.sql.Date
 
 import javax.inject.Inject
 
@@ -59,10 +59,11 @@ class SamplesController {
     try {
       int personId = getPersonIdFromEmail(location.getResponsibleEmail(), connection);
       int locationId = getLocationIdFromName(location.getName(), connection);
-      addOrUpdateSample(sampleId, locationId, connection)
-      setNewLocationAsCurrent(sampleId, personId, locationId, location, connection)
-
-      connection.commit()
+      if(isNewSampleLocation(sampleId, location)) {
+        setNewLocationAsCurrent(sampleId, personId, locationId, location, connection)
+        addOrUpdateSample(sampleId, locationId, connection)
+        connection.commit()
+      }
     } catch (Exception ex) {
       ex.printStackTrace();
       connection.rollback()
@@ -72,6 +73,12 @@ class SamplesController {
     HttpResponse.created(new URI("/"+sampleId));
   }
 
+  /**
+   * update or create location of a specific sample
+   * @param sampleId sample code from the URL
+   * @param location location object, transferred via json body
+   * @return
+   */
   @Put("/{sampleId}/currentLocation/")
   HttpResponse<Location> updateLocation(@Parameter('sampleId') String sampleId, Location location) {
     HttpResponse<Location> response = HttpResponse.accepted();
@@ -81,13 +88,19 @@ class SamplesController {
     try {
       int personId = getPersonIdFromEmail(location.getResponsibleEmail(), connection);
       int locationId = getLocationIdFromName(location.getName(), connection);
+
+      // if the location changed, change the location of the sample
+      if(isNewSampleLocation(sampleId, location)) {
+        response = setNewLocationAsCurrent(sampleId, personId, locationId, location, connection)
+      } else {
+        // else: update information about the sample at the current location (times, status, etc.)
+        updateCurrentLocationObjectInDB(sampleId, personId, locationId, location, connection)
+      }
+
+      // update sample table current location id OR create new row
       addOrUpdateSample(sampleId, locationId, connection)
 
-      if(isNewSampleLocation(sampleId, location)) {
-        response = setNewLocationAsCurrent(sampleId, location)
-      } else {
-        updateCurrentLocationInDB(sampleId, personId, locationId, location, connection)
-      }
+      connection.commit();
     } catch (Exception e) {
       e.printStackTrace()
       connection.rollback();
@@ -97,69 +110,64 @@ class SamplesController {
   }
 
   private boolean isNewSampleLocation(String sampleId, Location location) {
-    println sampleId;
-    println location.getName()
     String locationIDQuery = "SELECT id FROM locations WHERE name = ?;"
     Connection connection = manager.getConnection()
     boolean res = true;
     try {
-      PreparedStatement statement = connection.prepareStatement(locationIDQuery);
-      statement.setString(1, location.getName());
-      
-      ResultSet rs = statement.executeQuery();
-      if (rs.next()) {
-        int id = rs.getInt("id");
+      connection.prepareStatement(locationIDQuery).withCloseable { PreparedStatement statement ->
+        statement.setString(1, location.getName());
 
-        statement.close()
-        String currentLocationQuery = "SELECT * from samples_locations WHERE location_id = ? AND sample_id = ?";
-        statement = connection.prepareStatement(currentLocationQuery);
-        statement.setInt(1, id);
-        statement.setString(2, sampleId);
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          if (rs.next()) {
+            int id = rs.getInt("id");
 
-        rs = statement.executeQuery();
-        if (rs.next()) {
-          res = false;
+            statement.close()
+            String currentLocationQuery = "SELECT * from samples_locations WHERE location_id = ? AND sample_id = ?";
+            connection.prepareStatement(currentLocationQuery).withCloseable { PreparedStatement statement2 ->
+              statement2.setInt(1, id);
+              statement2.setString(2, sampleId);
+
+              statement2.executeQuery().withCloseable { ResultSet rs2 ->
+                if (rs2.next()) {
+                  res = false;
+                }
+              }
+            }
+          }
         }
       }
     } catch (Exception ex) {
       ex.printStackTrace();
     }
-    println "new location: "+res
     return res;
   }
 
-  private void updateCurrentLocationInDB(String sampleId, int personId, int locationId, Location location, Connection connection) {
-    String sql = "UPDATE samples_locations SET sample_id=?, location_id=?, arrival_time=?, forwarded_time=?, sample_status=?, responsible_person_id=?"
-
-    PreparedStatement statement = connection.prepareStatement(sql);
-    statement.setString(1, sampleId);
-    statement.setInt(2, locationId);
-    statement.setDate(3, location.getArrivalDate());
-    statement.setDate(4, location.getforwardDate());
-    statement.setString(5, location.getStatus().toString());
-    statement.setInt(6, personId);
-    statement.executeQuery();
-    connection.commit();
+  private void updateCurrentLocationObjectInDB(String sampleId, int personId, int locationId, Location location, Connection connection) {
+    String sql = "UPDATE samples_locations SET arrival_time=?, forwarded_time=?, sample_status=?, responsible_person_id=? WHERE sample_id=? AND location_id=?"
+    connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+      statement.setDate(1, location.getArrivalDate());
+      statement.setDate(2, location.getforwardDate());
+      statement.setString(3, location.getStatus().toString());
+      statement.setInt(4, personId);
+      statement.setString(5, sampleId);
+      statement.setInt(6, locationId);
+      statement.execute();
+    }
   }
 
-  private HttpResponse setNewLocationAsCurrent(String sampleId, Location location) {
+  private HttpResponse setNewLocationAsCurrent(String sampleId, int personId, int locationId, Location location, Connection connection) {
     HttpResponse response = HttpResponse.accepted();
     String sql = "INSERT INTO samples_locations (sample_id, location_id, arrival_time, forwarded_time, sample_status, responsible_person_id) VALUES (?,?,?,?,?,?)"
-    Connection connection = manager.getConnection()
-    connection.setAutoCommit(false);
     try {
-      int personId = getPersonIdFromEmail(location.getResponsiblePerson(), connection)
-      int locationId = getLocationIdFromName(location.getName(), connection);
-      addOrUpdateSample(sampleId, locationId, connection)
-      PreparedStatement statement = connection.prepareStatement(sql);
-      statement.setString(1, sampleId);
-      statement.setInt(2, locationId);
-      statement.setDate(3, location.getArrivalDate());
-      statement.setDate(4, location.getforwardDate());
-      statement.setString(5, location.getStatus().toString());
-      statement.setInt(6, personId);
-      statement.executeQuery();
-      connection.commit();
+      connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.setString(1, sampleId);
+        statement.setInt(2, locationId);
+        statement.setDate(3, location.getArrivalDate());
+        statement.setDate(4, location.getforwardDate());
+        statement.setString(5, location.getStatus().toString());
+        statement.setInt(6, personId);
+        statement.execute();
+      }
       //                logger.error("Project has been successfully added to all related tables.");
       //                success = true;
     } catch (Exception ex) {
@@ -168,28 +176,31 @@ class SamplesController {
       connection.rollback();
       response = HttpResponse.badRequest();
     }
-    connection.setAutoCommit(true);
     return response;
   }
 
   private void addOrUpdateSample(String sampleId, int locationId, Connection connection) {
     String search = "SELECT * FROM samples where id = ?"
     try{
-      PreparedStatement statement = connection.prepareStatement(search);
-      statement.setString(1, sampleId);
-      ResultSet rs = statement.executeQuery();
-      if(!rs.next()) {
-        String create = "INSERT into samples (id, current_location_id) VALUES(?,?)"
-        statement = connection.prepareStatement(create);
+      connection.prepareStatement(search).withCloseable { PreparedStatement statement ->
         statement.setString(1, sampleId);
-        statement.setInt(2, locationId);
-        statement.executeQuery();
-      } else {
-        String update = "UPDATE samples SET current_location_id = ? WHERE sample_id = ?"
-        statement = connection.prepareStatement(update);
-        statement.setInt(1, locationId);
-        statement.setString(2, sampleId);
-        statement.executeQuery();
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          if(!rs.next()) {
+            String create = "INSERT into samples (id, current_location_id) VALUES(?,?)"
+            connection.prepareStatement(create).withCloseable { PreparedStatement statement2 ->
+              statement2.setString(1, sampleId);
+              statement2.setInt(2, locationId);
+              statement2.execute();
+            }
+          } else {
+            String update = "UPDATE samples SET current_location_id = ? WHERE id = ?"
+            connection.prepareStatement(update).withCloseable { PreparedStatement statement3 ->
+              statement3.setInt(1, locationId);
+              statement3.setString(2, sampleId);
+              statement3.execute();
+            }
+          }
+        }
       }
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
@@ -219,34 +230,36 @@ class SamplesController {
         "INNER JOIN locations ON samples_locations.location_id = locations.id "+
         "WHERE UPPER(samples.id) = UPPER(?)";
     try {
-      PreparedStatement statement = manager.getConnection().prepareStatement(sql);
-      statement.setString(1, code);
-      ResultSet rs = statement.executeQuery();
-      List<Location> pastLocs = new ArrayList<>()
-      Location currLoc = null;
-      while (rs.next()) {
-        int currID = rs.getInt("current_location_id");
-        int locID = rs.getInt("location_id");
-        Date arrivalDate = rs.getDate("arrival_time");
-        Date forwardedDate = rs.getDate("forwarded_time");
-        Status status = rs.getString("sample_status");
-        String name = rs.getString("name");
-        String street = rs.getString("street");
-        String country = rs.getString("country");
-        int zip = rs.getInt("zip_code");
+      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.setString(1, code);
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          List<Location> pastLocs = new ArrayList<>()
+          Location currLoc = null;
+          while (rs.next()) {
+            int currID = rs.getInt("current_location_id");
+            int locID = rs.getInt("location_id");
+            Date arrivalDate = rs.getDate("arrival_time");
+            Date forwardedDate = rs.getDate("forwarded_time");
+            Status status = rs.getString("sample_status");
+            String name = rs.getString("name");
+            String street = rs.getString("street");
+            String country = rs.getString("country");
+            int zip = rs.getInt("zip_code");
 
-        Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
-        int personID = rs.getInt("responsible_person_id");
-        String responsiblePerson = getPersonNameByID(personID)
+            Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
+            int personID = rs.getInt("responsible_person_id");
+            String responsiblePerson = getPersonNameByID(personID)
 
-        if(currID == locID) {
-          currLoc = new Location(name: name, responsiblePerson: responsiblePerson, address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
-        } else {
-          pastLocs.add(new Location(name: name, responsiblePerson: responsiblePerson, address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate));
+            if(currID == locID) {
+              currLoc = new Location(name: name, responsiblePerson: responsiblePerson, address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
+            } else {
+              pastLocs.add(new Location(name: name, responsiblePerson: responsiblePerson, address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate));
+            }
+          }
+          if(currLoc!=null) {
+            res = new Sample(code: code, currentLocation: currLoc, pastLocations: pastLocs)
+          }
         }
-      }
-      if(currLoc!=null) {
-        res = new Sample(code: code, currentLocation: currLoc, pastLocations: pastLocs)
       }
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
@@ -260,14 +273,16 @@ class SamplesController {
     String res = null;
     String sql = "SELECT * from persons WHERE id = ?";
     try {
-      PreparedStatement statement = manager.getConnection().prepareStatement(sql);
-      statement.setInt(1, id);
-      ResultSet rs = statement.executeQuery();
-      if (rs.next()) {
-        //        logger.info("email found!");
-        String firstName = rs.getString("first_name")
-        String lastName = rs.getString("family_name")
-        res = firstName+" "+lastName
+      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.setInt(1, id);
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          if (rs.next()) {
+            //        logger.info("email found!");
+            String firstName = rs.getString("first_name")
+            String lastName = rs.getString("family_name")
+            res = firstName+" "+lastName
+          }
+        }
       }
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
@@ -281,17 +296,19 @@ class SamplesController {
     boolean res = false;
     String sql = "SELECT * from samples WHERE UPPER(id) = UPPER(?)";
     try {
-      PreparedStatement statement = manager.getConnection().prepareStatement(sql);
-      statement.setString(1, sampleId);
-      ResultSet rs = statement.executeQuery();
-      if (rs.next()) {
-        int locationID = rs.getInt("current_location_ID");
-        //        String oldStatus = getStatus(sampleID, locationID);
-        //        int currIndex = stati.indexOf(oldStatus);
-        //        if(currIndex+1 < stati.size()) {
-        setStatus(sampleId, locationID, status);
-        res = true;
-        //        }
+      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.setString(1, sampleId);
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          if (rs.next()) {
+            int locationID = rs.getInt("current_location_ID");
+            //        String oldStatus = getStatus(sampleID, locationID);
+            //        int currIndex = stati.indexOf(oldStatus);
+            //        if(currIndex+1 < stati.size()) {
+            setStatus(sampleId, locationID, status);
+            res = true;
+            //        }
+          }
+        }
       }
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
@@ -303,11 +320,12 @@ class SamplesController {
   private void setStatus(String sampleID, int locationID, Status status) {
     String sql = "UPDATE samples_locations SET sample_status = ? where sample_id = ? and location_id = ?";
     try {
-      PreparedStatement statement = manager.getConnection().prepareStatement(sql);
-      statement.setString(1, status.toString());
-      statement.setString(2, sampleID);
-      statement.setInt(3, locationID);
-      statement.executeQuery();
+      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.setString(1, status.toString());
+        statement.setString(2, sampleID);
+        statement.setInt(3, locationID);
+        statement.execute();
+      }
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
@@ -319,12 +337,14 @@ class SamplesController {
     int res = -1;
     String sql = "SELECT * from locations WHERE UPPER(name) = UPPER(?)";
     try {
-      PreparedStatement statement = connection.prepareStatement(sql);
-      statement.setString(1, locationName);
-      ResultSet rs = statement.executeQuery();
-      if (rs.next()) {
-        //        logger.info("email found!");
-        res = rs.getInt("id");
+      connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.setString(1, locationName);
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          if (rs.next()) {
+            //        logger.info("email found!");
+            res = rs.getInt("id");
+          }
+        }
       }
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
@@ -335,20 +355,24 @@ class SamplesController {
 
   private int getPersonIdFromEmail(String email, Connection connection) {
     //    logger.info("Looking for user with email " + email + " in the DB");
+    println email
     int res = -1;
     String sql = "SELECT * from persons WHERE UPPER(email) = UPPER(?)";
     try {
-      PreparedStatement statement = connection.prepareStatement(sql);
-      statement.setString(1, email);
-      ResultSet rs = statement.executeQuery();
-      if (rs.next()) {
-        //        logger.info("email found!");
-        res = rs.getInt("id");
+      connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.setString(1, email);
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          if (rs.next()) {
+            //        logger.info("email found!");
+            res = rs.getInt("id");
+          }
+        }
       }
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
     }
+    println res
     return res
   }
 }

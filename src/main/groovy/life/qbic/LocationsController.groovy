@@ -42,7 +42,7 @@ class LocationsController {
     }
   }
 
-  List<Contact> searchPersonByEmail(String email) {
+  Contact searchPersonByEmail(String email) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Contact contact = null;
     String sql = "SELECT * from persons WHERE UPPER(email) = UPPER(?)"
@@ -66,22 +66,23 @@ class LocationsController {
     return contact
   }
 
-  List<Address> getAddressByPerson(int personID) {
+  Address getAddressByPerson(int personID) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Address res = null;
     String sql = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id WHERE person_id = ?";
     try {
       manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
         statement.setInt(1, personID);
-        ResultSet rs = statement.executeQuery();
-        if (rs.next()) {
-          //        logger.info("email found!");
-          String affiliation = rs.getString("name");
-          String street = rs.getString("street");
-          int zip = rs.getInt("zip_code");
-          String country = rs.getString("country");
+        statement.executeQuery().withCloseable { ResultSet resultSet ->
+          if (rs.next()) {
+            //        logger.info("email found!");
+            String affiliation = rs.getString("name");
+            String street = rs.getString("street");
+            int zip = rs.getInt("zip_code");
+            String country = rs.getString("country");
 
-          res = new Address(affiliation: affiliation, street: street, zipCode: zip, country: country)
+            res = new Address(affiliation: affiliation, street: street, zipCode: zip, country: country)
+          }
         }
       }
     } catch (Exception e) {

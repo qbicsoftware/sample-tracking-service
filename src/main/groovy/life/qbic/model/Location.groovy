@@ -6,6 +6,7 @@ import io.micronaut.context.annotation.Requires
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import javax.inject.Singleton
+import java.sql.Date
 
 class Location  {
 
@@ -112,8 +113,8 @@ class Location  {
    * @return arrivalDate
    **/
   @JsonProperty("arrival_date")
-  public Date getArrivalDate() {
-    return arrivalDate;
+  public String getArrivalDate() {
+    return parseDate(arrivalDate);
   }
 
   public void setArrivalDate(Date arrivalDate) {
@@ -130,8 +131,8 @@ class Location  {
    * @return forwardDate
    **/
   @JsonProperty("forward_date")
-  public Date getforwardDate() {
-    return forwardDate;
+  public String getforwardDate() {
+    return parseDate(forwardDate);
   }
 
   public void setforwardDate(Date forwardDate) {
@@ -152,16 +153,17 @@ class Location  {
     sb.append("    responsible person: ").append(toIndentedString(responsiblePerson)).append("\n");
     sb.append("    address: ").append(toIndentedString(address)).append("\n");
     sb.append("    sample status: ").append(toIndentedString(status)).append("\n");
-    sb.append("    arrival date: ").append(toIndentedString(parseDate(arrivalDate))).append("\n");
-    sb.append("    forward date: ").append(toIndentedString(parseDate(forwardDate))).append("\n");
+    sb.append("    arrival date: ").append(toIndentedString(arrivalDate)).append("\n");
+    sb.append("    forward date: ").append(toIndentedString(forwardDate)).append("\n");
     sb.append("}");
     return sb.toString();
   }
 
   public String parseDate(Date date) {
-    return date;
-//    DateFormat df = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
-//    return df.format(date);
+    TimeZone tz = TimeZone.getTimeZone("MEZ");
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+    df.setTimeZone(tz);
+    return df.format(date);
   }
   
   /**
