@@ -20,23 +20,26 @@ class DBManager {
 
   private final String databaseURL
   private final String driverClass
-  private Connection databaseConnection
+  private Connection connection
 
   DBManager(@Property(name = 'app.db.host') String databaseHost,
-            @Property(name = 'app.db.port') String databasePort,
-            @Property(name = 'app.db.name') String databaseName,
-            @Property(name = 'app.db.user') String databaseUser,
-            @Property(name = 'app.db.pw') String userPassword,
-            @Property(name = 'app.db.driver.class') String driverClass,
-            @Property(name = 'app.db.driver.prefix') String driverPrefix) {
-    databaseURL = driverPrefix + "://" + databaseHost + ":" + databasePort + "/" + databaseName
+  @Property(name = 'app.db.port') String databasePort,
+  @Property(name = 'app.db.name') String databaseName,
+  @Property(name = 'app.db.user') String databaseUser,
+  @Property(name = 'app.db.pw') String userPassword,
+  @Property(name = 'app.db.driver.class') String driverClass,
+  @Property(name = 'app.db.driver.prefix') String driverPrefix) {
+    databaseURL = driverPrefix + "://" + databaseHost + ":" + databasePort + "/" + databaseName;
+    if (databasePort == null || databasePort.isEmpty()) {
+      databaseURL = driverPrefix + ":" + databaseHost + "/" + databaseName;
+    }
     this.driverClass = driverClass
     loginWithCredentials(new DatabaseCredentials(databaseUser, userPassword))
   }
 
   private void loginWithCredentials(DatabaseCredentials credentials) throws Exception{
     Class.forName(this.driverClass)
-    databaseConnection = DriverManager.getConnection(this.databaseURL, credentials.user, credentials.password)
+    connection = DriverManager.getConnection(this.databaseURL, credentials.user, credentials.password)
   }
 
   class DatabaseCredentials {

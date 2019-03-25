@@ -15,6 +15,12 @@ import io.micronaut.http.annotation.Put
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.sql.Statement
+
+import life.qbic.DBManager.DatabaseCredentials
 import life.qbic.model.Contact
 import life.qbic.model.Location
 import life.qbic.model.Sample
@@ -39,28 +45,29 @@ class LocationsControllerIntegrationTest {
 
   @BeforeClass
   static void setupServer() {
-    Map<String, String> env = System.getenv();
-    //
+    String port = ""
+    String prefix = "jdbc:hsqldb"
+    String host = "mem:mymemdb;shutdown=true"
+    String dbName = "test"
+    String driver = "org.hsqldb.jdbc.JDBCDriver"
+
+    //    String databaseURL = prefix + ":" + host + "/" + dbName;
+    //    Class.forName(driver);
+    //    DriverManager.getConnection(databaseURL, "bob", "");
+
     PropertySource source = PropertySource.of("test", CollectionUtils.mapOf(
-        //            "app.db.host", env.get("TEST_MYSQL_HOST"),
-        //            "app.db.port", env.get("TEST_MYSQL_PORT"),
-        //            "app.db.name", env.get("TEST_MYSQL_DB"),
-        //            "app.db.user", env.get("TEST_MYSQL_USER"),
-        //            "app.db.pw", env.get("TEST_MYSQL_PW")
-        //            ,"app.db.driver.class", "org.mariadb.jdbc.Driver",
-        //            "app.db.driver.prefix", "jdbc:mariadb"
+        "app.db.host", host,
+        "app.db.port", port,
+        "app.db.name", dbName,
+        "app.db.user", "bob",
+        "app.db.pw", "",
+        "app.db.driver.class", driver,
+        "app.db.driver.prefix", prefix
         ))
-    
-    //        db = new DBTester(env.get("TEST_MYSQL_HOST"),env.get("TEST_MYSQL_PORT"),env.get("TEST_MYSQL_DB"),env.get("TEST_MYSQL_USER"),env.get("TEST_MYSQL_PW"),"org.mariadb.jdbc.Driver","jdbc:mariadb")
+
+    db = new DBTester(host, port, dbName, "bob", "", driver, prefix)
+    db.createTables()
     server = ApplicationContext.run(EmbeddedServer.class, source, "test")
-
-    //    assertEquals(
-    //    environment.getProperty("micronaut.server.host", String.class).orElse("localhost"),
-    //    "foo"
-    //    );
-
-    //    server = ApplicationContext.run(EmbeddedServer.class)
-    //    Environment environment = server.getEnvironment();
     client = server
         .getApplicationContext()
         .createBean(HttpClient.class, server.getURL())
