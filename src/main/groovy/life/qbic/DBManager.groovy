@@ -1,10 +1,7 @@
-package life.qbic;
+package life.qbic
 
 import java.sql.Connection
 import java.sql.DriverManager
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.Statement
 
 import javax.inject.Singleton
 
@@ -21,44 +18,33 @@ import io.micronaut.context.annotation.Requires
 @Requires(property = 'app.db.driver.prefix')
 class DBManager {
 
-  private final String dbURL
-  private final String userName
-  private final String password
-  private final String driverPrefix
+  private final String databaseURL
   private final String driverClass
-  private final Connection connection
+  private Connection databaseConnection
 
-  DBManager(@Property(name = 'app.db.host') String host,
-            @Property(name = 'app.db.port') String port,
-            @Property(name = 'app.db.name') String name,
-            @Property(name = 'app.db.user') String user,
-            @Property(name = 'app.db.pw') String pw,
+  DBManager(@Property(name = 'app.db.host') String databaseHost,
+            @Property(name = 'app.db.port') String databasePort,
+            @Property(name = 'app.db.name') String databaseName,
+            @Property(name = 'app.db.user') String databaseUser,
+            @Property(name = 'app.db.pw') String userPassword,
             @Property(name = 'app.db.driver.class') String driverClass,
             @Property(name = 'app.db.driver.prefix') String driverPrefix) {
-    this.dbURL = driverPrefix + "://" + host + ":" + port + "/" + name
-    this.userName = user
-    this.password = pw
+    databaseURL = driverPrefix + "://" + databaseHost + ":" + databasePort + "/" + databaseName
     this.driverClass = driverClass
-    this.connection = login()
+    loginWithCredentials(new DatabaseCredentials(databaseUser, userPassword))
   }
 
-  private void logout(Connection conn) {
-    if (conn != null)
-      conn.close()
+  private void loginWithCredentials(DatabaseCredentials credentials) throws Exception{
+    Class.forName(this.driverClass)
+    databaseConnection = DriverManager.getConnection(this.databaseURL, credentials.user, credentials.password)
   }
 
-  Connection getConnection() {
-    return connection
-  }
+  class DatabaseCredentials {
+    String user, password
 
-  private Connection login() {
-    Connection conn = null
-    try {
-      Class.forName(this.driverClass)
-      conn = DriverManager.getConnection(this.dbURL, this.userName, this.password)
-    } catch (Exception e) {
-      e.printStackTrace()
+    DatabaseCredentials(String user, String password){
+      this.user = user
+      this.password = password
     }
-    return conn
   }
 }
