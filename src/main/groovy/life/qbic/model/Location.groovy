@@ -116,7 +116,7 @@ class Location  {
   public String getArrivalDate() {
     return parseDate(arrivalDate);
   }
-
+  
   public void setArrivalDate(Date arrivalDate) {
     this.arrivalDate = arrivalDate;
   }
@@ -131,10 +131,10 @@ class Location  {
    * @return forwardDate
    **/
   @JsonProperty("forward_date")
-  public String getforwardDate() {
+  public String getForwardDate() {
     return parseDate(forwardDate);
   }
-
+  
   public void setforwardDate(Date forwardDate) {
     this.forwardDate = forwardDate;
   }

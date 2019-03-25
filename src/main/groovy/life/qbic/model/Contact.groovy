@@ -66,12 +66,11 @@ public class Contact  {
     return this;
   }
 
-
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class Contact {\n");
-    sb.append("    fullName: ").append(toIndentedString(fullName)).append("\n");
+    sb.append("    full_name: ").append(toIndentedString(fullName)).append("\n");
     sb.append("    address: ").append(toIndentedString(address)).append("\n");
     sb.append("    email: ").append(toIndentedString(email)).append("\n");
     sb.append("}");

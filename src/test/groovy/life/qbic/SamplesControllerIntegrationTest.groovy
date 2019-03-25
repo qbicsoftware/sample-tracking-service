@@ -22,15 +22,23 @@ import life.qbic.model.Status
 
 import org.json.JSONObject
 import org.junit.AfterClass
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
 
-class MyControllerTest {
+class SamplesControllerIntegrationTest {
 
+//  //  private static DBManager db
 //  private static EmbeddedServer server
 //  private static HttpClient client
+//  private LocationsController locations
+//
+//  @Before
+//  void setupMock() {
+//    locations = new LocationsController(new QueryMock());
+//  }
 //
 //  @BeforeClass
 //  static void setupServer() {
@@ -45,6 +53,7 @@ class MyControllerTest {
 //        //        ,"app.db.driver.class", "org.mariadb.jdbc.Driver",
 //        //        "app.db.driver.prefix", "jdbc:mariadb"
 //        ))
+//    //    db = ApplicationContext.run(DBManager.class)
 //    server = ApplicationContext.run(EmbeddedServer.class, source, "test")
 //    //    Environment environment = server.getEnvironment();
 //
@@ -105,119 +114,7 @@ class MyControllerTest {
 //    }
 //    assertEquals(error, "Not Found")
 //  }
-//  //
-//  //  @Post("/{sampleId}/currentLocation/")
-//  //  HttpResponse newLocation(@Parameter('sampleId') String sampleId, Location location) {
-//  //
-//  //    Connection connection = manager.getConnection()
-//  //    connection.setAutoCommit(false);
-//  //
-//  //    try {
-//  //      int personId = getPersonIdFromEmail(location.getResponsibleEmail(), connection);
-//  //      int locationId = getLocationIdFromName(location.getName(), connection);
-//  //      if(isNewSampleLocation(sampleId, location)) {
-//  //        setNewLocationAsCurrent(sampleId, personId, locationId, location, connection)
-//  //        addOrUpdateSample(sampleId, locationId, connection)
-//  //        connection.commit()
-//  //      }
-//  //    } catch (Exception ex) {
-//  //      ex.printStackTrace();
-//  //      connection.rollback()
-//  //    }
-//  //    connection.setAutoCommit(true)
-//  //
-//  //    HttpResponse.created(new URI("/"+sampleId));
-//  //  }
-//  //
-//  //  /**
-//  //   * update or create location of a specific sample
-//  //   * @param sampleId sample code from the URL
-//  //   * @param location location object, transferred via json body
-//  //   * @return
-//  //   */
-//  //  @Put("/{sampleId}/currentLocation/")
-//  //  HttpResponse<Location> updateLocation(@Parameter('sampleId') String sampleId, Location location) {
-//  //    HttpResponse<Location> response = HttpResponse.accepted();
-//  //
-//  //    Connection connection = manager.getConnection()
-//  //    connection.setAutoCommit(false);
-//  //    try {
-//  //      int personId = getPersonIdFromEmail(location.getResponsibleEmail(), connection);
-//  //      int locationId = getLocationIdFromName(location.getName(), connection);
-//  //
-//  //      // if the location changed, change the location of the sample
-//  //      if(isNewSampleLocation(sampleId, location)) {
-//  //        response = setNewLocationAsCurrent(sampleId, personId, locationId, location, connection)
-//  //      } else {
-//  //        // else: update information about the sample at the current location (times, status, etc.)
-//  //        updateCurrentLocationObjectInDB(sampleId, personId, locationId, location, connection)
-//  //      }
-//  //
-//  //      // update sample table current location id OR create new row
-//  //      addOrUpdateSample(sampleId, locationId, connection)
-//  //
-//  //      connection.commit();
-//  //    } catch (Exception e) {
-//  //      e.printStackTrace()
-//  //      connection.rollback();
-//  //    }
-//  //    connection.setAutoCommit(true)
-//  //    return response;
-//  //  }
 //
-//
-//  @Test
-//  void testNonExistingContact() throws Exception {
-//    HttpRequest request = HttpRequest.GET("/locations/contacts/ian.banks@limitingfactor.com")
-//    String error = "";
-//    try {
-//      HttpResponse response = client.toBlocking().exchange(request)
-//    } catch (HttpClientResponseException e) {
-//      error = e.getMessage()
-//    }
-//    assertEquals(error, "Not Found")
-//  }
-//
-//  @Test
-//  void testContact() throws Exception {
-//    String email = "jernau@hassease.gv"
-//    String first = "Jernau"
-//    String last ="Gurgeh"
-//    String affName = "Gevantsa"
-//    String street = "Hassease"
-//    int zip = 0
-//    String country = "Chiark"
-//
-//    int personID = db.addPerson("Morat", first, last, email, "")
-//    int locationID = db.addLocationForPerson(affName, street, country, 0, personID)
-//
-//    HttpRequest request = HttpRequest.GET("/locations/contacts/"+email)
-//    String body = client.toBlocking().retrieve(request)
-//    JSONObject json = new JSONObject(body);
-//
-//    assertNotNull(body)
-//    assertEquals(json.get("full_name"),first+" "+last)
-//    assertEquals(json.get("email"),email)
-//    JSONObject address = json.get("address")
-//    assertEquals(address.get("affiliation"),affName)
-//    assertEquals(address.get("street"),street)
-//    assertEquals(address.get("zip_code"),zip)
-//    assertEquals(address.get("country"),country)
-//
-//    db.removeLocationAndPerson(personID, locationID)
-//  }
-//
-//  @Test
-//  void testMalformedContact() throws Exception {
-//    HttpRequest request = HttpRequest.GET("/locations/contacts/justreadtheinstructions")
-//    String error = ""
-//    try {
-//      HttpResponse response = client.toBlocking().exchange(request)
-//    } catch (HttpClientResponseException e) {
-//      error = e.getMessage()
-//    }
-//    assertEquals(error, "Bad Request")
-//  }
 //
 //  @Test
 //  void testStatusMalformedSample() throws Exception {
@@ -249,7 +146,6 @@ class MyControllerTest {
 //    body = client.toBlocking().retrieve(request)
 //    assertEquals(body, "Sample status updated.")
 //
-//    println body
 //    request = HttpRequest.GET("/samples/"+code)
 //    body = client.toBlocking().retrieve(request)
 //    json = new JSONObject(body);
