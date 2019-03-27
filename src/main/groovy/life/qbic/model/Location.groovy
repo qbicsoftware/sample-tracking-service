@@ -6,7 +6,7 @@ import io.micronaut.context.annotation.Requires
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import javax.inject.Singleton
-import java.sql.Date
+import java.util.Date
 
 class Location  {
 
@@ -53,7 +53,7 @@ class Location  {
     this.responsiblePerson = responsiblePerson;
     return this;
   }
-  
+
   /**
    * Get responsibleEmail
    * @return responsibleEmail
@@ -71,7 +71,7 @@ class Location  {
     this.responsibleEmail = responsibleEmail;
     return this;
   }
-  
+
   /**
    * Get address
    * @return address
@@ -116,7 +116,7 @@ class Location  {
   public String getArrivalDate() {
     return parseDate(arrivalDate);
   }
-  
+
   public void setArrivalDate(Date arrivalDate) {
     this.arrivalDate = arrivalDate;
   }
@@ -134,7 +134,7 @@ class Location  {
   public String getForwardDate() {
     return parseDate(forwardDate);
   }
-  
+
   public void setforwardDate(Date forwardDate) {
     this.forwardDate = forwardDate;
   }
@@ -151,6 +151,7 @@ class Location  {
 
     sb.append("    name: ").append(toIndentedString(name)).append("\n");
     sb.append("    responsible person: ").append(toIndentedString(responsiblePerson)).append("\n");
+    sb.append("    responsible person email: ").append(toIndentedString(responsibleEmail)).append("\n");
     sb.append("    address: ").append(toIndentedString(address)).append("\n");
     sb.append("    sample status: ").append(toIndentedString(status)).append("\n");
     sb.append("    arrival date: ").append(toIndentedString(arrivalDate)).append("\n");
@@ -159,13 +160,18 @@ class Location  {
     return sb.toString();
   }
 
+  public boolean equals(Object o) {
+    Location a = (Location) o
+    return a.status.equals(this.status) && a.address.equals(this.address) && a.getArrivalDate().equals(this.getArrivalDate()) && a.getForwardDate().equals(this.getForwardDate()) && a.name.equals(this.name) && a.responsibleEmail.equals(this.responsibleEmail) && a.responsiblePerson.equals(this.responsiblePerson)
+  }
+
   public String parseDate(Date date) {
     TimeZone tz = TimeZone.getTimeZone("MEZ");
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
     df.setTimeZone(tz);
     return df.format(date);
   }
-  
+
   /**
    * Convert the given object to string with each line indented by 4 spaces
    * (except the first line).

@@ -29,10 +29,11 @@ class QueryMock implements QueryService {
   //    this.manager = manager
   //  }
 
-  boolean addNewLocation(String sampleId, Location location) {
+  HttpResponse addNewLocation(String sampleId, Location location) {
     println sampleId
     println location
-    return true
+    HttpResponse<Location> response = HttpResponse.created(location)
+    return response
   }
 
   HttpResponse<Location> updateLocation(String sampleId, Location location) {

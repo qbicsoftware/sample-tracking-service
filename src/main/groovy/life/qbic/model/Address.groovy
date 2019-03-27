@@ -13,10 +13,10 @@ class Address  {
   private Integer zipCode
   private String country
 
- /**
+  /**
    * Get affiliation
    * @return affiliation
-  **/
+   **/
   @JsonProperty("affiliation")
   public String getAffiliation() {
     return affiliation;
@@ -31,10 +31,10 @@ class Address  {
     return this;
   }
 
- /**
+  /**
    * Get street
    * @return street
-  **/
+   **/
   @JsonProperty("street")
   public String getStreet() {
     return street;
@@ -48,29 +48,29 @@ class Address  {
     this.street = street;
     return this;
   }
-//
-// /**
-//   * Get number
-//   * @return number
-//  **/
-//  @JsonProperty("number")
-//  public Integer getNumber() {
-//    return number;
-//  }
-//
-//  public void setNumber(Integer number) {
-//    this.number = number;
-//  }
-//
-//  public Address number(Integer number) {
-//    this.number = number;
-//    return this;
-//  }
+  //
+  // /**
+  //   * Get number
+  //   * @return number
+  //  **/
+  //  @JsonProperty("number")
+  //  public Integer getNumber() {
+  //    return number;
+  //  }
+  //
+  //  public void setNumber(Integer number) {
+  //    this.number = number;
+  //  }
+  //
+  //  public Address number(Integer number) {
+  //    this.number = number;
+  //    return this;
+  //  }
 
- /**
+  /**
    * Get zipCode
    * @return zipCode
-  **/
+   **/
   @JsonProperty("zip_code")
   public Integer getZipCode() {
     return zipCode;
@@ -85,10 +85,10 @@ class Address  {
     return this;
   }
 
- /**
+  /**
    * Get country
    * @return country
-  **/
+   **/
   @JsonProperty("country")
   public String getCountry() {
     return country;
@@ -103,12 +103,17 @@ class Address  {
     return this;
   }
 
+  @Override
+  public boolean equals(Object a) {
+    Address ad = (Address) a
+    return ad.affiliation.equals(this.affiliation) && ad.country.equals(this.country) && ad.street.equals(this.street) && ad.zipCode == this.zipCode
+  }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("class Address {\n");
-    
+
     sb.append("    affiliation: ").append(toIndentedString(affiliation)).append("\n");
     sb.append("    street: ").append(toIndentedString(street)).append("\n");
 //    sb.append("    number: ").append(toIndentedString(number)).append("\n");

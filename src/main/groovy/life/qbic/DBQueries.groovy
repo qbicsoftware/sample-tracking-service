@@ -11,6 +11,7 @@ import io.micronaut.http.annotation.Put
 import life.qbic.model.Address
 import life.qbic.model.Contact
 import life.qbic.model.Location
+import life.qbic.model.Person
 import life.qbic.model.Sample
 import life.qbic.model.Status
 
@@ -19,6 +20,7 @@ import java.sql.Date
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.SQLException
+import java.sql.Timestamp
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.regex.Matcher
@@ -33,9 +35,9 @@ class DBQueries implements QueryService {
     this.manager = manager
   }
 
-  boolean addNewLocation(String sampleId, Location location) {
-    boolean res = true
-    Connection connection = manager.getConnection()
+  HttpResponse<Location> addNewLocation(String sampleId, Location location) {
+    HttpResponse response = HttpResponse.created(location);
+    Connection connection = manager.connection
     connection.setAutoCommit(false)
     try {
       int personId = getPersonIdFromEmail(location.getResponsibleEmail(), connection);
@@ -52,17 +54,16 @@ class DBQueries implements QueryService {
         connection.commit()
       }
     } catch (Exception ex) {
-      ex.printStackTrace();
       connection.rollback()
-      res = false
+      response = HttpResponse.badRequest(ex.getMessage())
     }
     connection.setAutoCommit(true)
-    return res
+    return response
   }
 
   HttpResponse<Location> updateLocation(String sampleId, Location location) {
     HttpResponse response = HttpResponse.created(location);
-    Connection connection = manager.getConnection()
+    Connection connection = manager.connection
     connection.setAutoCommit(false);
     try {
       int personId = getPersonIdFromEmail(location.getResponsibleEmail(), connection);
@@ -87,7 +88,6 @@ class DBQueries implements QueryService {
 
       connection.commit();
     } catch (Exception e) {
-      e.printStackTrace()
       connection.rollback();
       response = HttpResponse.badRequest(e.getMessage())
     }
@@ -146,7 +146,7 @@ class DBQueries implements QueryService {
 
   private boolean isNewSampleLocation(String sampleId, Location location) {
     String locationIDQuery = "SELECT id FROM locations WHERE name = ?;"
-    Connection connection = manager.getConnection()
+    Connection connection = manager.connection
     boolean res = true;
     try {
       connection.prepareStatement(locationIDQuery).withCloseable { PreparedStatement statement ->
@@ -181,14 +181,18 @@ class DBQueries implements QueryService {
     TimeZone tz = TimeZone.getTimeZone("MEZ");
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
     df.setTimeZone(tz)
-    return new java.sql.Date(df.parse(date).getTime())
+    java.sql.Date res = new java.sql.Date(df.parse(date).getTime())
+    return res
   }
 
   private boolean updateCurrentLocationObjectInDB(String sampleId, int personId, int locationId, Location location, Connection connection) {
     String sql = "UPDATE samples_locations SET arrival_time=?, forwarded_time=?, sample_status=?, responsible_person_id=? WHERE sample_id=? AND location_id=?"
     connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
-      statement.setDate(1, parseDate(location.getArrivalDate()))
-      statement.setDate(2, parseDate(location.getForwardDate()))
+      Calendar cal = Calendar.getInstance();
+      statement.setTimestamp(1, new Timestamp(parseDate(location.getArrivalDate()).getTime()))
+      statement.setTimestamp(2, new Timestamp(parseDate(location.getForwardDate()).getTime()))
+//      statement.setDate(1, parseDate(location.getArrivalDate()),cal)
+//      statement.setDate(2, parseDate(location.getForwardDate()),cal)
       statement.setString(3, location.getStatus().toString())
       statement.setInt(4, personId)
       statement.setString(5, sampleId)
@@ -204,8 +208,11 @@ class DBQueries implements QueryService {
     connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
       statement.setString(1, sampleId)
       statement.setInt(2, locationId)
-      statement.setDate(3, parseDate(location.getArrivalDate()))
-      statement.setDate(4, parseDate(location.getForwardDate()))
+      Calendar cal = Calendar.getInstance();
+      statement.setTimestamp(3, new Timestamp(parseDate(location.getArrivalDate()).getTime()))
+      statement.setTimestamp(4, new Timestamp(parseDate(location.getForwardDate()).getTime()))
+//      statement.setDate(3, parseDate(location.getArrivalDate()),cal)
+//      statement.setDate(4, parseDate(location.getForwardDate()),cal)
       statement.setString(5, location.getStatus().toString())
       statement.setInt(6, personId)
       statement.execute()
@@ -261,12 +268,12 @@ class DBQueries implements QueryService {
 
             Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
             int personID = rs.getInt("responsible_person_id");
-            String responsiblePerson = getPersonNameByID(personID)
+            Person pers = getPersonNameByID(personID)
 
             if(currID == locID) {
-              currLoc = new Location(name: name, responsiblePerson: responsiblePerson, address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
+              currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
             } else {
-              pastLocs.add(new Location(name: name, responsiblePerson: responsiblePerson, address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate));
+              pastLocs.add(new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate));
             }
           }
           if(currLoc!=null) {
@@ -281,9 +288,9 @@ class DBQueries implements QueryService {
     return res
   }
 
-  private String getPersonNameByID(int id) {
+  private Person getPersonNameByID(int id) {
     //    logger.info("Looking for user with email " + email + " in the DB");
-    String res = null;
+    Person res = null;
     String sql = "SELECT * from persons WHERE id = ?";
     try {
       manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
@@ -293,7 +300,8 @@ class DBQueries implements QueryService {
             //        logger.info("email found!");
             String firstName = rs.getString("first_name")
             String lastName = rs.getString("family_name")
-            res = firstName+" "+lastName
+            String email = rs.getString("email")
+            res = new Person(firstName, lastName, email)
           }
         }
       }

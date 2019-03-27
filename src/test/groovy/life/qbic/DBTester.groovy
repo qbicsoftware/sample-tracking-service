@@ -3,6 +3,7 @@ package life.qbic
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
+import java.sql.ResultSetMetaData
 import java.sql.SQLException
 import java.sql.Statement
 import java.text.DateFormat
@@ -10,6 +11,8 @@ import java.text.SimpleDateFormat
 import javax.inject.Inject
 import life.qbic.model.Address
 import life.qbic.model.Location
+import life.qbic.model.Person
+import life.qbic.model.Sample
 import life.qbic.model.Status
 
 class DBTester {
@@ -48,8 +51,8 @@ class DBTester {
     String samples_locations = "CREATE TABLE IF NOT EXISTS SAMPLES_LOCATIONS"+
         "(SAMPLE_ID VARCHAR(14) NOT NULL,"+
         "LOCATION_ID INTEGER NOT NULL,"+
-        "ARRIVAL_TIME DATE,"+
-        "FORWARDED_TIME DATE,"+
+        "ARRIVAL_TIME TIMESTAMP WITH TIME ZONE,"+
+        "FORWARDED_TIME TIMESTAMP WITH TIME ZONE,"+
         "SAMPLE_STATUS VARCHAR(11) DEFAULT 'WAITING' NOT NULL,"+
         "responsible_person_id INTEGER NOT NULL)"
 
@@ -87,6 +90,13 @@ class DBTester {
     } catch (SQLException e) {
       e.printStackTrace();
     }
+  }
+
+  private String parseDate(Date date) {
+    TimeZone tz = TimeZone.getTimeZone("MEZ");
+    DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
+    df.setTimeZone(tz);
+    return df.format(date);
   }
 
   private java.sql.Date parseDate(String date) {
@@ -143,7 +153,7 @@ class DBTester {
   }
 
   int addPersonStandardMetadata(Person p) {
-    return addPerson("user",p.getFirstName(), p.getLastName(),"email","phone")
+    return addPerson("user",p.getFirstName(), p.getLastName(),p.getEMail(),"phone")
   }
 
   int addPerson(String user, String first, String last, String email, String phone) {
@@ -170,9 +180,8 @@ class DBTester {
     return res;
   }
 
-  int addLocationForPerson(String name, String street, String country, int zip, int personID) {
+  int addLocation(String name, String street, String country, int zip) {
     String sql1 = "INSERT INTO locations(name, street, zip_code, country) VALUES(?,?,?,?)"
-    String sql2 = "INSERT INTO persons_locations(person_id, location_id) VALUES(?,?)";
     int locationID = -1;
     try {
       manager.connection.prepareStatement(sql1,Statement.RETURN_GENERATED_KEYS).withCloseable { PreparedStatement statement ->
@@ -190,7 +199,104 @@ class DBTester {
     } catch (SQLException e) {
       e.printStackTrace();
     }
+    return locationID
+  }
 
+  Sample searchSample(String code) {
+    //    logger.info("Looking for user with email " + email + " in the DB");
+    Sample res = null;
+    String sql = "SELECT * from samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
+        "INNER JOIN locations ON samples_locations.location_id = locations.id "+
+        "WHERE UPPER(samples.id) = UPPER(?)";
+    try {
+      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.setString(1, code);
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          List<Location> pastLocs = new ArrayList<>()
+          Location currLoc = null;
+          while (rs.next()) {
+            int currID = rs.getInt("current_location_id");
+            int locID = rs.getInt("location_id");
+            Date arrivalDate = new Date(rs.getTimestamp("arrival_time").getTime())
+            Date forwardedDate = new Date(rs.getTimestamp("forwarded_time").getTime());
+            Status status = rs.getString("sample_status");
+            String name = rs.getString("name");
+            String street = rs.getString("street");
+            String country = rs.getString("country");
+            int zip = rs.getInt("zip_code");
+
+            Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
+            int personID = rs.getInt("responsible_person_id");
+            Person pers = getPersonNameByID(personID)
+
+            if(currID == locID) {
+              currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
+            } else {
+              pastLocs.add(new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate));
+            }
+          }
+          if(currLoc!=null) {
+            res = new Sample(code: code, currentLocation: currLoc, pastLocations: pastLocs)
+          }
+        }
+      }
+    } catch (SQLException e) {
+      //      logger.error("SQL operation unsuccessful: " + e.getMessage());
+      e.printStackTrace();
+    }
+    return res
+  }
+
+  void printTable(String table) {
+    println "Table "+table
+    String sql = "SELECT * from "+table;
+    try {
+      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          ResultSetMetaData metadata = rs.getMetaData();
+          int columnCount = metadata.getColumnCount();
+          while (rs.next()) {
+            for (int i = 1; i <= columnCount; i++) {
+              if (i > 1) System.out.print(",  ");
+              String columnValue = rs.getString(i);
+              System.out.print(columnValue);
+            }
+            System.out.println("");
+          }
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+  }
+
+  private Person getPersonNameByID(int id) {
+    //    logger.info("Looking for user with email " + email + " in the DB");
+    Person res = null;
+    String sql = "SELECT * from persons WHERE id = ?";
+    try {
+      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+        statement.setInt(1, id);
+        statement.executeQuery().withCloseable { ResultSet rs ->
+          if (rs.next()) {
+            //        logger.info("email found!");
+            String firstName = rs.getString("first_name")
+            String lastName = rs.getString("family_name")
+            String email = rs.getString("email")
+            res = new Person(firstName, lastName, email)
+          }
+        }
+      }
+    } catch (SQLException e) {
+      //      logger.error("SQL operation unsuccessful: " + e.getMessage());
+      e.printStackTrace();
+    }
+    return res
+  }
+
+  int addLocationForPerson(String name, String street, String country, int zip, int personID) {
+    int locationID = addLocation(name, street, country, zip)
+    String sql2 = "INSERT INTO persons_locations(person_id, location_id) VALUES(?,?)";
     try {
       manager.connection.prepareStatement(sql2).withCloseable { PreparedStatement statement ->
         statement.setInt(1, personID);

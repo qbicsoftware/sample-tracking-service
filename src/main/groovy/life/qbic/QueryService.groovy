@@ -13,7 +13,7 @@ interface QueryService {
 
   Contact searchPersonByEmail(String email)
   
-  boolean addNewLocation(String sampleId, Location location)
+  HttpResponse addNewLocation(String sampleId, Location location)
   
   HttpResponse updateLocation(String sampleId, Location location)
     

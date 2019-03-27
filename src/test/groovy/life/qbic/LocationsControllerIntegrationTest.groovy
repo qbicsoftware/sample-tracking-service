@@ -51,10 +51,6 @@ class LocationsControllerIntegrationTest {
     String dbName = "test"
     String driver = "org.hsqldb.jdbc.JDBCDriver"
 
-    //    String databaseURL = prefix + ":" + host + "/" + dbName;
-    //    Class.forName(driver);
-    //    DriverManager.getConnection(databaseURL, "bob", "");
-
     PropertySource source = PropertySource.of("test", CollectionUtils.mapOf(
         "app.db.host", host,
         "app.db.port", port,
