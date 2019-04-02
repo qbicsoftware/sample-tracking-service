@@ -244,7 +244,7 @@ class SamplesControllerIntegrationTest {
 
     HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", location)
     HttpResponse response = client.toBlocking().exchange(request)
-    assertEquals(response.status.getCode(), 201)
+    assertEquals(response.status.getCode(), 200)
     
     Location testLocation = db.searchSample(code).currentLocation
     assertEquals(location,testLocation)
@@ -261,7 +261,7 @@ class SamplesControllerIntegrationTest {
     db.addSampleWithHistory(code, location, currentPerson, new ArrayList<>(), new ArrayList<>())
     HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/", location)
     HttpResponse response = client.toBlocking().exchange(request)
-    assertEquals(response.status.getCode(), 201)
+    assertEquals(response.status.getCode(), 200)
     
     Location testLocation = db.searchSample(code).currentLocation
     

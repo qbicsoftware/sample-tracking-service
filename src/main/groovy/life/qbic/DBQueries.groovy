@@ -36,17 +36,17 @@ class DBQueries implements QueryService {
   }
 
   HttpResponse<Location> addNewLocation(String sampleId, Location location) {
-    HttpResponse response = HttpResponse.created(location);
+    HttpResponse response = HttpResponse.ok(location);
     Connection connection = manager.connection
     connection.setAutoCommit(false)
     try {
       int personId = getPersonIdFromEmail(location.getResponsibleEmail(), connection);
       if(personId == -1) {
-        throw new NotFoundException("User with email "+location.getResponsibleEmail()+" was not found in the database.")
+        throw new NotFoundException("User with email "+location.getResponsibleEmail()+" was not found.")
       }
       int locationId = getLocationIdFromName(location.getName(), connection);
       if(locationId == -1) {
-        throw new NotFoundException("Location with name "+location.getName()+" was not found in the database.")
+        throw new NotFoundException("Location "+location.getName()+" was not found.")
       }
       if(isNewSampleLocation(sampleId, location)) {
         setNewLocationAsCurrent(sampleId, personId, locationId, location, connection)
@@ -62,17 +62,17 @@ class DBQueries implements QueryService {
   }
 
   HttpResponse<Location> updateLocation(String sampleId, Location location) {
-    HttpResponse response = HttpResponse.created(location);
+    HttpResponse response = HttpResponse.ok(location);
     Connection connection = manager.connection
     connection.setAutoCommit(false);
     try {
       int personId = getPersonIdFromEmail(location.getResponsibleEmail(), connection);
       if(personId == -1) {
-        throw new NotFoundException("User with email "+location.getResponsibleEmail()+" was not found in the database.")
+        throw new NotFoundException("User with email "+location.getResponsibleEmail()+" was not found.")
       }
       int locationId = getLocationIdFromName(location.getName(), connection);
       if(locationId == -1) {
-        throw new NotFoundException("Location with name "+location.getName()+" was not found in the database.")
+        throw new NotFoundException("Location "+location.getName()+" was not found.")
       }
       // if the location changed, change the location of the sample
       if(isNewSampleLocation(sampleId, location)) {
@@ -80,7 +80,6 @@ class DBQueries implements QueryService {
       } else {
         // else: update information about the sample at the current location (times, status, etc.)
         updateCurrentLocationObjectInDB(sampleId, personId, locationId, location, connection)
-        response = HttpResponse.ok(location);
       }
 
       // update sample table current location id OR create new row
@@ -177,22 +176,21 @@ class DBQueries implements QueryService {
     return res;
   }
 
-  private java.sql.Date parseDate(String date) {
+  private Timestamp toTimestamp(String date) {
+    if(date==null || date.isEmpty())
+      return null
     TimeZone tz = TimeZone.getTimeZone("MEZ");
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
     df.setTimeZone(tz)
     java.sql.Date res = new java.sql.Date(df.parse(date).getTime())
-    return res
+    return new Timestamp(res.getTime())
   }
 
   private boolean updateCurrentLocationObjectInDB(String sampleId, int personId, int locationId, Location location, Connection connection) {
     String sql = "UPDATE samples_locations SET arrival_time=?, forwarded_time=?, sample_status=?, responsible_person_id=? WHERE sample_id=? AND location_id=?"
     connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
-      Calendar cal = Calendar.getInstance();
-      statement.setTimestamp(1, new Timestamp(parseDate(location.getArrivalDate()).getTime()))
-      statement.setTimestamp(2, new Timestamp(parseDate(location.getForwardDate()).getTime()))
-//      statement.setDate(1, parseDate(location.getArrivalDate()),cal)
-//      statement.setDate(2, parseDate(location.getForwardDate()),cal)
+      statement.setTimestamp(1, toTimestamp(location.getArrivalDate()))
+      statement.setTimestamp(2, toTimestamp(location.getForwardDate()))
       statement.setString(3, location.getStatus().toString())
       statement.setInt(4, personId)
       statement.setString(5, sampleId)
@@ -208,11 +206,8 @@ class DBQueries implements QueryService {
     connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
       statement.setString(1, sampleId)
       statement.setInt(2, locationId)
-      Calendar cal = Calendar.getInstance();
-      statement.setTimestamp(3, new Timestamp(parseDate(location.getArrivalDate()).getTime()))
-      statement.setTimestamp(4, new Timestamp(parseDate(location.getForwardDate()).getTime()))
-//      statement.setDate(3, parseDate(location.getArrivalDate()),cal)
-//      statement.setDate(4, parseDate(location.getForwardDate()),cal)
+      statement.setTimestamp(3, toTimestamp(location.getArrivalDate()))
+      statement.setTimestamp(4, toTimestamp(location.getForwardDate()))
       statement.setString(5, location.getStatus().toString())
       statement.setInt(6, personId)
       statement.execute()

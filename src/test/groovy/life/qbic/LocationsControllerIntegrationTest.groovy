@@ -25,7 +25,6 @@ import life.qbic.model.Contact
 import life.qbic.model.Location
 import life.qbic.model.Sample
 import life.qbic.model.Status
-import spock.lang.Specification
 
 import org.json.JSONObject
 import org.junit.AfterClass

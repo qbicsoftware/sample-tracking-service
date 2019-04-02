@@ -6,6 +6,9 @@ import io.micronaut.context.annotation.Requires
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import javax.inject.Singleton
+
+import org.json.JSONObject
+
 import java.util.Date
 
 class Location  {
@@ -132,7 +135,8 @@ class Location  {
    **/
   @JsonProperty("forward_date")
   public String getForwardDate() {
-    return parseDate(forwardDate);
+    String res = parseDate(forwardDate)
+    return res
   }
 
   public void setforwardDate(Date forwardDate) {
@@ -166,6 +170,8 @@ class Location  {
   }
 
   public String parseDate(Date date) {
+    if(date==null)
+      return ""
     TimeZone tz = TimeZone.getTimeZone("MEZ");
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
     df.setTimeZone(tz);
@@ -178,7 +184,7 @@ class Location  {
    */
   private static String toIndentedString(java.lang.Object o) {
     if (o == null) {
-      return "null";
+      return null
     }
     return o.toString().replace("\n", "\n    ");
   }
