@@ -8,7 +8,6 @@ import java.sql.SQLException
 import java.sql.Statement
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import javax.inject.Inject
 import life.qbic.model.Address
 import life.qbic.model.Location
 import life.qbic.model.Person
@@ -51,8 +50,8 @@ class DBTester {
     String samples_locations = "CREATE TABLE IF NOT EXISTS SAMPLES_LOCATIONS"+
         "(SAMPLE_ID VARCHAR(14) NOT NULL,"+
         "LOCATION_ID INTEGER NOT NULL,"+
-        "ARRIVAL_TIME TIMESTAMP WITH TIME ZONE,"+
-        "FORWARDED_TIME TIMESTAMP WITH TIME ZONE,"+
+        "ARRIVAL_TIME DATETIME WITH TIME ZONE,"+
+        "FORWARDED_TIME DATETIME WITH TIME ZONE,"+
         "SAMPLE_STATUS VARCHAR(11) DEFAULT 'WAITING' NOT NULL,"+
         "responsible_person_id INTEGER NOT NULL)"
 

@@ -10,11 +10,7 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Produces
 import io.micronaut.http.annotation.Put
-import life.qbic.model.Address
-import life.qbic.model.Contact
-import life.qbic.model.Location
-import life.qbic.model.Sample
-import life.qbic.model.Status
+
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -22,6 +18,7 @@ import java.sql.SQLException
 import java.sql.Date
 
 import javax.inject.Inject
+import life.qbic.datamodel.services.*
 
 @Controller("/samples")
 class SamplesController {

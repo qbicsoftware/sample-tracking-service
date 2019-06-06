@@ -8,12 +8,7 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Produces
 import io.micronaut.http.annotation.Put
-import life.qbic.model.Address
-import life.qbic.model.Contact
-import life.qbic.model.Location
-import life.qbic.model.Person
-import life.qbic.model.Sample
-import life.qbic.model.Status
+import life.qbic.datamodel.services.*
 
 import java.sql.Connection
 import java.sql.Date
