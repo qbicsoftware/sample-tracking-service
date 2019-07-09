@@ -1,4 +1,4 @@
-package life.qbic
+package life.qbic.db
 
 public class NotFoundException extends Exception {
 

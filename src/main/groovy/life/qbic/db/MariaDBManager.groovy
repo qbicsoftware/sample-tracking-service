@@ -1,6 +1,8 @@
-package life.qbic
+package life.qbic.db
 
 import io.micronaut.context.annotation.Requires
+import groovy.sql.GroovyRowResult
+import groovy.sql.Sql
 import io.micronaut.context.annotation.Property
 import io.micronaut.context.event.BeanCreatedEvent
 import io.micronaut.context.event.BeanCreatedEventListener
@@ -13,9 +15,6 @@ import io.micronaut.http.annotation.Produces
 import io.micronaut.http.annotation.Put
 import life.qbic.micronaututils.QBiCDataSource
 import life.qbic.datamodel.services.*
-import groovy.sql.GroovyResultSet
-import groovy.sql.GroovyRowResult
-import groovy.sql.Sql
 
 import java.sql.Connection
 import java.sql.Date
@@ -30,14 +29,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import javax.validation.metadata.ReturnValueDescriptor
 
+import javax.sql.DataSource
+
 @Singleton
-class MariaDBManager implements IDBManager {
+class MariaDBManager implements IQueryService {
 
   private QBiCDataSource dataSource
 
   private Sql sql
 
-  @Inject MariaDBStorage(QBiCDataSource dataSource) {
+  @Inject MariaDBManager(QBiCDataSource dataSource) {
     this.dataSource = dataSource
   }
 
@@ -47,11 +48,11 @@ class MariaDBManager implements IDBManager {
     sql.connection.autoCommit = false
 
     try {
-      int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql);
+      int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
       if(personId == -1) {
         throw new NotFoundException("User with email "+location.getResponsibleEmail()+" was not found.")
       }
-      int locationId = getLocationIdFromName(location.getName(), sql);
+      int locationId = getLocationIdFromName(location.getName(), sql)
       if(locationId == -1) {
         throw new NotFoundException("Location "+location.getName()+" was not found.")
       }
@@ -328,26 +329,31 @@ class MariaDBManager implements IDBManager {
     return res
   }
 
-  @Requires(env="test")
-  @Requires(property="database.schema-uri")
-  @Singleton
-  class DatabaseInit implements BeanCreatedEventListener<IDBManager> {
-
-    String schemaUri
-
-    DatabaseInit(@Property(name='database.schema-uri') schemaUri) {
-      this.schemaUri = schemaUri
-    }
-
-    IDBManager onCreated(BeanCreatedEvent<IDBManager> event) {
-      String sqlStatement = new File(schemaUri).text
-      MariaDBManager mngr = event.bean as MariaDBManager
-      setupDatabase(mngr.dataSource.connection, sqlStatement)
-      return event.bean
-    }
-
-    private setupDatabase(Connection connection, String sqlStatement) {
-      Sql sql = new Sql(connection)
-      sql.execute(sqlStatement)
-    }
-  }
+}
+//@Requires(env="test")
+//@Requires(property="database.schema-uri")
+//@Singleton
+//class DatabaseInit implements BeanCreatedEventListener<IQueryService> {
+//
+//  String schemaUri
+//
+//  DatabaseInit(@Property(name='database.schema-uri') schemaUri) {
+//    println "init"
+//    println schemaUri
+//    this.schemaUri = schemaUri
+//  }
+//
+//  IQueryService onCreated(BeanCreatedEvent<IQueryService> event) {
+//    println "created bean"
+//    String sqlStatement = new File(schemaUri).text
+//    MariaDBManager mngr = event.bean as MariaDBManager
+//    setupDatabase(mngr.dataSource.connection, sqlStatement)
+//    return event.bean
+//  }
+//
+//  private setupDatabase(Connection connection, String sqlStatement) {
+//    Sql sql = new Sql(connection)
+//    println "execute statement"
+//    sql.execute(sqlStatement)
+//  }
+//}

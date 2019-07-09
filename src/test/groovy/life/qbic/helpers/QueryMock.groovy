@@ -1,4 +1,4 @@
-package life.qbic
+package life.qbic.helpers
 
 import io.micronaut.context.annotation.Parameter
 import io.micronaut.http.HttpResponse
@@ -8,11 +8,6 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Produces
 import io.micronaut.http.annotation.Put
-import life.qbic.model.Address
-import life.qbic.model.Contact
-import life.qbic.model.Location
-import life.qbic.model.Sample
-import life.qbic.model.Status
 
 import java.sql.Connection
 import java.sql.PreparedStatement
@@ -20,18 +15,18 @@ import java.sql.ResultSet
 import java.sql.SQLException
 import java.util.regex.Matcher
 import javax.inject.Inject
+import javax.inject.Singleton
 
-class QueryMock implements QueryService {
+import life.qbic.datamodel.services.Address
+import life.qbic.datamodel.services.Contact
+import life.qbic.datamodel.services.Location
+import life.qbic.datamodel.services.Sample
+import life.qbic.datamodel.services.Status
+import life.qbic.db.IQueryService
 
-  //  private final DBManager manager
-
-  //  @Inject QueryMock(DBManager manager) {
-  //    this.manager = manager
-  //  }
+class QueryMock implements IQueryService {
 
   HttpResponse addNewLocation(String sampleId, Location location) {
-    println sampleId
-    println location
     HttpResponse<Location> response = HttpResponse.created(location)
     return response
   }
@@ -50,9 +45,9 @@ class QueryMock implements QueryService {
     return null
   }
 
-  @Override
+//  @Override
   public Sample searchSample(String sampleId) {
-    String code = "QABCD001AB"
+    String code = "QABCD001A0"
     if(sampleId.equals(code)) {
       
       Date d = new java.sql.Date(new Date().getTime());
@@ -69,7 +64,7 @@ class QueryMock implements QueryService {
     return null
   }
 
-  @Override
+//  @Override
   public boolean updateSampleStatus(String sampleId, Status status) {
     return status!=null
   }

@@ -1,5 +1,6 @@
-package life.qbic
+package life.qbic.helpers
 
+import java.sql.DriverManager
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
@@ -8,19 +9,30 @@ import java.sql.SQLException
 import java.sql.Statement
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import life.qbic.model.Address
-import life.qbic.model.Location
-import life.qbic.model.Person
-import life.qbic.model.Sample
-import life.qbic.model.Status
+
+import javax.inject.Inject
+import javax.inject.Singleton
+
+import life.qbic.datamodel.services.*
+import life.qbic.micronaututils.QBiCDataSource
 
 class DBTester {
 
-  private final DBManager manager
+  private Connection connection
 
-  DBTester(String host, String port, String db, String user, String pw, String driver, String driverPrefix) {
-    this.manager = new DBManager(host, port, db, user, pw, driver, driverPrefix)
+//  @Inject MariaDBManager(QBiCDataSource dataSource) {
+//    this.manager = dataSource
+//  }
+
+  public void loginWithCredentials(String driver, String url, String user, String pw) throws Exception{
+    println "db tester"
+    Class.forName(driver)
+    connection = DriverManager.getConnection(url, user, pw)
   }
+  
+//  DBTester(String host, String port, String db, String user, String pw, String driver, String driverPrefix) {
+//    this.manager = new (host, port, db, user, pw, driver, driverPrefix)
+//  }
 
   void createTables() {
     String locations = "CREATE TABLE IF NOT EXISTS LOCATIONS"+
@@ -60,31 +72,31 @@ class DBTester {
         "LOCATION_ID INTEGER NOT NULL)"
 
     try {
-      Statement statement = manager.connection.createStatement()
+      Statement statement = connection.createStatement()
       statement.executeUpdate(locations)
     } catch (SQLException e) {
       e.printStackTrace();
     }
     try {
-      Statement statement = manager.connection.createStatement()
+      Statement statement = connection.createStatement()
       statement.executeUpdate(persons)
     } catch (SQLException e) {
       e.printStackTrace();
     }
     try {
-      Statement statement = manager.connection.createStatement()
+      Statement statement = connection.createStatement()
       statement.executeUpdate(samples)
     } catch (SQLException e) {
       e.printStackTrace();
     }
     try {
-      Statement statement = manager.connection.createStatement()
+      Statement statement = connection.createStatement()
       statement.executeUpdate(samples_locations)
     } catch (SQLException e) {
       e.printStackTrace();
     }
     try {
-      Statement statement = manager.connection.createStatement()
+      Statement statement = connection.createStatement()
       statement.executeUpdate(persons_locations)
     } catch (SQLException e) {
       e.printStackTrace();
@@ -124,7 +136,7 @@ class DBTester {
   void addSample(String code, int locationId) {
     String sql = "INSERT INTO samples(id,current_location_id) VALUES(?,?)";
     try {
-      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
         statement.setString(1, code);
         statement.setInt(2, locationId);
         statement.execute();
@@ -137,7 +149,7 @@ class DBTester {
   void addSampleLocation(String code, int locationId, Location loc, int personId) {
     String sql = "INSERT INTO samples_locations(sample_id,location_id,arrival_time,forwarded_time,sample_status,responsible_person_id) VALUES(?,?,?,?,?,?)";
     try {
-      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
         statement.setString(1, code);
         statement.setInt(2, locationId);
         statement.setDate(3, parseDate(loc.getArrivalDate()));
@@ -159,7 +171,7 @@ class DBTester {
     String sql = "INSERT INTO persons(username,first_name,family_name,email,phone) VALUES(?,?,?,?,?)";
     int res = -1;
     try {
-      manager.connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS).withCloseable { PreparedStatement statement ->
         statement.setString(1, user);
         statement.setString(2, first);
         statement.setString(3, last);
@@ -183,7 +195,7 @@ class DBTester {
     String sql1 = "INSERT INTO locations(name, street, zip_code, country) VALUES(?,?,?,?)"
     int locationID = -1;
     try {
-      manager.connection.prepareStatement(sql1,Statement.RETURN_GENERATED_KEYS).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql1,Statement.RETURN_GENERATED_KEYS).withCloseable { PreparedStatement statement ->
         statement.setString(1, name);
         statement.setString(2, street);
         statement.setInt(3, zip);
@@ -208,7 +220,7 @@ class DBTester {
         "INNER JOIN locations ON samples_locations.location_id = locations.id "+
         "WHERE UPPER(samples.id) = UPPER(?)";
     try {
-      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
         statement.setString(1, code);
         statement.executeQuery().withCloseable { ResultSet rs ->
           List<Location> pastLocs = new ArrayList<>()
@@ -250,7 +262,7 @@ class DBTester {
     println "Table "+table
     String sql = "SELECT * from "+table;
     try {
-      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
         statement.executeQuery().withCloseable { ResultSet rs ->
           ResultSetMetaData metadata = rs.getMetaData();
           int columnCount = metadata.getColumnCount();
@@ -274,7 +286,7 @@ class DBTester {
     Person res = null;
     String sql = "SELECT * from persons WHERE id = ?";
     try {
-      manager.connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
         statement.setInt(1, id);
         statement.executeQuery().withCloseable { ResultSet rs ->
           if (rs.next()) {
@@ -297,7 +309,7 @@ class DBTester {
     int locationID = addLocation(name, street, country, zip)
     String sql2 = "INSERT INTO persons_locations(person_id, location_id) VALUES(?,?)";
     try {
-      manager.connection.prepareStatement(sql2).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql2).withCloseable { PreparedStatement statement ->
         statement.setInt(1, personID);
         statement.setInt(2, locationID);
         statement.execute();
@@ -313,7 +325,7 @@ class DBTester {
     String sql2 = "DELETE FROM persons WHERE id = ?"
     String sql3 = "DELETE FROM locations WHERE id = ?"
     try {
-      manager.connection.prepareStatement(sql1).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql1).withCloseable { PreparedStatement statement ->
         statement.setInt(1, personID);
         statement.setInt(2, locationID);
         statement.execute();
@@ -322,7 +334,7 @@ class DBTester {
       e.printStackTrace();
     }
     try {
-      manager.connection.prepareStatement(sql2).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql2).withCloseable { PreparedStatement statement ->
         statement.setInt(1, personID);
         statement.execute();
       }
@@ -330,7 +342,7 @@ class DBTester {
       e.printStackTrace();
     }
     try {
-      manager.connection.prepareStatement(sql3).withCloseable { PreparedStatement statement ->
+      connection.prepareStatement(sql3).withCloseable { PreparedStatement statement ->
         statement.setInt(1, locationID);
         statement.execute();
       }

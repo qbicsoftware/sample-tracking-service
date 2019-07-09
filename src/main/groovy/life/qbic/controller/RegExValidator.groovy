@@ -1,10 +1,9 @@
-package life.qbic
+package life.qbic.controller
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 import life.qbic.datamodel.identifiers.SampleCodeFunctions
-import life.qbic.datamodel.sorters.SampleCodeComparator
 
 class RegExValidator {
   private static final Pattern VALID_EMAIL_ADDRESS_REGEX = Pattern.compile('^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$', Pattern.CASE_INSENSITIVE);

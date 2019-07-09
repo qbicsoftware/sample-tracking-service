@@ -15,10 +15,10 @@ import io.micronaut.http.annotation.Put
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
-import life.qbic.model.Contact
-import life.qbic.model.Location
-import life.qbic.model.Sample
-import life.qbic.model.Status
+import life.qbic.controller.LocationsController
+import life.qbic.datamodel.services.Contact
+import life.qbic.helpers.QueryMock
+import life.qbic.service.LocationServiceCenter
 
 import org.json.JSONObject
 import org.junit.AfterClass
@@ -36,7 +36,7 @@ class LocationsControllerTest {
 
   @Before
   void setupMock() {
-    locations = new LocationsController(new QueryMock());
+    locations = new LocationsController(new LocationServiceCenter(new QueryMock()));
   }
 
   @Test

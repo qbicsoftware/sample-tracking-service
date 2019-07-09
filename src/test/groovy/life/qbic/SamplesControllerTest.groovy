@@ -15,11 +15,14 @@ import io.micronaut.http.annotation.Put
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
-import life.qbic.model.Address
-import life.qbic.model.Location
-import life.qbic.model.Sample
-import life.qbic.model.Status
-
+import life.qbic.controller.SamplesController
+import life.qbic.datamodel.services.Address
+import life.qbic.datamodel.services.Location
+import life.qbic.datamodel.services.Status
+import life.qbic.db.IQueryService
+import life.qbic.helpers.QueryMock
+import life.qbic.service.ISampleService
+import life.qbic.service.SampleServiceCenter
 import org.json.JSONObject
 import org.junit.AfterClass
 import org.junit.Before
@@ -33,10 +36,16 @@ import com.fasterxml.jackson.databind.ObjectMapper
 class SamplesControllerTest {
 
   private SamplesController samples
+  private String existingCode = "QABCD001A0";
+  private String validMissingCode = "QABCD002A8";
+  private String missingSampleCode = "QABCD002ME";
 
   @Before
   void setupMock() {
-    samples = new SamplesController(new QueryMock());
+    IQueryService mock = new QueryMock()
+    ISampleService serviceCenter = new SampleServiceCenter(mock)
+    
+    samples = new SamplesController(serviceCenter);
   }
 
   @Test
@@ -47,22 +56,20 @@ class SamplesControllerTest {
 
   @Test
   void testSample() throws Exception {
-    String code = "QABCD001AB";
-    HttpResponse response = samples.sample(code);
+    HttpResponse response = samples.sample(existingCode);
     ObjectMapper mapper = new ObjectMapper();
     String jsons = mapper.writerWithDefaultPrettyPrinter()
         .writeValueAsString(response.body.orElse(null));
     JSONObject json = new JSONObject(jsons)
-    assertEquals(json.get("code"),code)
+    assertEquals(json.get("code"),existingCode)
     assertNotNull(json.get("current_location"))
     assertNotNull(json.get("past_locations"))
   }
 
   @Test
   void testMissingSample() throws Exception {
-    String code = "QABCD001AB";
-    HttpResponse response = samples.sample(code);
-    assertEquals(response.getStatus().getCode(),200)    
+    HttpResponse response = samples.sample(missingSampleCode);
+    assertEquals(response.getStatus().getCode(),404)
   }
 
 
@@ -74,53 +81,47 @@ class SamplesControllerTest {
 
   @Test
   void testStatus() throws Exception {
-    String code = "QABCD001AB";
-    HttpResponse response = samples.sampleStatus(code, Status.PROCESSED)
+    HttpResponse response = samples.sampleStatus(existingCode, Status.PROCESSED)
     assertEquals(response.getStatus().getCode(), 201)
   }
 
   @Test
   void testWrongStatus() throws Exception {
-    String code = "QABCD001AB";
-    HttpResponse response = samples.sampleStatus(code, null)
+    HttpResponse response = samples.sampleStatus(existingCode, null)
     // error response is only thrown in integration test
   }
 
   @Test
   void testStatusNoSample() throws Exception {
-    String code = "QABCD001AX";
-    HttpResponse response = samples.sampleStatus(code, null)
+    HttpResponse response = samples.sampleStatus(missingSampleCode, null)
     assertEquals(response.status.getCode(), 404)
   }
-  
+
   @Test
   void testMalformedSampleNewLocation() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    String code = "QABCD001X";
-    HttpResponse response = samples.newLocation(code, location)
+    HttpResponse response = samples.newLocation("x", location)
     assertEquals(response.status.getCode(), 400)
   }
-  
+
   @Test
   void testSampleNewLocation() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    String code = "QABCD001BX";
-    HttpResponse response = samples.newLocation(code, location)
+    HttpResponse response = samples.newLocation(validMissingCode, location)
     assertEquals(response.status.getCode(), 201)
   }
-  
+
   @Test
   void testUpdateLocation() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    String code = "QABCD001AX";
-    samples.updateLocation(code, location)
-    HttpResponse response = samples.sampleStatus(code, null)
+    samples.updateLocation(validMissingCode, location)
+    HttpResponse response = samples.sampleStatus(validMissingCode, null)
     assertEquals(response.status.getCode(), 404)
   }
 }

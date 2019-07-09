@@ -1,0 +1,9 @@
+micronaut:
+    application:
+        name: sampletracking
+datasources:
+        default:
+            url: jdbc:hsqldb:mem:mymemdb;shutdown=true/test
+            username: testuser
+            driver-class-name: org.hsqldb.jdbc.JDBCDriver
+            password: ""

@@ -1,11 +1,11 @@
+package life.qbic.service;
+
 import javax.inject.Singleton
 import io.micronaut.http.HttpResponse
 import life.qbic.datamodel.services.*
 
 @Singleton
-interface IDBManager {
-
-  Contact searchPersonByEmail(String email)
+interface ISampleService {
 
   HttpResponse addNewLocation(String sampleId, Location location)
 

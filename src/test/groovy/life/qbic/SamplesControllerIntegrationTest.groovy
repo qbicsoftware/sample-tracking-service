@@ -3,6 +3,7 @@ package life.qbic
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.BeanContext
 import io.micronaut.context.annotation.Parameter
+import io.micronaut.context.annotation.Requires
 import io.micronaut.context.env.Environment
 import io.micronaut.context.env.PropertySource
 import io.micronaut.core.util.CollectionUtils
@@ -13,13 +14,14 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Put
 import io.micronaut.http.client.HttpClient
+import io.micronaut.http.client.RxHttpClient
+import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
-import life.qbic.model.Address
-import life.qbic.model.Location
-import life.qbic.model.Sample
-import life.qbic.model.Status
-import life.qbic.model.Person
+import life.qbic.datamodel.services.*
+import life.qbic.helpers.DBTester
+import life.qbic.micronaututils.DataSource
+import life.qbic.micronaututils.QBiCDataSource
 
 import org.json.JSONObject
 import org.junit.AfterClass
@@ -30,37 +32,42 @@ import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
 
 class SamplesControllerIntegrationTest {
+
   private static DBTester db
-  private static EmbeddedServer server
+  private static EmbeddedServer server;
+  //  @Inject private static MariaDBManager mariaDB;
+
   private static HttpClient client
   private static String existingLocation = "Existing Location"
   private static String existingPersonMail = "existing@mail.test"
+  private String validCode1 = "QABCD001A0";
+  private String validCode2 = "QABCD002A8";
+  private String validCode3 = "QABCD003A4";
+  private String validCode4 = "QABCD004AO";
+  private String validCode5 = "QABCD005AW";
+  private String validCode6 = "QABCD006A6";
+  private String missingValidCode = "QABCD002ME";
 
   @BeforeClass
   static void setupServer() {
-    String port = ""
-    String prefix = "jdbc:hsqldb"
-    String host = "mem:mymemdb;shutdown=true"
-    String dbName = "test"
-    String driver = "org.hsqldb.jdbc.JDBCDriver"
+    ApplicationContext applicationContext = ApplicationContext.run();
+    //    ApplicationContext applicationContext = ApplicationContext.build().build().registerSingleton(IQueryService, mariaDB)
+    Environment environment = applicationContext.getEnvironment();
+    //    println environment.getProperties()
+    String url = environment.getProperty("datasources.default.url", String.class).get()
+    String user = environment.getProperty("datasources.default.username", String.class).get()
+    String pw = environment.getProperty("datasources.default.password", String.class).get()
+    String driver = environment.getProperty("datasources.default.driver-class-name", String.class).get()
 
-    PropertySource source = PropertySource.of("test", CollectionUtils.mapOf(
-        "app.db.host", host,
-        "app.db.port", port,
-        "app.db.name", dbName,
-        "app.db.user", "bob",
-        "app.db.pw", "",
-        "app.db.driver.class", driver,
-        "app.db.driver.prefix", prefix
-        ))
-
-    db = new DBTester(host, port, dbName, "bob", "", driver, prefix)
+    db = new DBTester();
+    db.loginWithCredentials(driver, url, user, pw);
+    ////    db = new DBTester(host, port, dbName, "bob", "", driver, prefix)
     db.createTables()
     db.addPerson("a", "b", "c", existingPersonMail, "0123")
     db.addLocation(existingLocation, "a", "b", 123)
-    server = ApplicationContext.run(EmbeddedServer.class, source, "test")
-    client = server
-        .getApplicationContext()
+
+    server = ApplicationContext.run(EmbeddedServer.class)
+    client = applicationContext
         .createBean(HttpClient.class, server.getURL())
   }
 
@@ -88,7 +95,6 @@ class SamplesControllerIntegrationTest {
 
   @Test
   void testSample() throws Exception {
-    String code = "QABCD001AB";
     String email1 = "person1@mail.de"
     String email2 = "person2@mail.de"
     String email3 = "person3@mail.de"
@@ -109,21 +115,21 @@ class SamplesControllerIntegrationTest {
     pastLocations.add(past1)
     pastLocations.add(past2)
 
-    db.addSampleWithHistory(code, currentLocation, currentPerson, pastLocations, pastPersons)
+    db.addSampleWithHistory(validCode1, currentLocation, currentPerson, pastLocations, pastPersons)
 
-    HttpRequest request = HttpRequest.GET("/samples/"+code)
+    HttpRequest request = HttpRequest.GET("/samples/"+validCode1)
     String body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
 
     assertNotNull(body)
-    assertEquals(json.get("code"),code)
+    assertEquals(json.get("code"),validCode1)
     assertNotNull(json.get("current_location").equals(currentLocation))
     assertNotNull(json.get("past_locations").equals(pastLocations))
   }
 
   @Test
   void testMissingSample() throws Exception {
-    HttpRequest request = HttpRequest.GET("/samples/QABCD001AX")
+    HttpRequest request = HttpRequest.GET("/samples/"+missingValidCode)
     String error = "";
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -148,7 +154,6 @@ class SamplesControllerIntegrationTest {
 
   @Test
   void testStatus() throws Exception {
-    String code = "QSTAT001AB";
     String email = "person4@mail.de"
 
     Date d = new java.sql.Date(new Date().getTime());
@@ -156,23 +161,23 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "Location 4", country: "Germany", street: "Location 4 street", zipCode: 4)
     Location currentLocation = new Location(name: "Location 4", responsiblePerson: "Location 4 Person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
 
-    db.addSampleWithHistory(code, currentLocation, currentPerson, new ArrayList<>(), new ArrayList<>())
+    db.addSampleWithHistory(validCode2, currentLocation, currentPerson, new ArrayList<>(), new ArrayList<>())
 
-    HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/WAITING","")
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/WAITING","")
     String body = client.toBlocking().retrieve(request)
     assertEquals(body, "Sample status updated.")
 
-    request = HttpRequest.GET("/samples/"+code)
+    request = HttpRequest.GET("/samples/"+validCode2)
     body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
     json = json.get("current_location")
     assertEquals(json.get("sample_status"), Status.WAITING.toString());
 
-    request = HttpRequest.PUT("/samples/"+code+"/currentLocation/PROCESSED","")
+    request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/PROCESSED","")
     body = client.toBlocking().retrieve(request)
     assertEquals(body, "Sample status updated.")
 
-    request = HttpRequest.GET("/samples/"+code)
+    request = HttpRequest.GET("/samples/"+validCode2)
     body = client.toBlocking().retrieve(request)
     json = new JSONObject(body);
     json = json.get("current_location")
@@ -181,7 +186,6 @@ class SamplesControllerIntegrationTest {
 
   @Test
   void testWrongStatus() throws Exception {
-    String code = "QSTAT002AB"
     String email = "person5@mail.de"
 
     Date d = new java.sql.Date(new Date().getTime());
@@ -189,9 +193,9 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "Location 5", country: "Germany", street: "Location 5 street", zipCode: 5)
     Location currentLocation = new Location(name: "Location 5", responsiblePerson: "Location 5 Person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
 
-    db.addSampleWithHistory(code, currentLocation, currentPerson, new ArrayList<>(), new ArrayList<>())
+    db.addSampleWithHistory(validCode3, currentLocation, currentPerson, new ArrayList<>(), new ArrayList<>())
 
-    HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/TIRED","")
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode3+"/currentLocation/TIRED","")
     boolean res = false
     try {
       String body = client.toBlocking().retrieve(request)
@@ -203,7 +207,8 @@ class SamplesControllerIntegrationTest {
 
   @Test
   void testStatusNoSample() throws Exception {
-    HttpRequest request = HttpRequest.PUT("/samples/QNONE001AX/currentLocation/WAITING","")
+    String code = "QNONE001AC"
+    HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/WAITING","")
     String error = ""
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -215,11 +220,12 @@ class SamplesControllerIntegrationTest {
 
   @Test
   void testMalformedSampleNewLocation() throws Exception {
+    String malformedCode = "QMALF001X";
     Date d = new java.sql.Date(new Date().getTime());
-    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
+    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 11", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: "some@person.de", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
 
-    HttpRequest request = HttpRequest.POST("/samples/QMALF001X/currentLocation/", location)
+    HttpRequest request = HttpRequest.POST("/samples/"+malformedCode+"/currentLocation/", location)
     String error = ""
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -234,19 +240,17 @@ class SamplesControllerIntegrationTest {
     Date d = new java.sql.Date(new Date().getTime());
     String email = "some@person.de"
     Person currentPerson = new Person("some", "person",email)
-    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
+    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 1", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    String code = "QNEWL001BX";
-    db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
-    db.addSample(code, 1001)
-
+    int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
+    db.addSample(validCode4, locID)
     db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email, "123")
 
-    HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.POST("/samples/"+validCode4+"/currentLocation/", location)
     HttpResponse response = client.toBlocking().exchange(request)
     assertEquals(response.status.getCode(), 200)
-    
-    Location testLocation = db.searchSample(code).currentLocation
+
+    Location testLocation = db.searchSample(validCode4).currentLocation
     assertEquals(location,testLocation)
   }
 
@@ -255,25 +259,24 @@ class SamplesControllerIntegrationTest {
     Date d = new java.sql.Date(new Date().getTime());
     String email = "some@person.de"
     Person currentPerson = new Person("some", "person",email)
-    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
+    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 1", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    String code = "QNEWL002BC";
-    db.addSampleWithHistory(code, location, currentPerson, new ArrayList<>(), new ArrayList<>())
-    HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/", location)
+    db.addSampleWithHistory(validCode5, location, currentPerson, new ArrayList<>(), new ArrayList<>())
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode5+"/currentLocation/", location)
     HttpResponse response = client.toBlocking().exchange(request)
     assertEquals(response.status.getCode(), 200)
-    
-    Location testLocation = db.searchSample(code).currentLocation
-    
+
+    Location testLocation = db.searchSample(validCode5).currentLocation
+
     assertEquals(location,testLocation)
-    
+
     d = new java.sql.Date(new Date().getTime());
     location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.PROCESSED, arrivalDate: d, forwardDate: d);
-    request = HttpRequest.PUT("/samples/"+code+"/currentLocation/", location)
+    request = HttpRequest.PUT("/samples/"+validCode5+"/currentLocation/", location)
     response = client.toBlocking().exchange(request)
     assertEquals(response.status.getCode(), 200)
-    
-    testLocation = db.searchSample(code).currentLocation
+
+    testLocation = db.searchSample(validCode5).currentLocation
     assertEquals(location,testLocation)
   }
 
@@ -282,10 +285,9 @@ class SamplesControllerIntegrationTest {
     Date d = new java.sql.Date(new Date().getTime());
     String email = "some@person.de"
     Person currentPerson = new Person("some", "person",email)
-    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
+    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 2", zipCode: 213)
     Location location = new Location(name: "unknown", responsiblePerson: "some person", responsibleEmail: existingPersonMail, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    String code = "QNEWL001BX";
-    HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.POST("/samples/"+validCode6+"/currentLocation/", location)
     int stat = -1
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -300,10 +302,9 @@ class SamplesControllerIntegrationTest {
     Date d = new java.sql.Date(new Date().getTime());
     String email = "some@person.de"
     Person currentPerson = new Person("some", "person",email)
-    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
+    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 3", zipCode: 213)
     Location location = new Location(name: "unknown", responsiblePerson: "some person", responsibleEmail: existingPersonMail, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    String code = "QNEWL001BX";
-    HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode6+"/currentLocation/", location)
     int stat = -1
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -316,12 +317,11 @@ class SamplesControllerIntegrationTest {
   @Test
   void testNewLocationUnknownUser() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
-    String email = "unknown@person.de"
+    String email = "unknown@person1.de"
     Person currentPerson = new Person("some", "person",email)
-    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
+    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 4", zipCode: 213)
     Location location = new Location(name: existingLocation, responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    String code = "QNEWL001BX";
-    HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.POST("/samples/"+validCode6+"/currentLocation/", location)
     int stat = -1
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -334,15 +334,15 @@ class SamplesControllerIntegrationTest {
   @Test
   void testUpdateLocationUnknownUser() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
-    String email = "unknown@person.de"
+    String email = "unknown@person2.de"
     Person currentPerson = new Person("some", "person",email)
-    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
+    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 5", zipCode: 213)
     Location location = new Location(name: existingLocation, responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    String code = "QNEWL001BX";
-    HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode6+"/currentLocation/", location)
     int stat = -1
     try {
       HttpResponse response = client.toBlocking().exchange(request)
+      println response.getStatus()
     } catch (HttpClientResponseException e) {
       stat =  e.getResponse().getStatus().code
     }

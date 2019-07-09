@@ -3,7 +3,7 @@ package life.qbic
 import io.micronaut.runtime.Micronaut
 
 class Application {
-    static void main(String[] args) {
-        Micronaut.run(Application.class)
-    }
+  static void main(String[] args) {
+    Micronaut.run(Application.class)
+  }
 }

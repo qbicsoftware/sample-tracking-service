@@ -3,6 +3,8 @@ package life.qbic
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.BeanContext
 import io.micronaut.context.annotation.Parameter
+import io.micronaut.context.annotation.Property
+import io.micronaut.context.annotation.Requires
 import io.micronaut.context.env.Environment
 import io.micronaut.context.env.PropertySource
 import io.micronaut.core.util.CollectionUtils
@@ -13,19 +15,17 @@ import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Put
 import io.micronaut.http.client.HttpClient
+import io.micronaut.http.client.RxHttpClient
+import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
+import life.qbic.helpers.DBTester
+
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
 import java.sql.Statement
-
-import life.qbic.DBManager.DatabaseCredentials
-import life.qbic.model.Contact
-import life.qbic.model.Location
-import life.qbic.model.Sample
-import life.qbic.model.Status
-
+import javax.inject.Inject
 import org.json.JSONObject
 import org.junit.AfterClass
 import org.junit.Before
@@ -34,35 +34,32 @@ import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
 
-import com.fasterxml.jackson.databind.ObjectMapper
-
 class LocationsControllerIntegrationTest {
+
   private static DBTester db
   private static EmbeddedServer server
   private static HttpClient client
+  //  @Inject private static MariaDBManager mariaDB;
 
 
   @BeforeClass
   static void setupServer() {
-    String port = ""
-    String prefix = "jdbc:hsqldb"
-    String host = "mem:mymemdb;shutdown=true"
-    String dbName = "test"
-    String driver = "org.hsqldb.jdbc.JDBCDriver"
+    ApplicationContext applicationContext = ApplicationContext.run()
+    //    ApplicationContext applicationContext = ApplicationContext.build().build().registerSingleton(IQueryService, mariaDB)
+    Environment environment = applicationContext.getEnvironment();
 
-    PropertySource source = PropertySource.of("test", CollectionUtils.mapOf(
-        "app.db.host", host,
-        "app.db.port", port,
-        "app.db.name", dbName,
-        "app.db.user", "bob",
-        "app.db.pw", "",
-        "app.db.driver.class", driver,
-        "app.db.driver.prefix", prefix
-        ))
+    String url = environment.getProperty("datasources.default.url", String.class).get()
+    String user = environment.getProperty("datasources.default.username", String.class).get()
+    String pw = environment.getProperty("datasources.default.password", String.class).get()
+    String driver = environment.getProperty("datasources.default.driver-class-name", String.class).get()
 
-    db = new DBTester(host, port, dbName, "bob", "", driver, prefix)
+    //    PropertySource source = PropertySource.of("test", environment.getProperties())
+    server = ApplicationContext.run(EmbeddedServer.class)
+
+    db = new DBTester();
+    db.loginWithCredentials(driver, url, user, pw);
+    //    db = new DBTester(host, port, dbName, "bob", "", driver, prefix)
     db.createTables()
-    server = ApplicationContext.run(EmbeddedServer.class, source, "test")
     client = server
         .getApplicationContext()
         .createBean(HttpClient.class, server.getURL())
@@ -77,7 +74,7 @@ class LocationsControllerIntegrationTest {
       client.stop()
     }
   }
-  //
+
   @Test
   void testNonExistingContact() throws Exception {
     HttpRequest request = HttpRequest.GET("/locations/contacts/ian.banks@limitingfactor.com")
@@ -130,5 +127,4 @@ class LocationsControllerIntegrationTest {
     }
     assertEquals(error, "Bad Request")
   }
-
 }
