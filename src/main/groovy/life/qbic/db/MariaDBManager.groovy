@@ -13,9 +13,8 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Produces
 import io.micronaut.http.annotation.Put
-import life.qbic.micronaututils.QBiCDataSource
 import life.qbic.datamodel.services.*
-
+import life.qbic.micronaututils.QBiCDataSource
 import java.sql.Connection
 import java.sql.Date
 import java.sql.PreparedStatement
@@ -29,12 +28,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import javax.validation.metadata.ReturnValueDescriptor
 
-import javax.sql.DataSource
-
 @Singleton
 class MariaDBManager implements IQueryService {
 
-  private QBiCDataSource dataSource
+    private QBiCDataSource dataSource
+  //  private DBManager dataSource
 
   private Sql sql
 
@@ -106,7 +104,7 @@ class MariaDBManager implements IQueryService {
     //    logger.info("Looking for user with email " + email + " in the DB");
     sql = new Sql(dataSource.connection)
     Contact contact = null;
-    final String query = "SELECT * from persons WHERE UPPER(email) = UPPER(${email});"
+    final String query = "SELECT * from persons WHERE UPPER(email) = UPPER('${email}');"
     List<GroovyRowResult> results = sql.rows(query)
     if( results.size() > 0 ) {
       GroovyRowResult res = results.get(0)
@@ -124,7 +122,7 @@ class MariaDBManager implements IQueryService {
     //    logger.info("Looking for user with email " + email + " in the DB");
     sql = new Sql(dataSource.connection)
     Address res = null;
-    final String query = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id WHERE person_id = ${personID};"
+    final String query = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id WHERE person_id = '${personID}';"
     List<GroovyRowResult> results = sql.rows(query)
     if( results.size() > 0 ) {
       GroovyRowResult rs = results.get(0)
@@ -168,6 +166,12 @@ class MariaDBManager implements IQueryService {
     return new Timestamp(res.getTime())
   }
 
+  private Date toDate(Timestamp ts) {
+    if(ts==null)
+      return null
+    return Date.valueOf(ts.toLocalDateTime().toLocalDate());
+  }
+  
   private boolean updateCurrentLocationObjectInDB(String sampleId, int personId, int locationId, Location location, Sql sql) {
     final String query = "UPDATE samples_locations SET arrival_time=?, forwarded_time=?, sample_status=?, responsible_person_id=? WHERE sample_id=? AND location_id=?"
     int count = sql.executeUpdate(query, toTimestamp(location.getArrivalDate()), toTimestamp(location.getForwardDate()), location.getStatus().toString(), personId, sampleId, locationId)
@@ -192,12 +196,11 @@ class MariaDBManager implements IQueryService {
   }
 
   Sample searchSample(String code) {
-    //    logger.info("Looking for user with email " + email + " in the DB");
     Sample res = null;
     sql = new Sql(dataSource.connection)
     final String query = "SELECT * from samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
         "INNER JOIN locations ON samples_locations.location_id = locations.id "+
-        "WHERE UPPER(samples.id) = UPPER(${code});"
+        "WHERE UPPER(samples.id) = UPPER('${code}');"
     try {
       List<GroovyRowResult> results = sql.rows(query)
       List<Location> pastLocs = new ArrayList<>()
@@ -205,8 +208,10 @@ class MariaDBManager implements IQueryService {
       for(GroovyRowResult rs: results) {
         int currID = rs.get("current_location_id")
         int locID = rs.get("location_id")
-        Date arrivalDate = rs.get("arrival_time")
-        Date forwardedDate = rs.get("forwarded_time")
+        Timestamp arrivalT = rs.get("arrival_time")
+        Timestamp forwardedT = rs.get("forwarded_time")
+        Date arrivalDate = toDate(arrivalT)
+        Date forwardedDate = toDate(forwardedT)
         Status status = rs.get("sample_status")
         String name = rs.get("name")
         String street = rs.get("street")

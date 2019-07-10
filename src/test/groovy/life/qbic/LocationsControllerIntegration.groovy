@@ -45,7 +45,6 @@ class LocationsControllerIntegrationTest {
   @BeforeClass
   static void setupServer() {
     ApplicationContext applicationContext = ApplicationContext.run()
-    //    ApplicationContext applicationContext = ApplicationContext.build().build().registerSingleton(IQueryService, mariaDB)
     Environment environment = applicationContext.getEnvironment();
 
     String url = environment.getProperty("datasources.default.url", String.class).get()

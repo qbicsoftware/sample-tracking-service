@@ -25,7 +25,7 @@ class DBTester {
 //  }
 
   public void loginWithCredentials(String driver, String url, String user, String pw) throws Exception{
-    println "db tester"
+    println driver
     Class.forName(driver)
     connection = DriverManager.getConnection(url, user, pw)
   }
