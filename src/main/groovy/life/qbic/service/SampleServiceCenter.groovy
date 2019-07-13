@@ -22,8 +22,6 @@ class SampleServiceCenter implements ISampleService {
 
   @Override
   HttpResponse updateLocation(String sampleId, Location location) {
-    println "updating location using database:"
-    println database
     return database.updateLocation(sampleId, location)
   }
 

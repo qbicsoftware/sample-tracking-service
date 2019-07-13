@@ -1,6 +1,7 @@
 package life.qbic.helpers
 
 import io.micronaut.context.annotation.Parameter
+import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
@@ -24,6 +25,7 @@ import life.qbic.datamodel.services.Sample
 import life.qbic.datamodel.services.Status
 import life.qbic.db.IQueryService
 
+@Requires(missingBeans=javax.sql.DataSource)
 class QueryMock implements IQueryService {
 
   HttpResponse addNewLocation(String sampleId, Location location) {

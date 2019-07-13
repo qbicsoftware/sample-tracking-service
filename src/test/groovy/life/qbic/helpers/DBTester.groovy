@@ -13,29 +13,57 @@ import java.text.SimpleDateFormat
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import groovy.sql.ResultSetMetaDataWrapper
+import groovy.util.logging.Log4j2
 import life.qbic.datamodel.services.*
 import life.qbic.micronaututils.QBiCDataSource
 
+@Log4j2
 class DBTester {
 
   private Connection connection
 
-//  @Inject MariaDBManager(QBiCDataSource dataSource) {
-//    this.manager = dataSource
-//  }
-
   public void loginWithCredentials(String driver, String url, String user, String pw) throws Exception{
-    println driver
     Class.forName(driver)
     connection = DriverManager.getConnection(url, user, pw)
   }
-  
-//  DBTester(String host, String port, String db, String user, String pw, String driver, String driverPrefix) {
-//    this.manager = new (host, port, db, user, pw, driver, driverPrefix)
-//  }
 
+  void dropTables() {
+    try {
+      Statement statement = connection.createStatement()
+      statement.executeUpdate("DROP TABLE if exists LOCATIONS")
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    try {
+      Statement statement = connection.createStatement()
+      statement.executeUpdate("DROP TABLE if exists PERSONS")
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    try {
+      Statement statement = connection.createStatement()
+      statement.executeUpdate("DROP TABLE if exists SAMPLES")
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    try {
+      Statement statement = connection.createStatement()
+      statement.executeUpdate("DROP TABLE if exists PERSONS_LOCATIONS")
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    try {
+      Statement statement = connection.createStatement()
+      statement.executeUpdate("DROP TABLE if exists SAMPLES_LOCATIONS")
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+  }
+  
   void createTables() {
-    String locations = "CREATE TABLE IF NOT EXISTS LOCATIONS"+
+    dropTables()
+    String locations = "CREATE TABLE LOCATIONS"+
         "(ID INTEGER NOT NULL IDENTITY,"+
         "NAME VARCHAR(64) NOT NULL,"+
         "STREET VARCHAR(64) NOT NULL,"+
@@ -43,7 +71,7 @@ class DBTester {
         "COUNTRY VARCHAR(64) NOT NULL,"+
         "PRIMARY KEY (ID))"
 
-    String persons = "CREATE TABLE IF NOT EXISTS PERSONS"+
+    String persons = "CREATE TABLE PERSONS"+
         "(ID INTEGER NOT NULL IDENTITY,"+
         "USERNAME VARCHAR(8) NOT NULL,"+
         "TITLE VARCHAR(5),"+
@@ -54,12 +82,12 @@ class DBTester {
         "ACTIVE TINYINT DEFAULT 0,"+
         "PRIMARY KEY (ID))"
 
-    String samples = "CREATE TABLE IF NOT EXISTS SAMPLES"+
+    String samples = "CREATE TABLE SAMPLES"+
         "(ID VARCHAR(14) NOT NULL,"+
         "CURRENT_LOCATION_ID INTEGER NOT NULL,"+
         "PRIMARY KEY (ID))"
 
-    String samples_locations = "CREATE TABLE IF NOT EXISTS SAMPLES_LOCATIONS"+
+    String samples_locations = "CREATE TABLE SAMPLES_LOCATIONS"+
         "(SAMPLE_ID VARCHAR(14) NOT NULL,"+
         "LOCATION_ID INTEGER NOT NULL,"+
         "ARRIVAL_TIME DATETIME WITH TIME ZONE,"+
@@ -67,7 +95,7 @@ class DBTester {
         "SAMPLE_STATUS VARCHAR(11) DEFAULT 'WAITING' NOT NULL,"+
         "responsible_person_id INTEGER NOT NULL)"
 
-    String persons_locations = "CREATE TABLE IF NOT EXISTS PERSONS_LOCATIONS"+
+    String persons_locations = "CREATE TABLE PERSONS_LOCATIONS"+
         "(PERSON_ID INTEGER NOT NULL,"+
         "LOCATION_ID INTEGER NOT NULL)"
 
@@ -133,13 +161,48 @@ class DBTester {
     addSample(code, currentLocationId)
   }
 
+  boolean findSample(String code, int locID) {
+    boolean res = false
+    try {
+      connection.prepareStatement("SELECT * FROM samples where id = '"+code+"'").withCloseable { PreparedStatement statement ->
+        statement.executeQuery().withCloseable { ResultSet resultSet ->
+          while (resultSet.next()) {
+            String id = resultSet.getString("id");
+            int loc = resultSet.getInt("current_location_id");
+            res = code.equals(id) && loc == locID
+          }
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return res
+  }
+  
   void addSample(String code, int locationId) {
-    String sql = "INSERT INTO samples(id,current_location_id) VALUES(?,?)";
+//    log.info "adding sample "+code+" with location id "+locationId
+    String sql = "INSERT INTO samples (id,current_location_id) VALUES (?,?)";
     try {
       connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
         statement.setString(1, code);
         statement.setInt(2, locationId);
-        statement.execute();
+        statement.execute()
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+//    log.info "-----"
+    try {
+      connection.prepareStatement("SELECT * FROM samples").withCloseable { PreparedStatement statement ->
+        statement.executeQuery().withCloseable { ResultSet resultSet ->
+//          log.info "id---current_location_id"
+          while (resultSet.next()) {
+            String id = resultSet.getString("id");
+            int loc = resultSet.getInt("current_location_id");
+//            log.info id+"---"+loc
+          }
+//          log.info "-----"
+        }
       }
     } catch (SQLException e) {
       e.printStackTrace();
@@ -210,11 +273,26 @@ class DBTester {
     } catch (SQLException e) {
       e.printStackTrace();
     }
+//    log.info "-----"
+    try {
+      connection.prepareStatement("SELECT * FROM locations").withCloseable { PreparedStatement statement ->
+        statement.executeQuery().withCloseable { ResultSet resultSet ->
+//          log.info "id---name"
+          while (resultSet.next()) {
+            int id = resultSet.getInt("id");
+            String loc = resultSet.getString("name");
+//            log.info id+"---"+loc
+          }
+//          log.info "-----"
+        }
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
     return locationID
   }
 
   Sample searchSample(String code) {
-    //    logger.info("Looking for user with email " + email + " in the DB");
     Sample res = null;
     String sql = "SELECT * from samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
         "INNER JOIN locations ON samples_locations.location_id = locations.id "+
@@ -238,8 +316,7 @@ class DBTester {
 
             Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
             int personID = rs.getInt("responsible_person_id");
-            Person pers = getPersonNameByID(personID)
-
+            Person pers = getPersonNameByID(personID)            
             if(currID == locID) {
               currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
             } else {

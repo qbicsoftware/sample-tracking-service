@@ -1,4 +1,4 @@
-package life.qbic
+package life.qbic.controller
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.BeanContext
@@ -19,6 +19,7 @@ import io.micronaut.http.client.RxHttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
+import life.qbic.db.MariaDBManager
 import life.qbic.helpers.DBTester
 
 import java.sql.Connection
@@ -44,8 +45,8 @@ class LocationsControllerIntegrationTest {
 
   @BeforeClass
   static void setupServer() {
-    ApplicationContext applicationContext = ApplicationContext.run()
-    Environment environment = applicationContext.getEnvironment();
+    ApplicationContext ctx = ApplicationContext.run()
+    Environment environment = ctx.getEnvironment();
 
     String url = environment.getProperty("datasources.default.url", String.class).get()
     String user = environment.getProperty("datasources.default.username", String.class).get()
@@ -53,7 +54,7 @@ class LocationsControllerIntegrationTest {
     String driver = environment.getProperty("datasources.default.driver-class-name", String.class).get()
 
     //    PropertySource source = PropertySource.of("test", environment.getProperties())
-    server = ApplicationContext.run(EmbeddedServer.class)
+    server = ctx.run(EmbeddedServer.class)
 
     db = new DBTester();
     db.loginWithCredentials(driver, url, user, pw);
@@ -102,7 +103,6 @@ class LocationsControllerIntegrationTest {
     HttpRequest request = HttpRequest.GET("/locations/contacts/"+email)
     String body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
-
     assertNotNull(body)
     assertEquals(json.get("full_name"),first+" "+last)
     assertEquals(json.get("email"),email)

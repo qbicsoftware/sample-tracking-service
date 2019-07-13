@@ -1,4 +1,4 @@
-package life.qbic
+package life.qbic.controller
 
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.BeanContext

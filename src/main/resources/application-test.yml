@@ -3,7 +3,7 @@ micronaut:
         name: sampletracking
 datasources:
         default:
-            url: jdbc:hsqldb:mem:mymemdb;shutdown=true/test
+            url: jdbc:hsqldb:mem:mymemdb;shutdown=true/test?maxPoolSize=150&pool
             username: testuser
             driver-class-name: org.hsqldb.jdbc.JDBCDriver
             password: ""

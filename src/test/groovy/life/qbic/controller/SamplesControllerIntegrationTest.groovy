@@ -19,6 +19,7 @@ import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import life.qbic.datamodel.services.*
+import life.qbic.db.MariaDBManager
 import life.qbic.helpers.DBTester
 import life.qbic.micronaututils.DataSource
 import life.qbic.micronaututils.QBiCDataSource
@@ -50,9 +51,9 @@ class SamplesControllerIntegrationTest {
 
   @BeforeClass
   static void setupServer() {
-    ApplicationContext applicationContext = ApplicationContext.run();
+    ApplicationContext ctx = ApplicationContext.run();
     //    ApplicationContext applicationContext = ApplicationContext.build().build().registerSingleton(IQueryService, mariaDB)
-    Environment environment = applicationContext.getEnvironment();
+    Environment environment = ctx.getEnvironment();
     //    println environment.getProperties()
     String url = environment.getProperty("datasources.default.url", String.class).get()
     String user = environment.getProperty("datasources.default.username", String.class).get()
@@ -61,18 +62,19 @@ class SamplesControllerIntegrationTest {
 
     db = new DBTester();
     db.loginWithCredentials(driver, url, user, pw);
-    ////    db = new DBTester(host, port, dbName, "bob", "", driver, prefix)
+    
     db.createTables()
     db.addPerson("a", "b", "c", existingPersonMail, "0123")
     db.addLocation(existingLocation, "a", "b", 123)
 
-    server = ApplicationContext.run(EmbeddedServer.class)
-    client = applicationContext
+    server = ctx.run(EmbeddedServer.class)
+    client = ctx
         .createBean(HttpClient.class, server.getURL())
   }
 
   @AfterClass
   static void stopServer() {
+    db.dropTables()
     if (server != null) {
       server.stop()
     }
@@ -235,6 +237,20 @@ class SamplesControllerIntegrationTest {
     assertEquals(error, "Bad Request")
   }
 
+  
+    @Test
+    void testDBTesterAddSample() throws Exception {
+      Date d = new java.sql.Date(new Date().getTime());
+      String email = "test@person.de"
+      Person currentPerson = new Person("test", "person",email)
+      Address adr = new Address(affiliation: "testloc", country: "Germany", street: "somestreet 5", zipCode: 213)
+      Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
+      int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
+      db.addSample("Testcode", locID)
+
+      assert(db.findSample("Testcode", locID))
+    }
+    
   @Test
   void testNewLocation() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
@@ -243,7 +259,7 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 1", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
-    db.addSample(validCode4, locID)
+//    db.addSample(validCode4, locID)
     db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email, "123")
 
     HttpRequest request = HttpRequest.POST("/samples/"+validCode4+"/currentLocation/", location)

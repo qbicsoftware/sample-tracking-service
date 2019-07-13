@@ -22,7 +22,6 @@ class SamplesController {
 
   @Inject
   SamplesController(ISampleService sampleService) {
-    println "creating samples controller"
     this.sampleService = sampleService
   }
 

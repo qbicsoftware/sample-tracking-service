@@ -22,8 +22,6 @@ class LocationsController {
 
   @Get(uri = "/contacts/{email}", produces = MediaType.APPLICATION_JSON)
   HttpResponse<Contact> contacts(@Parameter('email') String email){
-    println "request"
-    println email
     if(!RegExValidator.isValidMail(email)) {
       HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
       return res
