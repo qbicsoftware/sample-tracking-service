@@ -1,6 +1,11 @@
 micronaut:
-    application:
-        name: sampletracking
-app:
-    address:
-        zip: ${ZIP_CODE}
+	application:
+		name: sampletracking
+datasources:
+	default:
+		url: jdbc:mariadb://${tr-db-host}/${tr-db-name}
+		username: ${tr-db-user}
+		password: ${tr-db-pwd}
+		driverClassName: org.mariadb.jdbc.Driver
+database:
+	name: ${tr-db-name}
