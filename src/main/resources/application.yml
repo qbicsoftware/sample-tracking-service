@@ -1,13 +1,13 @@
 micronaut:
-	application:
-		name: sampletracking
-	server:
-		port: ${wf-server-port:8080}
+    application:
+        name: sampletracking
+    server:
+        port: ${tr-server-port:8080}
 datasources:
-	default:
-		url: jdbc:mariadb://${tr-db-host}/${tr-db-name}
-		username: ${tr-db-user}
-		password: ${tr-db-pwd}
-		driverClassName: org.mariadb.jdbc.Driver
+    default:
+        url: jdbc:mariadb://${tr-db-host}/${tr-db-name}
+        username: ${tr-db-user}
+        password: ${tr-db-pwd}
+        driverClassName: org.mariadb.jdbc.Driver
 database:
-	name: ${tr-db-name}
+    name: ${tr-db-name}
