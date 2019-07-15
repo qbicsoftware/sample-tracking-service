@@ -1,6 +1,8 @@
 micronaut:
 	application:
 		name: sampletracking
+	server:
+		port: ${wf-server-port:8080}
 datasources:
 	default:
 		url: jdbc:mariadb://${tr-db-host}/${tr-db-name}
