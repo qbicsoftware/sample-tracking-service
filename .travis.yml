@@ -16,22 +16,22 @@ install:
 - "$HOME/miniconda3/bin/conda --version || ./.install-reports-dependencies.sh"
 before_script: if [ "$VAADIN_CHARTS_LICENSE_CODE" != "" ]; then echo "$VAADIN_CHARTS_LICENSE_CODE"
   > ~/.vaadin.charts.developer.license; fi;
-script: mvn --quiet --activate-profiles !development-build,!release-build --settings .travis.settings.xml
-  clean package
+script: mvn --quiet --activate-profiles !development-build,!release-build --settings
+  .travis.settings.xml clean package
 after_success:
 - bash <(curl -s https://codecov.io/bash)
 deploy:
 - skip_cleanup: true
   provider: script
-  script: mvn --quiet --activate-profiles development-build,!release-build --settings .travis.settings.xml
-    deploy -DskipITs
+  script: mvn --quiet --activate-profiles development-build,!release-build --settings
+    .travis.settings.xml deploy -DskipITs
   on:
     branch: development
     condition: '"$TRAVIS_EVENT_TYPE" = "push"'
 - skip_cleanup: true
   provider: script
-  script: mvn --quiet --activate-profiles !development-build,release-build --settings .travis.settings.xml
-    deploy -DskipITs
+  script: mvn --quiet --activate-profiles !development-build,release-build --settings
+    .travis.settings.xml deploy -DskipITs
   on:
     condition: '"$TRAVIS_EVENT_TYPE" = "push"'
     tags: true
@@ -55,5 +55,5 @@ notifications:
     - secure: "***"
 env:
   global:
-  - secure: wSbVYVR6qdFfeAWHT1Sncb3iPWlm/OsDZk0rX33nMTpne+sFP746ELH+bqw6tj0UTFmJiBf6FXvscjdOko96X6scPhar+/ZIdtr7MevU74rzXuIvrNjDM+NdHTIpjOFjmirQALUZq/FHppMsOlVQRY/qbTZCntBrQlxF216Pm8cKUuVEzxQ016X+rj0RAAL+ZNNsUziSx+A1nsF+A2DONTgQYv20YhMVWnYzRtTydJYZHoXt6/eFxxy38t65qrVjpKedrS/tlQn4BUVgH5MyJeghG1V8S0D1OCasPtyJXOoFZZjUVdkUOX0yOuBmbVCVrLZIEBJkvgiDRwoAhaBrzjdA0UWSFF2ypv9Inrj+cAq+70mxH1heHSmAuRvms2i+CBMV86Jc6uA8vn5O8GN1k+1+nBb6AqtCj3blyifPQXceIr2aWdFS/iqe3aybubhi/08qhBRV7fb6vDt+3b2f5yp9o9ZnEeYz4A7kOvsNhAGPX+i69eHbhPfNAyfcg0cbdz7oiU22AvKNWyqCleZ0v4C1UddmDXu03Onjdni8/pkfWxA/03YNMi6iR9vd3mOboRiIEVQIyMTtwc8yPI09PHkmhoGu4a1O1avEKe4gKXGuBk8FFAVX+v8/hBZk/su66cUMW9lP3pAh95Q6qWNzmH3bvzGmAA1T96EU8HEANps=
-  - secure: VKKaYbuiBmHE1UD50Kqx9o4VnjHv+3N83V/SSnOvrbZfJsna57BOvFyyLbI1oj+NTpUYwxf4Up62b6AFY7f4eceEbx8kyw9z5VbjmAVm7CAInTvZrLlaHP4X7o1SjwbU1yYZUH21wKSjq8dnDdgOQs/STPvpK8+dsKob2V3JrkqqKEyQNCGxcl21WDr0Pa8HOUVbBJr5Q0QKFWnqciaaUyJbFu8xrQROfMbmpIIV9IsYc7QDceltg287CFT+bpD2GkDCXzu6qaaiL7woshkKUW/2GCInUWdzY+BDSlqxmqZ0+glmCumI5WXBl4itECkNIUNBYQAIVhIPlBaZnvnQRhGM+mlyOQlcVUtHt4JAfAm8i2xEC28Vn/HdeOwb37sOXxSfzDING3Z77KAvOExMgbtzfe+koqCPL+O23RLYxfAJzTFiIXK3Iw1i0bOUJO1NALgRBQCJPpIYvZiqLaE4iQBuXHg40eW4YZY+Z+Agq9rM81aAVdV7wy5Gb32vkwbku/auHXBKA9VJEvAJ+YwYO/i8bgT26oUKEqbVy0w/R/vKf+9zbrXXHpGj+h7bemEmmfYkALrgAP0mkRGD/5hB5TrQzKIEWpW9VkQ9VY9mjU6kLkb4B7aHq90H6/BnaP4YCndqWY5gEewBOr1/t08kit5pnHpdFxve9R0/l0+SR5I=
+  - secure: Ase96qJ6x+6LcNPayTSzlDauQBOjpDBr3uSeswqH8RFwcX3kpB3m02HVtYiTe1aNA/28U3vJld46IQ+BK8UEFzcjdmX27gIDD9/8q9DDlZ0gDnwu8Fy+pyaVX7d5q4iawRns03EAFojIjrX8y339WArL0M2lHKV9fx6RubnCyVZGYk50CqOhqpTwh4tCnw13E0tqArx26x+RnOyOx60dEC8mlnubRsGRB9MA1t0wdTN6p4TTxUrM6dG/vUXpq4mMsqOHp9xk6CNyxEeSWFH/eO1XmZj3s76JiQ53XMnJy2d7d6AegGsA4sWY4FxQ6OoVrOfxDIHvNysCcoYbUYHhV7rNWWP3ticpuzHI9PdAtiCwKGuH5VdS8oyNejb+WOlwKmRvFgN/QLeZ78dgeplXzXYD4+uVIk0OLMO2BVLLNrNIEaWaD8Ew58l0kyD+A8/XergGzI73DNvdmBYcRgMwA9DubLmEkqki2qWUs9GQB6yzE6k+6dcbo189zAY5zcErTPcldN62xCctPyzrMVoozs34Uhno2RZYebL/Bm5IMfOdFeZZm+LI/6YSeodyA4Sksy4W4hRsPWdKeUFMFhPqx/IL081URiEZ2rgLhv3HJsCpuZU+d2x9f6g22AX5r8Ig63bq3OdISSC5RRGGp4Pgs5ouFH/XWsIy02pZHyInbd0=
+  - secure: Iubvt5RNfA1uOfZK+EWRI8q1QJE8JCEFXUjf0RJNVqAQdOsRY9qJGIhlp5ixqIsiWKLMrvreXoyZibDubD+Q5k8pd61gKlOikHQXFIpUc2H0rkwGoDho+lLpUKvbW3Q5lCL0xUwfsdBIMuDANqiJUbUbJQlP+6AlhN9iff/vXNkSmFO/d9HfOjK7XXzBTcTYAM07+RDetFKdMs0sBWC1awgwFBuGYHVOSQwQLgShKOmI0mZbJsbXCoTanSWk3qnaVhjcgo9BPv4I1W8EG6xySFOI6naBj9kjTGBilS310p+G6L7JRluvvNoY/IDko6MdIfoOgJDxYu8C/jhLtPDhZuXSSb0YMf8VvWPGRVutoELZQuthwE+8imwDpabtJ3xCUzPZJ7PZif9EiX4jDJO9b5iuD20kksgsY5rmhqIEb/hcKRQzMwMT9RbqmpDPpUZPiAtOLnRkdnuc+e6jNXd06ajzGoUgIOuLK+uIGyQMfUXrANaIMlbFwtRXWXvMlymrOOYf6WAvyweWqORr/EzpTanNi98qawyqxLfS7h4OKa8WRnhns1yITsex57D3bsIAqdWW5zcbRv6NhMuWtyt73SyPHAHhdCPmuzcJsu9ky5yXLSfguhjq91u6XaN64PL81XJjtFi0z8D7kCxMhMa2a0H0/PCjE/Dy+Jz9kuwT/HU=
