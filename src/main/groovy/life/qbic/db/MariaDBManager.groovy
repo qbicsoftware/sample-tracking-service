@@ -41,11 +41,11 @@ class MariaDBManager implements IQueryService {
 
   @Inject MariaDBManager(QBiCDataSource dataSource) {
     this.dataSource = dataSource.getSource()
-    this.sql = new Sql(dataSource.getSource().getConnection())
   }
 
   HttpResponse<Location> addNewLocation(String sampleId, Location location) {
     log.info "add new location "+location.name+" for "+sampleId
+    this.sql = new Sql(dataSource.connection)
     HttpResponse response = HttpResponse.ok(location);
     sql.connection.autoCommit = false
     try {
@@ -68,15 +68,16 @@ class MariaDBManager implements IQueryService {
     } catch (Exception ex) {
       sql.rollback()
       response = HttpResponse.badRequest(ex.getMessage())
+    } finally {
+      sql.close()
     }
-    sql.connection.autoCommit = true;
-    //    sql.close()
+    //    sql.connection.autoCommit = true;
     return response
   }
 
   HttpResponse<Location> updateLocation(String sampleId, Location location) {
     HttpResponse response = HttpResponse.ok(location);
-    //    sql = new Sql(dataSource)
+    this.sql = new Sql(dataSource.connection)
     sql.connection.autoCommit = false
     try {
       int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql);
@@ -107,16 +108,17 @@ class MariaDBManager implements IQueryService {
     } catch (Exception e) {
       sql.rollback();
       response = HttpResponse.badRequest(e.getMessage())
+    } finally {
+      sql.close()
     }
-    sql.connection.autoCommit = true;
-    //    sql.close()
+    //    sql.connection.autoCommit = true;
 
     return response
   }
 
   Contact searchPersonByEmail(String email) {
     //    logger.info("Looking for user with email " + email + " in the DB");
-    //    sql = new Sql(dataSource)
+    this.sql = new Sql(dataSource.connection)
     Contact contact = null;
     final String query = "SELECT * from persons WHERE UPPER(email) = UPPER('${email}');"
     List<GroovyRowResult> results = sql.rows(query)
@@ -128,13 +130,13 @@ class MariaDBManager implements IQueryService {
       Address adr = getAddressByPerson(id)
       contact = new Contact(fullName: first + " " + last, email: email, address: adr)
     }
-    //    sql.close()
+    sql.close()
     return contact
   }
 
   private Address getAddressByPerson(int personID) {
     //    logger.info("Looking for user with email " + email + " in the DB");
-    //    sql = new Sql(dataSource)
+    this.sql = new Sql(dataSource.connection)
     Address res = null;
     final String query = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id WHERE person_id = '${personID}';"
     List<GroovyRowResult> results = sql.rows(query)
@@ -146,14 +148,14 @@ class MariaDBManager implements IQueryService {
       String country = rs.get("country")
       res = new Address(affiliation: affiliation, street: street, zipCode: zip, country: country)
     }
-    //    sql.close()
+    sql.close()
     return res
   }
 
   private boolean isNewSampleLocation(String sampleId, Location location) {
     String locName = location.name
     final String locationIDQuery = "SELECT id FROM locations WHERE name = '${locName}';"
-    //    sql = new Sql(dataSource)
+    this.sql = new Sql(dataSource.connection)
     boolean res = true;
     List<GroovyRowResult> results = sql.rows(locationIDQuery)
     if( results.size() > 0 ) {
@@ -167,7 +169,7 @@ class MariaDBManager implements IQueryService {
         res = false;
       }
     }
-    //    sql.close()
+    sql.close()
     return res;
   }
 
@@ -197,17 +199,25 @@ class MariaDBManager implements IQueryService {
   }
 
   private boolean updateCurrentLocationObjectInDB(String sampleId, int personId, int locationId, Location location, Sql sql) {
+    this.sql = new Sql(dataSource.connection)
+
     final String query = "UPDATE samples_locations SET arrival_time=?, forwarded_time=?, sample_status=?, responsible_person_id=? WHERE sample_id=? AND location_id=?"
     int count = sql.executeUpdate(query, toTimestamp(location.getArrivalDate()), toTimestamp(location.getForwardDate()), location.getStatus().toString(), personId, sampleId, locationId)
+    sql.close()
     return count > 0
   }
 
   private void setNewLocationAsCurrent(String sampleId, int personId, int locationId, Location location, Sql sql) {
+    this.sql = new Sql(dataSource.connection)
+
     final String query = "INSERT INTO samples_locations (sample_id, location_id, arrival_time, forwarded_time, sample_status, responsible_person_id) VALUES (?,?,?,?,?,?)"
     sql.execute(query, sampleId, locationId, toTimestamp(location.getArrivalDate()), toTimestamp(location.getForwardDate()), location.getStatus().toString(), personId)
+    sql.close()
   }
 
   private void addOrUpdateSample(String sampleId, int locationId, Sql sql) {
+    this.sql = new Sql(dataSource.connection)
+
     final String search = "SELECT * FROM samples where id = '${sampleId}';"
     List<GroovyRowResult> results = sql.rows(search)
     if( results.size() == 0 ) {
@@ -217,11 +227,12 @@ class MariaDBManager implements IQueryService {
       final String update = "UPDATE samples SET current_location_id = ? WHERE id = ?"
       sql.execute(update, locationId, sampleId)
     }
+    sql.close()
   }
 
   Sample searchSample(String code) {
     Sample res = null;
-    //    sql = new Sql(dataSource)
+    this.sql = new Sql(dataSource.connection)
     final String query = "SELECT * from samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
         "INNER JOIN locations ON samples_locations.location_id = locations.id "+
         "WHERE UPPER(samples.id) = UPPER('${code}');"
@@ -256,15 +267,16 @@ class MariaDBManager implements IQueryService {
 
     } catch (SQLException e) {
       e.printStackTrace()
+    } finally {
+      sql.close()
     }
-    //    sql.close()
     return res
   }
 
   private Person getPersonNameByID(int id) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Person res = null;
-    //    sql = new Sql(dataSource)
+    this.sql = new Sql(dataSource.connection)
 
     final String query = "SELECT * from persons WHERE id = ${id};"
     try {
@@ -280,15 +292,16 @@ class MariaDBManager implements IQueryService {
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
+    } finally {
+      sql.close()
     }
-    //    sql.close()
     return res
   }
 
   boolean updateSampleStatus(String sampleId, Status status) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     boolean res = false;
-    //    sql = new Sql(dataSource)
+    this.sql = new Sql(dataSource.connection)
 
     final String query = "SELECT * from samples WHERE UPPER(id) = UPPER('${sampleId}');"
     try {
@@ -306,13 +319,14 @@ class MariaDBManager implements IQueryService {
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
+    } finally {
+      sql.close()
     }
-    //    sql.close()
     return res
   }
 
   private void setStatus(String sampleID, int locationID, Status status) {
-    //    sql = new Sql(dataSource)
+    this.sql = new Sql(dataSource.connection)
 
     final String query = "UPDATE samples_locations SET sample_status = ? where sample_id = ? and location_id = ?";
     try {
@@ -321,10 +335,14 @@ class MariaDBManager implements IQueryService {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
     }
-    //    sql.close()
+    finally {
+      sql.close()
+    }
   }
 
   private int getLocationIdFromName(String locationName, Sql sql) {
+    this.sql = new Sql(dataSource.connection)
+    
     //    logger.info("Looking for user with email " + email + " in the DB");
     int res = -1;
     final String query = "SELECT * from locations WHERE UPPER(name) = UPPER('${locationName}')";
@@ -336,11 +354,15 @@ class MariaDBManager implements IQueryService {
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
+    } finally {
+      sql.close()
     }
     return res
   }
 
   private int getPersonIdFromEmail(String email, Sql sql) {
+    this.sql = new Sql(dataSource.connection)
+    
     //    logger.info("Looking for user with email " + email + " in the DB");
     int res = -1;
     final String query = "SELECT * from persons WHERE UPPER(email) = UPPER('${email}')";
@@ -352,6 +374,8 @@ class MariaDBManager implements IQueryService {
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
+    } finally {
+      sql.close()
     }
     return res
   }

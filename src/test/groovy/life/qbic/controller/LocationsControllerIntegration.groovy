@@ -19,6 +19,7 @@ import io.micronaut.http.client.RxHttpClient
 import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
+import io.micronaut.test.annotation.MicronautTest
 import life.qbic.db.MariaDBManager
 import life.qbic.helpers.DBTester
 
@@ -40,12 +41,10 @@ class LocationsControllerIntegrationTest {
   private static DBTester db
   private static EmbeddedServer server
   private static HttpClient client
-  //  @Inject private static MariaDBManager mariaDB;
-
 
   @BeforeClass
   static void setupServer() {
-    ApplicationContext ctx = ApplicationContext.run()
+    ApplicationContext ctx = ApplicationContext.run(EmbeddedServer.class)
     Environment environment = ctx.getEnvironment();
 
     String url = environment.getProperty("datasources.default.url", String.class).get()
@@ -53,12 +52,10 @@ class LocationsControllerIntegrationTest {
     String pw = environment.getProperty("datasources.default.password", String.class).get()
     String driver = environment.getProperty("datasources.default.driver-class-name", String.class).get()
 
-    //    PropertySource source = PropertySource.of("test", environment.getProperties())
-    server = ctx.run(EmbeddedServer.class)
+    server = ctx
 
     db = new DBTester();
     db.loginWithCredentials(driver, url, user, pw);
-    //    db = new DBTester(host, port, dbName, "bob", "", driver, prefix)
     db.createTables()
     client = server
         .getApplicationContext()

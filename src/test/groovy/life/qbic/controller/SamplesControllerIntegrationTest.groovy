@@ -19,7 +19,6 @@ import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import life.qbic.datamodel.services.*
-import life.qbic.db.MariaDBManager
 import life.qbic.helpers.DBTester
 import life.qbic.micronaututils.DataSource
 import life.qbic.micronaututils.QBiCDataSource
@@ -36,7 +35,6 @@ class SamplesControllerIntegrationTest {
 
   private static DBTester db
   private static EmbeddedServer server;
-  //  @Inject private static MariaDBManager mariaDB;
 
   private static HttpClient client
   private static String existingLocation = "Existing Location"
