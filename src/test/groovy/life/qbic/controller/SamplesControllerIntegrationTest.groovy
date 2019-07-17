@@ -49,10 +49,12 @@ class SamplesControllerIntegrationTest {
 
   @BeforeClass
   static void setupServer() {
-    ApplicationContext ctx = ApplicationContext.run();
-    //    ApplicationContext applicationContext = ApplicationContext.build().build().registerSingleton(IQueryService, mariaDB)
-    Environment environment = ctx.getEnvironment();
-    //    println environment.getProperties()
+    server = ApplicationContext.run(EmbeddedServer.class)
+    ApplicationContext ctx = server.getApplicationContext()
+    client = ctx
+        .createBean(HttpClient.class, server.getURL())
+
+    Environment environment = ctx.getEnvironment()
     String url = environment.getProperty("datasources.default.url", String.class).get()
     String user = environment.getProperty("datasources.default.username", String.class).get()
     String pw = environment.getProperty("datasources.default.password", String.class).get()
@@ -60,14 +62,10 @@ class SamplesControllerIntegrationTest {
 
     db = new DBTester();
     db.loginWithCredentials(driver, url, user, pw);
-    
+
     db.createTables()
     db.addPerson("a", "b", "c", existingPersonMail, "0123")
     db.addLocation(existingLocation, "a", "b", 123)
-
-    server = ctx.run(EmbeddedServer.class)
-    client = ctx
-        .createBean(HttpClient.class, server.getURL())
   }
 
   @AfterClass
@@ -126,6 +124,10 @@ class SamplesControllerIntegrationTest {
     assertNotNull(json.get("current_location").equals(currentLocation))
     assertNotNull(json.get("past_locations").equals(pastLocations))
   }
+
+  //  @Test testManyQueries() {
+  //
+  //  }
 
   @Test
   void testMissingSample() throws Exception {
@@ -235,20 +237,20 @@ class SamplesControllerIntegrationTest {
     assertEquals(error, "Bad Request")
   }
 
-  
-    @Test
-    void testDBTesterAddSample() throws Exception {
-      Date d = new java.sql.Date(new Date().getTime());
-      String email = "test@person.de"
-      Person currentPerson = new Person("test", "person",email)
-      Address adr = new Address(affiliation: "testloc", country: "Germany", street: "somestreet 5", zipCode: 213)
-      Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-      int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
-      db.addSample("Testcode", locID)
 
-      assert(db.findSample("Testcode", locID))
-    }
-    
+  @Test
+  void testDBTesterAddSample() throws Exception {
+    Date d = new java.sql.Date(new Date().getTime());
+    String email = "test@person.de"
+    Person currentPerson = new Person("test", "person",email)
+    Address adr = new Address(affiliation: "testloc", country: "Germany", street: "somestreet 5", zipCode: 213)
+    Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
+    int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
+    db.addSample("Testcode", locID)
+
+    assert(db.findSample("Testcode", locID))
+  }
+
   @Test
   void testNewLocation() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
@@ -257,7 +259,7 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 1", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
-//    db.addSample(validCode4, locID)
+    //    db.addSample(validCode4, locID)
     db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email, "123")
 
     HttpRequest request = HttpRequest.POST("/samples/"+validCode4+"/currentLocation/", location)

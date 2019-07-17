@@ -44,22 +44,22 @@ class LocationsControllerIntegrationTest {
 
   @BeforeClass
   static void setupServer() {
-    ApplicationContext ctx = ApplicationContext.run(EmbeddedServer.class)
-    Environment environment = ctx.getEnvironment();
+    server = ApplicationContext.run(EmbeddedServer.class)
+    ApplicationContext ctx = server.getApplicationContext()
+    client = ctx
+        .createBean(HttpClient.class, server.getURL())
 
+    Environment environment = ctx.getEnvironment()
     String url = environment.getProperty("datasources.default.url", String.class).get()
     String user = environment.getProperty("datasources.default.username", String.class).get()
     String pw = environment.getProperty("datasources.default.password", String.class).get()
     String driver = environment.getProperty("datasources.default.driver-class-name", String.class).get()
 
-    server = ctx
+    
 
     db = new DBTester();
     db.loginWithCredentials(driver, url, user, pw);
     db.createTables()
-    client = server
-        .getApplicationContext()
-        .createBean(HttpClient.class, server.getURL())
   }
 
   @AfterClass

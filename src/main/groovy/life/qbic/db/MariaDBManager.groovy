@@ -57,7 +57,7 @@ class MariaDBManager implements IQueryService {
       }
       //      log.info "person "+personId
       //      log.info "locID "+locationId
-      if(isNewSampleLocation(sampleId, location)) {
+      if(isNewSampleLocation(sampleId, location, sql)) {
         //        log.info "is new sample location"
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
         addOrUpdateSample(sampleId, locationId, sql)
@@ -91,7 +91,7 @@ class MariaDBManager implements IQueryService {
         throw new NotFoundException("Location "+location.getName()+" was not found.")
       }
       // if the location changed, change the location of the sample
-      if(isNewSampleLocation(sampleId, location)) {
+      if(isNewSampleLocation(sampleId, location, sql)) {
 
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
       } else {
@@ -154,10 +154,9 @@ class MariaDBManager implements IQueryService {
     return res
   }
 
-  private boolean isNewSampleLocation(String sampleId, Location location) {
+  private boolean isNewSampleLocation(String sampleId, Location location, Sql sql) {
     String locName = location.name
     final String locationIDQuery = "SELECT id FROM locations WHERE name = '${locName}';"
-    this.sql = new Sql(dataSource.connection)
     boolean res = true;
     List<GroovyRowResult> results = sql.rows(locationIDQuery)
     if( results.size() > 0 ) {
@@ -171,7 +170,6 @@ class MariaDBManager implements IQueryService {
         res = false;
       }
     }
-    sql.close()
     return res;
   }
 
@@ -201,25 +199,17 @@ class MariaDBManager implements IQueryService {
   }
 
   private boolean updateCurrentLocationObjectInDB(String sampleId, int personId, int locationId, Location location, Sql sql) {
-    this.sql = new Sql(dataSource.connection)
-
     final String query = "UPDATE samples_locations SET arrival_time=?, forwarded_time=?, sample_status=?, responsible_person_id=? WHERE sample_id=? AND location_id=?"
     int count = sql.executeUpdate(query, toTimestamp(location.getArrivalDate()), toTimestamp(location.getForwardDate()), location.getStatus().toString(), personId, sampleId, locationId)
-    sql.close()
     return count > 0
   }
 
   private void setNewLocationAsCurrent(String sampleId, int personId, int locationId, Location location, Sql sql) {
-    this.sql = new Sql(dataSource.connection)
-
     final String query = "INSERT INTO samples_locations (sample_id, location_id, arrival_time, forwarded_time, sample_status, responsible_person_id) VALUES (?,?,?,?,?,?)"
     sql.execute(query, sampleId, locationId, toTimestamp(location.getArrivalDate()), toTimestamp(location.getForwardDate()), location.getStatus().toString(), personId)
-    sql.close()
   }
 
   private void addOrUpdateSample(String sampleId, int locationId, Sql sql) {
-    this.sql = new Sql(dataSource.connection)
-
     final String search = "SELECT * FROM samples where id = '${sampleId}';"
     List<GroovyRowResult> results = sql.rows(search)
     if( results.size() == 0 ) {
@@ -229,7 +219,6 @@ class MariaDBManager implements IQueryService {
       final String update = "UPDATE samples SET current_location_id = ? WHERE id = ?"
       sql.execute(update, locationId, sampleId)
     }
-    sql.close()
   }
 
   Sample searchSample(String code) {
@@ -328,8 +317,6 @@ class MariaDBManager implements IQueryService {
   }
 
   private void setStatus(String sampleID, int locationID, Status status) {
-    this.sql = new Sql(dataSource.connection)
-
     final String query = "UPDATE samples_locations SET sample_status = ? where sample_id = ? and location_id = ?";
     try {
       sql.execute(query, status.toString(), sampleID, locationID)
@@ -337,14 +324,9 @@ class MariaDBManager implements IQueryService {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
     }
-    finally {
-      sql.close()
-    }
   }
 
-  private int getLocationIdFromName(String locationName, Sql sql) {
-    this.sql = new Sql(dataSource.connection)
-    
+  private int getLocationIdFromName(String locationName, Sql sql) {    
     //    logger.info("Looking for user with email " + email + " in the DB");
     int res = -1;
     final String query = "SELECT * from locations WHERE UPPER(name) = UPPER('${locationName}')";
@@ -356,15 +338,11 @@ class MariaDBManager implements IQueryService {
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
-    } finally {
-      sql.close()
     }
     return res
   }
 
-  private int getPersonIdFromEmail(String email, Sql sql) {
-    this.sql = new Sql(dataSource.connection)
-    
+  private int getPersonIdFromEmail(String email, Sql sql) {    
     //    logger.info("Looking for user with email " + email + " in the DB");
     int res = -1;
     final String query = "SELECT * from persons WHERE UPPER(email) = UPPER('${email}')";
@@ -376,8 +354,6 @@ class MariaDBManager implements IQueryService {
     } catch (SQLException e) {
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
       e.printStackTrace();
-    } finally {
-      sql.close()
     }
     return res
   }
