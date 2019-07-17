@@ -35,7 +35,6 @@ import javax.validation.metadata.ReturnValueDescriptor
 class MariaDBManager implements IQueryService {
 
   private DataSource dataSource
-  //  private DBManager dataSource
 
   private Sql sql
 
@@ -44,7 +43,6 @@ class MariaDBManager implements IQueryService {
   }
 
   HttpResponse<Location> addNewLocation(String sampleId, Location location) {
-    log.info "add new location "+location.name+" for "+sampleId
     this.sql = new Sql(dataSource.connection)
     HttpResponse response = HttpResponse.ok(location);
     sql.connection.autoCommit = false
@@ -66,8 +64,10 @@ class MariaDBManager implements IQueryService {
         sql.commit()
       }
     } catch (Exception ex) {
+      String msg = ex.getMessage()
+      log.info msg+" Rolling back previous changes and returning bad request."
       sql.rollback()
-      response = HttpResponse.badRequest(ex.getMessage())
+      response = HttpResponse.badRequest(msg)
     } finally {
       sql.close()
     }
@@ -105,9 +105,11 @@ class MariaDBManager implements IQueryService {
       addOrUpdateSample(sampleId, locationId, sql)
 
       sql.commit();
-    } catch (Exception e) {
-      sql.rollback();
-      response = HttpResponse.badRequest(e.getMessage())
+    } catch (Exception ex) {
+      String msg = ex.getMessage()
+      log.info msg+" Rolling back previous changes and returning bad request."
+      sql.rollback()
+      response = HttpResponse.badRequest(msg)
     } finally {
       sql.close()
     }

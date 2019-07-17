@@ -16,11 +16,11 @@ import java.sql.Connection
 
 @CompileStatic
 @Log4j2
-class Application {
+class SampleTracking {
   static void main(String[] args) {
     log.info "Application started."
     registerShutdownHook()
-    ApplicationContext ctx = Micronaut.run(Application.class)
+    ApplicationContext ctx = Micronaut.run(SampleTracking.class)
   }
 
   static void registerShutdownHook() {
