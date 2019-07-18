@@ -1,5 +1,7 @@
 package life.qbic.service;
 
+import java.util.List
+
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -22,5 +24,17 @@ class LocationServiceCenter implements ILocationService {
   Contact searchPersonByEmail(String email) {
     log.info "Searching for person with e-mail "+email
     return database.searchPersonByEmail(email)
+  }
+
+  @Override
+  List<Location> listLocations() {
+    log.info "Listing all known locations"
+    return database.listLocations();
+  }
+
+  @Override
+  List<Location> getLocationsForEmail(String email) {
+    log.info "Listing all known locations for person with e-mail "+email
+    return database.getLocationsForEmail(email);
   }
 }

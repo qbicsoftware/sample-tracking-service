@@ -8,6 +8,7 @@ import io.micronaut.http.HttpResponse
 
 import javax.inject.Inject
 import life.qbic.datamodel.services.Contact
+import life.qbic.datamodel.services.Location
 import life.qbic.service.ILocationService
 
 @Controller("/locations")
@@ -36,5 +37,22 @@ class LocationsController {
         return res
       }
     }
+  }
+
+  @Get(uri = "/{contact_email}", produces = MediaType.APPLICATION_JSON)
+  HttpResponse<List<Location>> locations(@Parameter('contact_email') String contact_email){
+    if(!RegExValidator.isValidMail(contact_email)) {
+      HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
+      return res
+    } else {
+      List<Location> locations = locService.getLocationsForEmail(contact_email);
+      return HttpResponse.ok(locations)
+    }
+  }
+
+  @Get(uri = "/", produces = MediaType.APPLICATION_JSON)
+  HttpResponse<List<Location>> listLocations() {
+    List<Location> res = locService.listLocations();
+    return HttpResponse.ok(res)
   }
 }

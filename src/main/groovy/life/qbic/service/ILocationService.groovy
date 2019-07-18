@@ -8,4 +8,8 @@ import life.qbic.datamodel.services.*
 interface ILocationService {
 
   Contact searchPersonByEmail(String email)
+  
+  List<Location> listLocations()
+  
+  List<Location> getLocationsForEmail(String email)
 }

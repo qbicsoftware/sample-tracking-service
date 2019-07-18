@@ -18,20 +18,18 @@ import io.micronaut.runtime.server.EmbeddedServer
 import life.qbic.controller.SamplesController
 import life.qbic.datamodel.services.Address
 import life.qbic.datamodel.services.Location
+import life.qbic.datamodel.services.Sample
 import life.qbic.datamodel.services.Status
 import life.qbic.db.IQueryService
 import life.qbic.helpers.QueryMock
 import life.qbic.service.ISampleService
 import life.qbic.service.SampleServiceCenter
-import org.json.JSONObject
 import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
-
-import com.fasterxml.jackson.databind.ObjectMapper
 
 class SamplesControllerTest {
 
@@ -57,13 +55,10 @@ class SamplesControllerTest {
   @Test
   void testSample() throws Exception {
     HttpResponse response = samples.sample(existingCode);
-    ObjectMapper mapper = new ObjectMapper();
-    String jsons = mapper.writerWithDefaultPrettyPrinter()
-        .writeValueAsString(response.body.orElse(null));
-    JSONObject json = new JSONObject(jsons)
-    assertEquals(json.get("code"),existingCode)
-    assertNotNull(json.get("current_location"))
-    assertNotNull(json.get("past_locations"))
+    Sample s = response.body.orElse(null);
+    assertEquals(s.code,existingCode)
+    assertNotNull(s.currentLocation)
+    assertNotNull(s.pastLocations)
   }
 
   @Test

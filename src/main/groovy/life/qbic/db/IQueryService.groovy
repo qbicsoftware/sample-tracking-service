@@ -8,6 +8,10 @@ import life.qbic.datamodel.services.*
 interface IQueryService {
 
   Contact searchPersonByEmail(String email)
+  
+  List<Location> listLocations()
+  
+  List<Location> getLocationsForEmail(String email)
 
   HttpResponse addNewLocation(String sampleId, Location location)
 

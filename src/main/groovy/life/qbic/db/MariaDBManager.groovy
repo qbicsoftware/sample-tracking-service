@@ -129,16 +129,50 @@ class MariaDBManager implements IQueryService {
       int id = res.get("id")
       String first = res.get("first_name")
       String last = res.get("family_name")
-      Address adr = getAddressByPerson(id)
+      Address adr = getAddressByPerson(id, sql)
       contact = new Contact(fullName: first + " " + last, email: email, address: adr)
     }
     sql.close()
     return contact
   }
 
-  private Address getAddressByPerson(int personID) {
-    //    logger.info("Looking for user with email " + email + " in the DB");
+  List<Location> getLocationsForEmail(String email) {
+    List<Location> res = new ArrayList<>()
+    for(Location l : listLocations()) {
+      if(l.responsibleEmail.equals(email)) {
+        res.add(l)
+      }
+    }
+    return res
+  }
+
+  List<Location> listLocations() {
     this.sql = new Sql(dataSource.connection)
+    List<Location> locs = new ArrayList<>()
+    final String query = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id inner join persons on persons_locations.person_id = persons.id"
+    List<GroovyRowResult> results = sql.rows(query)
+
+    for(GroovyRowResult rs: results) {
+      //Location
+      String name = rs.get("name")
+      String street = rs.get("street")
+      int zip = rs.get("zip_code")
+      String country = rs.get("country")
+
+      Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
+      //Person
+      String first = rs.get("first_name")
+      String last = rs.get("family_name")
+      String mail = rs.get("email")
+      Location l = new Location(name: name, responsiblePerson: first+" "+last, responsibleEmail: mail, address: address);
+      locs.add(l)
+    }
+    sql.close()
+    return locs
+  }
+
+  private Address getAddressByPerson(int personID, Sql sql) {
+    //    logger.info("Looking for user with email " + email + " in the DB");
     Address res = null;
     final String query = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id WHERE person_id = '${personID}';"
     List<GroovyRowResult> results = sql.rows(query)
@@ -150,7 +184,6 @@ class MariaDBManager implements IQueryService {
       String country = rs.get("country")
       res = new Address(affiliation: affiliation, street: street, zipCode: zip, country: country)
     }
-    sql.close()
     return res
   }
 
@@ -326,7 +359,7 @@ class MariaDBManager implements IQueryService {
     }
   }
 
-  private int getLocationIdFromName(String locationName, Sql sql) {    
+  private int getLocationIdFromName(String locationName, Sql sql) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     int res = -1;
     final String query = "SELECT * from locations WHERE UPPER(name) = UPPER('${locationName}')";
@@ -342,7 +375,7 @@ class MariaDBManager implements IQueryService {
     return res
   }
 
-  private int getPersonIdFromEmail(String email, Sql sql) {    
+  private int getPersonIdFromEmail(String email, Sql sql) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     int res = -1;
     final String query = "SELECT * from persons WHERE UPPER(email) = UPPER('${email}')";
