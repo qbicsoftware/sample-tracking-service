@@ -86,7 +86,6 @@ class MariaDBManager implements IQueryService {
         throw new NotFoundException("User with email "+location.getResponsibleEmail()+" was not found.")
       }
       int locationId = getLocationIdFromName(location.getName(), sql);
-
       if(locationId == -1) {
         throw new NotFoundException("Location "+location.getName()+" was not found.")
       }
@@ -99,9 +98,7 @@ class MariaDBManager implements IQueryService {
 
         updateCurrentLocationObjectInDB(sampleId, personId, locationId, location, sql)
       }
-
       // update sample table current location id OR create new row
-
       addOrUpdateSample(sampleId, locationId, sql)
 
       sql.commit();
