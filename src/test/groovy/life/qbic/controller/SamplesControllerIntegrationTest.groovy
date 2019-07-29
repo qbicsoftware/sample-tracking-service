@@ -31,12 +31,15 @@ import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
 
+import com.fasterxml.jackson.databind.ObjectMapper
+
 class SamplesControllerIntegrationTest {
 
   private static DBTester db
   private static EmbeddedServer server;
-
+  private static ObjectMapper mapper = new ObjectMapper();
   private static HttpClient client
+
   private static String existingLocation = "Existing Location"
   private static String existingPersonMail = "existing@mail.test"
   private String validCode1 = "QABCD001A0";
@@ -117,17 +120,108 @@ class SamplesControllerIntegrationTest {
 
     HttpRequest request = HttpRequest.GET("/samples/"+validCode1)
     String body = client.toBlocking().retrieve(request)
-    JSONObject json = new JSONObject(body);
 
-    assertNotNull(body)
-    assertEquals(json.get("code"),validCode1)
-    assertNotNull(json.get("current_location").equals(currentLocation))
-    assertNotNull(json.get("past_locations").equals(pastLocations))
+    Sample s = mapper.readValue(body, Sample.class);
+    assertNotNull(s)
+    assertEquals(s.code,validCode1)
+    assertEquals(s.currentLocation,currentLocation)
+    assertEquals(s.pastLocations,pastLocations)
+    //    JSONObject json = new JSONObject(body);
+    //
+    //    assertNotNull(body)
+    //    assertEquals(json.get("code"),validCode1)
+    //    assertEquals(json.get("current_location"),currentLocation)
+    //    assertEquals(json.get("past_locations"),pastLocations)
   }
 
-  //  @Test testManyQueries() {
-  //
-  //  }
+  @Test void testReadSample() {
+    Date d = new java.sql.Date(new Date().getTime());
+
+    String email1 = "person1@mail.de"
+    Address adr1 = new Address(affiliation: "Location 1", country: "Germany", street: "Location 1 street", zipCode: 1)
+    Location l1 = new Location(name: "Location 1", responsiblePerson: "Location 1 Person", responsibleEmail: email1, address: adr1, status: Status.PROCESSED, arrivalDate: d, forwardDate: d);
+    db.addSampleWithHistory("QTRAK005A9", l1, new Person("Location 1", "Person", email1), new ArrayList<Location>(), new ArrayList<Person>())
+
+
+    for(int i = 0; i < 40;i++) {
+      HttpRequest request = HttpRequest.GET("/samples/QTRAK005A9")
+      String body = client.toBlocking().retrieve(request)
+      Sample s = mapper.readValue(body, Sample.class);
+      assertNotNull(s)
+      assertEquals(s.code,"QTRAK005A9")
+      assertEquals(s.currentLocation,l1)
+      assertEquals(s.pastLocations,null)
+    }
+  }
+
+  @Test void testManyQueries() {
+    List<String> codes = new ArrayList<>(Arrays.asList("QTRAK006AH","QTRAK007AP","QTRAK008AX","QTRAK009A7"))
+    Date d = new java.sql.Date(new Date().getTime());
+    String email1 = "person1@mail.de"
+    String email2 = "person2@mail.de"
+    Address adr1 = new Address(affiliation: "Location 1", country: "Germany", street: "Location 1 street", zipCode: 1)
+    Location l1 = new Location(name: "Location 1", responsiblePerson: "Location 1 Person", responsibleEmail: email1, address: adr1, status: Status.PROCESSED, arrivalDate: d, forwardDate: d);
+    Address adr2 = new Address(affiliation: "Location 2", country: "Germany", street: "Location 2 street", zipCode: 2)
+    Location l2 = new Location(name: "Location 2", responsiblePerson: "Location 2 Person", responsibleEmail: email2, address: adr2, status: Status.PROCESSED, arrivalDate: d, forwardDate: d);
+    db.addPerson("u1","Location 1", "Person",email1,"123")
+    db.addPerson("u2","Location 2", "Person",email2,"456")
+    db.addLocation(l1)
+    db.addLocation(l2)
+
+    for(String code : codes) {
+      HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l1)
+      HttpResponse response = client.toBlocking().exchange(request)
+      assertEquals(response.status.getCode(), 200)
+
+      Location testLocation = db.searchSample(code).currentLocation
+      assertEquals(l1.address,testLocation.address)
+      assertEquals(l1.name,testLocation.name)
+      assertEquals(l1.status,testLocation.status)
+      assertEquals(l1.responsiblePerson,testLocation.responsiblePerson)
+      assertEquals(l1.responsibleEmail,testLocation.responsibleEmail)
+    }
+
+    for(String code : codes) {
+      HttpRequest request = HttpRequest.GET("/samples/"+code)
+      String body = client.toBlocking().retrieve(request)
+      Sample s = mapper.readValue(body, Sample.class);
+      assertNotNull(s)
+      assertEquals(s.code,code)
+      assertEquals(l1.address,s.currentLocation.address)
+      assertEquals(l1.name,s.currentLocation.name)
+      assertEquals(l1.status,s.currentLocation.status)
+      assertEquals(l1.responsiblePerson,s.currentLocation.responsiblePerson)
+      assertEquals(l1.responsibleEmail,s.currentLocation.responsibleEmail)
+      assertEquals(s.pastLocations,null)
+    }
+
+    for(String code : codes) {
+      HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l2)
+      HttpResponse response = client.toBlocking().exchange(request)
+      assertEquals(response.status.getCode(), 200)
+
+      Location testLocation = db.searchSample(code).currentLocation
+      assertEquals(l2.address,testLocation.address)
+      assertEquals(l2.name,testLocation.name)
+      assertEquals(l2.status,testLocation.status)
+      assertEquals(l2.responsiblePerson,testLocation.responsiblePerson)
+      assertEquals(l2.responsibleEmail,testLocation.responsibleEmail)
+    }
+
+    for(String code : codes) {
+      HttpRequest request = HttpRequest.GET("/samples/"+code)
+      String body = client.toBlocking().retrieve(request)
+      Sample s = mapper.readValue(body, Sample.class);
+      assertNotNull(s)
+      assertEquals(s.code,code)
+      assertEquals(l2.address,s.currentLocation.address)
+      assertEquals(l2.name,s.currentLocation.name)
+      assertEquals(l2.status,s.currentLocation.status)
+      assertEquals(l2.responsiblePerson,s.currentLocation.responsiblePerson)
+      assertEquals(l2.responsibleEmail,s.currentLocation.responsibleEmail)
+      assertEquals(s.pastLocations.size(),1)
+    }
+  }
 
   @Test
   void testMissingSample() throws Exception {

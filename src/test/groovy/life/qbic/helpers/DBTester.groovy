@@ -60,7 +60,7 @@ class DBTester {
       e.printStackTrace();
     }
   }
-  
+
   void createTables() {
     dropTables()
     String locations = "CREATE TABLE LOCATIONS"+
@@ -102,29 +102,17 @@ class DBTester {
     try {
       Statement statement = connection.createStatement()
       statement.executeUpdate(locations)
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
-    try {
-      Statement statement = connection.createStatement()
+
+      statement = connection.createStatement()
       statement.executeUpdate(persons)
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
-    try {
-      Statement statement = connection.createStatement()
+
+      statement = connection.createStatement()
       statement.executeUpdate(samples)
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
-    try {
-      Statement statement = connection.createStatement()
+
+      statement = connection.createStatement()
       statement.executeUpdate(samples_locations)
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
-    try {
-      Statement statement = connection.createStatement()
+
+      statement = connection.createStatement()
       statement.executeUpdate(persons_locations)
     } catch (SQLException e) {
       e.printStackTrace();
@@ -178,9 +166,9 @@ class DBTester {
     }
     return res
   }
-  
+
   void addSample(String code, int locationId) {
-//    log.info "adding sample "+code+" with location id "+locationId
+    //    log.info "adding sample "+code+" with location id "+locationId
     String sql = "INSERT INTO samples (id,current_location_id) VALUES (?,?)";
     try {
       connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
@@ -191,17 +179,17 @@ class DBTester {
     } catch (SQLException e) {
       e.printStackTrace();
     }
-//    log.info "-----"
+    //    log.info "-----"
     try {
       connection.prepareStatement("SELECT * FROM samples").withCloseable { PreparedStatement statement ->
         statement.executeQuery().withCloseable { ResultSet resultSet ->
-//          log.info "id---current_location_id"
+          //          log.info "id---current_location_id"
           while (resultSet.next()) {
             String id = resultSet.getString("id");
             int loc = resultSet.getInt("current_location_id");
-//            log.info id+"---"+loc
+            //            log.info id+"---"+loc
           }
-//          log.info "-----"
+          //          log.info "-----"
         }
       }
     } catch (SQLException e) {
@@ -254,6 +242,10 @@ class DBTester {
     return res;
   }
 
+  int addLocation(Location loc) {
+    return addLocation(loc.name, loc.address.street, loc.address.country, loc.address.zipCode)
+  }
+
   int addLocation(String name, String street, String country, int zip) {
     String sql1 = "INSERT INTO locations(name, street, zip_code, country) VALUES(?,?,?,?)"
     int locationID = -1;
@@ -273,17 +265,17 @@ class DBTester {
     } catch (SQLException e) {
       e.printStackTrace();
     }
-//    log.info "-----"
+    //    log.info "-----"
     try {
       connection.prepareStatement("SELECT * FROM locations").withCloseable { PreparedStatement statement ->
         statement.executeQuery().withCloseable { ResultSet resultSet ->
-//          log.info "id---name"
+          //          log.info "id---name"
           while (resultSet.next()) {
             int id = resultSet.getInt("id");
             String loc = resultSet.getString("name");
-//            log.info id+"---"+loc
+            //            log.info id+"---"+loc
           }
-//          log.info "-----"
+          //          log.info "-----"
         }
       }
     } catch (SQLException e) {
@@ -316,7 +308,7 @@ class DBTester {
 
             Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
             int personID = rs.getInt("responsible_person_id");
-            Person pers = getPersonNameByID(personID)            
+            Person pers = getPersonNameByID(personID)
             if(currID == locID) {
               currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
             } else {
