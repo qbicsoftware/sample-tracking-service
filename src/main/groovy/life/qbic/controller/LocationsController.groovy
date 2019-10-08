@@ -1,16 +1,21 @@
 package life.qbic.controller
 
+import io.micronaut.context.annotation.Requires
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.context.annotation.Parameter
 import io.micronaut.http.HttpResponse
+import io.micronaut.security.annotation.Secured
+import life.qbic.micronaututils.auth.Authentication
 
 import javax.inject.Inject
 import life.qbic.datamodel.services.Contact
 import life.qbic.datamodel.services.Location
 import life.qbic.service.ILocationService
 
+@Requires(beans = Authentication.class)
+@Secured("isAuthenticated()")
 @Controller("/locations")
 class LocationsController {
 
