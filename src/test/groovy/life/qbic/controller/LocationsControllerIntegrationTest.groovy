@@ -87,7 +87,7 @@ class LocationsControllerIntegrationTest {
     int personID = db.addPerson("Morat", first, last, email, "")
     int locationID = db.addLocationForPerson(affName, street, country, 0, personID)
 
-    HttpRequest request = HttpRequest.GET("/locations/"+email)
+    HttpRequest request = HttpRequest.GET("/locations/"+email).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
     assertEquals(arr.size(), 1)
@@ -100,7 +100,7 @@ class LocationsControllerIntegrationTest {
 
   @Test
   void testMalformedLocationsMail() throws Exception {
-    HttpRequest request = HttpRequest.GET("/locations/justreadtheinstructions")
+    HttpRequest request = HttpRequest.GET("/locations/justreadtheinstructions").basicAuth("servicewriter", "123456!")
     String error = ""
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -122,7 +122,7 @@ class LocationsControllerIntegrationTest {
     int personID3 = db.addPerson("u3", "Markus", "Meier", "abc3@bla.de", "")
     int locationID3 = db.addLocationForPerson("loc3", "street 3", "france", 0, personID3)
 
-    HttpRequest request = HttpRequest.GET("/locations/")
+    HttpRequest request = HttpRequest.GET("/locations/").basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
     assertEquals(arr.size(), 3)
@@ -138,7 +138,7 @@ class LocationsControllerIntegrationTest {
 
   @Test
   void testEmptyLocations() throws Exception {
-    HttpRequest request = HttpRequest.GET("/locations/")
+    HttpRequest request = HttpRequest.GET("/locations/").basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
     assert(arr.empty)
@@ -146,7 +146,7 @@ class LocationsControllerIntegrationTest {
 
   @Test
   void testNonExistingContact() throws Exception {
-    HttpRequest request = HttpRequest.GET("/locations/contacts/ian.banks@limitingfactor.com")
+    HttpRequest request = HttpRequest.GET("/locations/contacts/ian.banks@limitingfactor.com").basicAuth("servicewriter", "123456!")
     String error = "";
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -169,7 +169,7 @@ class LocationsControllerIntegrationTest {
     int personID = db.addPerson("Morat", first, last, email, "")
     int locationID = db.addLocationForPerson(affName, street, country, 0, personID)
 
-    HttpRequest request = HttpRequest.GET("/locations/contacts/"+email)
+    HttpRequest request = HttpRequest.GET("/locations/contacts/"+email).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
     assertNotNull(body)
@@ -186,7 +186,7 @@ class LocationsControllerIntegrationTest {
 
   @Test
   void testMalformedContact() throws Exception {
-    HttpRequest request = HttpRequest.GET("/locations/contacts/justreadtheinstructions")
+    HttpRequest request = HttpRequest.GET("/locations/contacts/justreadtheinstructions").basicAuth("servicewriter", "123456!")
     String error = ""
     try {
       HttpResponse response = client.toBlocking().exchange(request)

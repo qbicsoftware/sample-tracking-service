@@ -7,3 +7,5 @@ datasources:
             username: testuser
             driver-class-name: org.hsqldb.jdbc.JDBCDriver
             password: ""
+userroles:
+    config: "src/test/resources/userroles.yml"
