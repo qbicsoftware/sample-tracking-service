@@ -4,17 +4,21 @@ import io.micronaut.context.annotation.Parameter
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Body
-import io.micronaut.http.annotation.Consumes
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Put
+import io.micronaut.security.annotation.Secured
+import io.micronaut.security.rules.SecurityRule
+import life.qbic.micronaututils.auth.Authentication
 
+import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
 import life.qbic.datamodel.services.*
 import life.qbic.service.ISampleService
 
+@Requires(beans = Authentication.class)
+@Secured(SecurityRule.IS_AUTHENTICATED)
 @Controller("/samples")
 class SamplesController {
 
@@ -25,7 +29,9 @@ class SamplesController {
     this.sampleService = sampleService
   }
 
-  @Get(uri = "/{sampleId}", produces = MediaType.APPLICATION_JSON) HttpResponse<Sample> sample(@Parameter('sampleId') String code) {
+  @Get(uri = "/{sampleId}", produces = MediaType.APPLICATION_JSON)
+  @RolesAllowed([ "READER", "WRITER"])
+  HttpResponse<Sample> sample(@Parameter('sampleId') String code) {
     if(!RegExValidator.isValidSampleCode(code)) {
       return HttpResponse.badRequest("Not a valid sample code!");
     } else {
@@ -39,6 +45,7 @@ class SamplesController {
   }
 
   @Post("/{sampleId}/currentLocation/")
+  @RolesAllowed("WRITER")
   HttpResponse<Location> newLocation(@Parameter('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.badRequest("Not a valid sample code!");
@@ -54,6 +61,7 @@ class SamplesController {
    * @return
    */
   @Put("/{sampleId}/currentLocation/")
+  @RolesAllowed("WRITER")
   HttpResponse<Location> updateLocation(@Parameter('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.badRequest("Not a valid sample code!");
@@ -63,6 +71,7 @@ class SamplesController {
   }
 
   @Put("/{sampleId}/currentLocation/{status}")
+  @RolesAllowed("WRITER")
   HttpResponse sampleStatus(@Parameter('sampleId') String sampleId, @Parameter('status') Status status) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.badRequest("Not a valid sample code!");

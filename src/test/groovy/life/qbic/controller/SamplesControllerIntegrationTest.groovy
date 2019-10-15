@@ -84,7 +84,7 @@ class SamplesControllerIntegrationTest {
 
   @Test
   void testMalformedSample() throws Exception {
-    HttpRequest request = HttpRequest.GET("/samples/wrong")
+    HttpRequest request = HttpRequest.GET("/samples/wrong").basicAuth("servicewriter", "123456!")
     String error = "";
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -118,7 +118,7 @@ class SamplesControllerIntegrationTest {
 
     db.addSampleWithHistory(validCode1, currentLocation, currentPerson, pastLocations, pastPersons)
 
-    HttpRequest request = HttpRequest.GET("/samples/"+validCode1)
+    HttpRequest request = HttpRequest.GET("/samples/"+validCode1).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
 
     Sample s = mapper.readValue(body, Sample.class);
@@ -144,7 +144,7 @@ class SamplesControllerIntegrationTest {
 
 
     for(int i = 0; i < 40;i++) {
-      HttpRequest request = HttpRequest.GET("/samples/QTRAK005A9")
+      HttpRequest request = HttpRequest.GET("/samples/QTRAK005A9").basicAuth("servicewriter", "123456!")
       String body = client.toBlocking().retrieve(request)
       Sample s = mapper.readValue(body, Sample.class);
       assertNotNull(s)
@@ -169,7 +169,7 @@ class SamplesControllerIntegrationTest {
     db.addLocation(l2)
 
     for(String code : codes) {
-      HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l1)
+      HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l1).basicAuth("servicewriter", "123456!")
       HttpResponse response = client.toBlocking().exchange(request)
       assertEquals(response.status.getCode(), 200)
 
@@ -182,7 +182,7 @@ class SamplesControllerIntegrationTest {
     }
 
     for(String code : codes) {
-      HttpRequest request = HttpRequest.GET("/samples/"+code)
+      HttpRequest request = HttpRequest.GET("/samples/"+code).basicAuth("servicewriter", "123456!")
       String body = client.toBlocking().retrieve(request)
       Sample s = mapper.readValue(body, Sample.class);
       assertNotNull(s)
@@ -196,7 +196,7 @@ class SamplesControllerIntegrationTest {
     }
 
     for(String code : codes) {
-      HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l2)
+      HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l2).basicAuth("servicewriter", "123456!")
       HttpResponse response = client.toBlocking().exchange(request)
       assertEquals(response.status.getCode(), 200)
 
@@ -209,7 +209,7 @@ class SamplesControllerIntegrationTest {
     }
 
     for(String code : codes) {
-      HttpRequest request = HttpRequest.GET("/samples/"+code)
+      HttpRequest request = HttpRequest.GET("/samples/"+code).basicAuth("servicewriter", "123456!")
       String body = client.toBlocking().retrieve(request)
       Sample s = mapper.readValue(body, Sample.class);
       assertNotNull(s)
@@ -225,7 +225,7 @@ class SamplesControllerIntegrationTest {
 
   @Test
   void testMissingSample() throws Exception {
-    HttpRequest request = HttpRequest.GET("/samples/"+missingValidCode)
+    HttpRequest request = HttpRequest.GET("/samples/"+missingValidCode).basicAuth("servicewriter", "123456!")
     String error = "";
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -238,7 +238,7 @@ class SamplesControllerIntegrationTest {
 
   @Test
   void testStatusMalformedSample() throws Exception {
-    HttpRequest request = HttpRequest.PUT("/samples/wrong/currentLocation/WAITING","")
+    HttpRequest request = HttpRequest.PUT("/samples/wrong/currentLocation/WAITING","").basicAuth("servicewriter", "123456!")
     String error = ""
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -259,7 +259,7 @@ class SamplesControllerIntegrationTest {
 
     db.addSampleWithHistory(validCode2, currentLocation, currentPerson, new ArrayList<>(), new ArrayList<>())
 
-    HttpRequest request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/WAITING","")
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/WAITING","").basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     assertEquals(body, "Sample status updated.")
 
@@ -269,11 +269,11 @@ class SamplesControllerIntegrationTest {
     json = json.get("current_location")
     assertEquals(json.get("sample_status"), Status.WAITING.toString());
 
-    request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/PROCESSED","")
+    request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/PROCESSED","").basicAuth("servicewriter", "123456!")
     body = client.toBlocking().retrieve(request)
     assertEquals(body, "Sample status updated.")
 
-    request = HttpRequest.GET("/samples/"+validCode2)
+    request = HttpRequest.GET("/samples/"+validCode2).basicAuth("servicewriter", "123456!")
     body = client.toBlocking().retrieve(request)
     json = new JSONObject(body);
     json = json.get("current_location")
@@ -291,7 +291,7 @@ class SamplesControllerIntegrationTest {
 
     db.addSampleWithHistory(validCode3, currentLocation, currentPerson, new ArrayList<>(), new ArrayList<>())
 
-    HttpRequest request = HttpRequest.PUT("/samples/"+validCode3+"/currentLocation/TIRED","")
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode3+"/currentLocation/TIRED","").basicAuth("servicewriter", "123456!")
     boolean res = false
     try {
       String body = client.toBlocking().retrieve(request)
@@ -304,7 +304,7 @@ class SamplesControllerIntegrationTest {
   @Test
   void testStatusNoSample() throws Exception {
     String code = "QNONE001AC"
-    HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/WAITING","")
+    HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/WAITING","").basicAuth("servicewriter", "123456!")
     String error = ""
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -321,7 +321,7 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 11", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: "some@person.de", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
 
-    HttpRequest request = HttpRequest.POST("/samples/"+malformedCode+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.POST("/samples/"+malformedCode+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     String error = ""
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -356,7 +356,7 @@ class SamplesControllerIntegrationTest {
     //    db.addSample(validCode4, locID)
     db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email, "123")
 
-    HttpRequest request = HttpRequest.POST("/samples/"+validCode4+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.POST("/samples/"+validCode4+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
     assertEquals(response.status.getCode(), 200)
 
@@ -372,7 +372,7 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 1", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     db.addSampleWithHistory(validCode5, location, currentPerson, new ArrayList<>(), new ArrayList<>())
-    HttpRequest request = HttpRequest.PUT("/samples/"+validCode5+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode5+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
     assertEquals(response.status.getCode(), 200)
 
@@ -382,7 +382,7 @@ class SamplesControllerIntegrationTest {
 
     d = new java.sql.Date(new Date().getTime());
     location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.PROCESSED, arrivalDate: d, forwardDate: d);
-    request = HttpRequest.PUT("/samples/"+validCode5+"/currentLocation/", location)
+    request = HttpRequest.PUT("/samples/"+validCode5+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     response = client.toBlocking().exchange(request)
     assertEquals(response.status.getCode(), 200)
 
@@ -397,7 +397,7 @@ class SamplesControllerIntegrationTest {
     Person currentPerson = new Person("some", "person",email)
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 2", zipCode: 213)
     Location location = new Location(name: "unknown", responsiblePerson: "some person", responsibleEmail: existingPersonMail, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    HttpRequest request = HttpRequest.POST("/samples/"+validCode6+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.POST("/samples/"+validCode6+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     int stat = -1
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -414,7 +414,7 @@ class SamplesControllerIntegrationTest {
     Person currentPerson = new Person("some", "person",email)
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 3", zipCode: 213)
     Location location = new Location(name: "unknown", responsiblePerson: "some person", responsibleEmail: existingPersonMail, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    HttpRequest request = HttpRequest.PUT("/samples/"+validCode6+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode6+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     int stat = -1
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -431,7 +431,7 @@ class SamplesControllerIntegrationTest {
     Person currentPerson = new Person("some", "person",email)
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 4", zipCode: 213)
     Location location = new Location(name: existingLocation, responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    HttpRequest request = HttpRequest.POST("/samples/"+validCode6+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.POST("/samples/"+validCode6+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     int stat = -1
     try {
       HttpResponse response = client.toBlocking().exchange(request)
@@ -448,7 +448,7 @@ class SamplesControllerIntegrationTest {
     Person currentPerson = new Person("some", "person",email)
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 5", zipCode: 213)
     Location location = new Location(name: existingLocation, responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
-    HttpRequest request = HttpRequest.PUT("/samples/"+validCode6+"/currentLocation/", location)
+    HttpRequest request = HttpRequest.PUT("/samples/"+validCode6+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     int stat = -1
     try {
       HttpResponse response = client.toBlocking().exchange(request)
