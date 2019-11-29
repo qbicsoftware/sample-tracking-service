@@ -13,16 +13,14 @@ class RegExValidator {
 
   public static isValidMail(String mail) {
     Matcher matcher = VALID_EMAIL_ADDRESS_REGEX.matcher(mail);
-    log.info "checking validity of e-mail "+mail
     boolean res = matcher.find()
-    log.info "it is "+res
+    log.info "checking validity of e-mail "+mail+": "+res
     return res
   }
 
   public static isValidSampleCode(String code) {
-    log.info "checking validity of sample code "+code
     boolean res = SampleCodeFunctions.isQbicBarcode(code) || SampleCodeFunctions.isQbicEntityCode(code)
-    log.info "it is "+res 
+    log.info "checking validity of sample code "+code+": "+res
     return res
   }
 }
