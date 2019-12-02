@@ -1,6 +1,15 @@
 micronaut:
     application:
         name: sampletracking
-app:
-    address:
-        zip: ${ZIP_CODE}
+    server:
+        port: ${tr-server-port:8080}
+datasources:
+    default:
+        url: jdbc:mariadb://${tr-db-host}/${tr-db-name}
+        username: ${tr-db-user}
+        password: ${tr-db-pwd}
+        driverClassName: org.mariadb.jdbc.Driver
+userroles:
+    config: ${domain-userroles:/etc/micronaut.d/userroles.yml}
+database:
+    name: ${tr-db-name}
