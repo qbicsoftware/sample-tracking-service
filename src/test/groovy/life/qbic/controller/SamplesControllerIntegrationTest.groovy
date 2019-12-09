@@ -1,31 +1,18 @@
 package life.qbic.controller
 
 import io.micronaut.context.ApplicationContext
-import io.micronaut.context.BeanContext
-import io.micronaut.context.annotation.Parameter
-import io.micronaut.context.annotation.Requires
 import io.micronaut.context.env.Environment
-import io.micronaut.context.env.PropertySource
-import io.micronaut.core.util.CollectionUtils
+
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Post
-import io.micronaut.http.annotation.Put
 import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.RxHttpClient
-import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import life.qbic.datamodel.services.*
 import life.qbic.helpers.DBTester
-import life.qbic.micronaututils.DataSource
-import life.qbic.micronaututils.QBiCDataSource
 
 import org.json.JSONObject
 import org.junit.AfterClass
-import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import static org.junit.Assert.assertEquals
