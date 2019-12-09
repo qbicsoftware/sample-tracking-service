@@ -1,6 +1,11 @@
 micronaut:
     application:
         name: sampletracking
+    security:
+        enabled: true
+        endpoints:
+            login:
+                enabled: true
 datasources:
         default:
             url: jdbc:hsqldb:mem:mymemdb;shutdown=true/test?maxPoolSize=150&pool
