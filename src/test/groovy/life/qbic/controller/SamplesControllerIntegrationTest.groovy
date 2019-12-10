@@ -96,6 +96,18 @@ class SamplesControllerIntegrationTest {
   }
 
   @Test
+  void testAuthenticationRequired() throws Exception {
+    HttpRequest request = HttpRequest.GET("/samples/" + validCode1)
+    def statusCode
+    try {
+      HttpResponse response = client.toBlocking().exchange(request)
+    } catch (HttpClientResponseException e) {
+      statusCode = e.getStatus().code
+    }
+    assertEquals(401, statusCode)
+  }
+
+  @Test
   void testSample() throws Exception {
     String email1 = "person1@mail.de"
     String email2 = "person2@mail.de"
@@ -264,7 +276,7 @@ class SamplesControllerIntegrationTest {
     String body = client.toBlocking().retrieve(request)
     assertEquals(body, "Sample status updated.")
 
-    request = HttpRequest.GET("/samples/"+validCode2)
+    request = HttpRequest.GET("/samples/"+validCode2).basicAuth("servicewriter", "123456!")
     body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
     json = json.get("current_location")

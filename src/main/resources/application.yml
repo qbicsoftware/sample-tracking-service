@@ -3,6 +3,11 @@ micronaut:
         name: sampletracking
     server:
         port: ${tr-server-port:8080}
+    security:
+        enabled: true
+        endpoints:
+            login:
+                enabled: true
 datasources:
     default:
         url: jdbc:mariadb://${tr-db-host}/${tr-db-name}
