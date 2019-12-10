@@ -6,6 +6,7 @@ import java.sql.PreparedStatement
 import java.sql.ResultSet
 import java.sql.ResultSetMetaData
 import java.sql.SQLException
+import java.sql.Timestamp
 import java.sql.Statement
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -291,15 +292,23 @@ class DBTester {
         "WHERE UPPER(samples.id) = UPPER(?)";
     try {
       connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
-        statement.setString(1, code);
+        statement.setString(1, code)
         statement.executeQuery().withCloseable { ResultSet rs ->
           List<Location> pastLocs = new ArrayList<>()
           Location currLoc = null;
           while (rs.next()) {
-            int currID = rs.getInt("current_location_id");
+            int currID = rs.getInt("current_location_id")
             int locID = rs.getInt("location_id");
-            Date arrivalDate = new Date(rs.getTimestamp("arrival_time").getTime())
-            Date forwardedDate = new Date(rs.getTimestamp("forwarded_time").getTime());
+            Timestamp arvl = rs.getTimestamp("arrival_time")
+            Timestamp fwd = rs.getTimestamp("forwarded_time")
+            Date arrivalDate = null
+            if(arvl!=null) {
+              arrivalDate = new Date(arvl.getTime())
+            }
+            Date forwardedDate = null
+            if(fwd!=null) {
+              forwardedDate = new Date(fwd.getTime());
+            }
             Status status = rs.getString("sample_status");
             String name = rs.getString("name");
             String street = rs.getString("street");

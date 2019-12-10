@@ -125,6 +125,7 @@ class LocationsControllerIntegrationTest {
     HttpRequest request = HttpRequest.GET("/locations/").basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
+    println arr
     assertEquals(arr.size(), 3)
     for(int i = 0; i<arr.size();i++) {
       JSONObject json = arr.getJSONObject(i)

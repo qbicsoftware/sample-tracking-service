@@ -50,11 +50,15 @@ class MariaDBManager implements IQueryService {
       sql.withTransaction {
         int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
         if(personId == -1) {
-          throw new NotFoundException("User with email "+location.getResponsibleEmail()+" was not found.")
+          String msg = "User with email "+location.getResponsibleEmail()+" was not found."
+          log.error(msg)
+          throw new NotFoundException(msg)
         }
-        int locationId = getLocationIdFromName(location.getName(), sql)
+        int locationId = getLocationIdFromName(location.getName(), sql);
         if(locationId == -1) {
-          throw new NotFoundException("Location "+location.getName()+" was not found.")
+          String msg = "Location "+location.getName()+" was not found."
+          log.error(msg)
+          throw new NotFoundException(msg)
         }
         //      log.info "person "+personId
         //      log.info "locID "+locationId
@@ -62,13 +66,13 @@ class MariaDBManager implements IQueryService {
           //        log.info "is new sample location"
           setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
           addOrUpdateSample(sampleId, locationId, sql)
-//          sql.commit()
+          //          sql.commit()
         }
       }
     } catch (Exception ex) {
       String msg = ex.getMessage()
       log.info msg+" Rolling back previous changes and returning bad request."
-//      sql.rollback()
+      //      sql.rollback()
       response = HttpResponse.badRequest(msg)
     } finally {
       sql.close()
@@ -80,36 +84,39 @@ class MariaDBManager implements IQueryService {
   HttpResponse<Location> updateLocation(String sampleId, Location location) {
     HttpResponse response = HttpResponse.ok(location);
     this.sql = new Sql(dataSource)
-//    sql.connection.autoCommit = false
+    //    sql.connection.autoCommit = false
     try {
       sql.withTransaction {
-      int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql);
+        int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql);
 
-      if(personId == -1) {
-        throw new NotFoundException("User with email "+location.getResponsibleEmail()+" was not found.")
-      }
-      int locationId = getLocationIdFromName(location.getName(), sql);
-      if(locationId == -1) {
-        throw new NotFoundException("Location "+location.getName()+" was not found.")
-      }
-      // if the location changed, change the location of the sample
-      if(isNewSampleLocation(sampleId, location, sql)) {
+        if(personId == -1) {
+          String msg = "User with email "+location.getResponsibleEmail()+" was not found."
+          log.error(msg)
+          throw new NotFoundException(msg)
+        }
+        int locationId = getLocationIdFromName(location.getName(), sql);
+        if(locationId == -1) {
+          String msg = "Location "+location.getName()+" was not found."
+          log.error(msg)
+          throw new NotFoundException(msg)
+        }
+        // if the location changed, change the location of the sample
+        if(isNewSampleLocation(sampleId, location, sql)) {
+          setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
+        } else {
+          // else: update information about the sample at the current location (times, status, etc.)
 
-        setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
-      } else {
-        // else: update information about the sample at the current location (times, status, etc.)
+          updateCurrentLocationObjectInDB(sampleId, personId, locationId, location, sql)
+        }
+        // update sample table current location id OR create new row
+        addOrUpdateSample(sampleId, locationId, sql)
 
-        updateCurrentLocationObjectInDB(sampleId, personId, locationId, location, sql)
-      }
-      // update sample table current location id OR create new row
-      addOrUpdateSample(sampleId, locationId, sql)
-
-//      sql.commit();
+        //      sql.commit();
       }
     } catch (Exception ex) {
       String msg = ex.getMessage()
       log.info msg+" Rolling back previous changes and returning bad request."
-//      sql.rollback()
+      //      sql.rollback()
       response = HttpResponse.badRequest(msg)
     } finally {
       sql.close()
