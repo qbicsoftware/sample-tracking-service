@@ -83,6 +83,18 @@ class SamplesControllerIntegrationTest {
   }
 
   @Test
+  void testAuthenticationRequired() throws Exception {
+    HttpRequest request = HttpRequest.GET("/samples/" + validCode1)
+    def statusCode
+    try {
+      HttpResponse response = client.toBlocking().exchange(request)
+    } catch (HttpClientResponseException e) {
+      statusCode = e.getStatus().code
+    }
+    assertEquals(401, statusCode)
+  }
+
+  @Test
   void testSample() throws Exception {
     String email1 = "person1@mail.de"
     String email2 = "person2@mail.de"
@@ -251,7 +263,7 @@ class SamplesControllerIntegrationTest {
     String body = client.toBlocking().retrieve(request)
     assertEquals(body, "Sample status updated.")
 
-    request = HttpRequest.GET("/samples/"+validCode2)
+    request = HttpRequest.GET("/samples/"+validCode2).basicAuth("servicewriter", "123456!")
     body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
     json = json.get("current_location")
@@ -357,9 +369,10 @@ class SamplesControllerIntegrationTest {
     String email = "some@person.de"
     Person currentPerson = new Person("some", "person",email)
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 1", zipCode: 213)
-    Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.METADATA_REGISTERED, arrivalDate: d, forwardDate: d);
+    Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.METADATA_REGISTERED, arrivalDate: d);
     int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
     db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email, "123")
+    println location
 
     HttpRequest request = HttpRequest.POST("/samples/"+missingValidCode2+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
