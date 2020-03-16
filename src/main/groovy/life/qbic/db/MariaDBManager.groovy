@@ -229,13 +229,16 @@ class MariaDBManager implements IQueryService {
    * @param ts
    * @return
    */
-  private Date toDate(Object ts) {
+  private java.util.Date toDate(Object ts) {
     if(ts==null)
       return null
     if(ts instanceof Timestamp) {
-      return Date.valueOf(ts.toLocalDateTime().toLocalDate());
+      java.util.Date res = ts;
+      return res;
     } else if(ts instanceof OffsetDateTime){
-      return new Date(ts.toInstant().toEpochMilli());
+      // this is the data type returned for integration tests!
+      log.info "Date object is an OffsetDateTime, this should only happen in testing!"
+      return new java.util.Date(ts.toInstant().toEpochMilli());
     }
   }
 
@@ -275,8 +278,8 @@ class MariaDBManager implements IQueryService {
       for(GroovyRowResult rs: results) {
         int currID = rs.get("current_location_id")
         int locID = rs.get("location_id")
-        Date arrivalDate = toDate(rs.get("arrival_time"))
-        Date forwardedDate = toDate(rs.get("forwarded_time"))
+        java.util.Date arrivalDate = toDate(rs.get("arrival_time"))
+        java.util.Date forwardedDate = toDate(rs.get("forwarded_time"))
         Status status = rs.get("sample_status")
         String name = rs.get("name")
         String street = rs.get("street")
