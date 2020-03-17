@@ -1,31 +1,18 @@
 package life.qbic.controller
 
 import io.micronaut.context.ApplicationContext
-import io.micronaut.context.BeanContext
-import io.micronaut.context.annotation.Parameter
-import io.micronaut.context.annotation.Requires
 import io.micronaut.context.env.Environment
-import io.micronaut.context.env.PropertySource
-import io.micronaut.core.util.CollectionUtils
+
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Post
-import io.micronaut.http.annotation.Put
 import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.RxHttpClient
-import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import life.qbic.datamodel.services.*
 import life.qbic.helpers.DBTester
-import life.qbic.micronaututils.DataSource
-import life.qbic.micronaututils.QBiCDataSource
 
 import org.json.JSONObject
 import org.junit.AfterClass
-import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import static org.junit.Assert.assertEquals
@@ -382,9 +369,10 @@ class SamplesControllerIntegrationTest {
     String email = "some@person.de"
     Person currentPerson = new Person("some", "person",email)
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 1", zipCode: 213)
-    Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.METADATA_REGISTERED, arrivalDate: d, forwardDate: d);
+    Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.METADATA_REGISTERED, arrivalDate: d);
     int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
     db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email, "123")
+    println location
 
     HttpRequest request = HttpRequest.POST("/samples/"+missingValidCode2+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
