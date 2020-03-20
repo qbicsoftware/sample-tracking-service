@@ -45,7 +45,6 @@ class MariaDBManager implements IQueryService {
   HttpResponse<Location> addNewLocation(String sampleId, Location location) {
     this.sql = new Sql(dataSource)
     HttpResponse response = HttpResponse.ok(location);
-    //    sql.connection.autoCommit = false
     try {
       sql.withTransaction {
         int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
@@ -60,31 +59,27 @@ class MariaDBManager implements IQueryService {
           log.error(msg)
           throw new NotFoundException(msg)
         }
-        //      log.info "person "+personId
-        //      log.info "locID "+locationId
-        if(isNewSampleLocation(sampleId, location, sql)) {
-          //        log.info "is new sample location"
+        log.info "person "+personId
+        log.info "locID "+locationId
+        if(!isCurrentSampleLocation(sampleId, location, sql)) {
+          log.info "is new sample location"
           setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
           addOrUpdateSample(sampleId, locationId, sql)
-          //          sql.commit()
         }
       }
     } catch (Exception ex) {
       String msg = ex.getMessage()
       log.info msg+" Rolling back previous changes and returning bad request."
-      //      sql.rollback()
       response = HttpResponse.badRequest(msg)
     } finally {
       sql.close()
     }
-    //    sql.connection.autoCommit = true;
     return response
   }
 
   HttpResponse<Location> updateLocation(String sampleId, Location location) {
     HttpResponse response = HttpResponse.ok(location);
     this.sql = new Sql(dataSource)
-    //    sql.connection.autoCommit = false
     try {
       sql.withTransaction {
         int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql);
@@ -100,29 +95,24 @@ class MariaDBManager implements IQueryService {
           log.error(msg)
           throw new NotFoundException(msg)
         }
-        // if the location changed, change the location of the sample
-        if(isNewSampleLocation(sampleId, location, sql)) {
-          setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
-        } else {
-          // else: update information about the sample at the current location (times, status, etc.)
-
+        // if location is the same, update information about the sample at the current location (times, status, etc.)
+        if(isCurrentSampleLocation(sampleId, location, sql)) {
           updateCurrentLocationObjectInDB(sampleId, personId, locationId, location, sql)
+        } else {
+          // if the location changed, change the location of the sample
+          setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
         }
         // update sample table current location id OR create new row
         addOrUpdateSample(sampleId, locationId, sql)
 
-        //      sql.commit();
       }
     } catch (Exception ex) {
       String msg = ex.getMessage()
       log.info msg+" Rolling back previous changes and returning bad request."
-      //      sql.rollback()
       response = HttpResponse.badRequest(msg)
     } finally {
       sql.close()
     }
-    //    sql.connection.autoCommit = true;
-
     return response
   }
 
@@ -195,6 +185,28 @@ class MariaDBManager implements IQueryService {
     return res
   }
 
+  private boolean isCurrentSampleLocation(String sampleId, Location location, Sql sql) {
+    String locName = location.name
+    final String locationIDQuery = "SELECT id FROM locations WHERE name = '${locName}';"
+    List<GroovyRowResult> results = sql.rows(locationIDQuery)
+    boolean res = true;
+    if( results.size() > 0 ) {
+      GroovyRowResult rs = results.get(0)
+      int id = rs.get("id")
+
+      final String currentLocationQuery = "SELECT * from samples WHERE current_location_id = '${id}' AND id = '${sampleId}';"
+
+      List<GroovyRowResult> currLocRes = sql.rows(currentLocationQuery)
+      if(currLocRes.size() > 0 ) {
+        res = true;
+      }
+    }
+    return res;
+  }
+
+  /**
+   * Currently unused
+   */
   private boolean isNewSampleLocation(String sampleId, Location location, Sql sql) {
     String locName = location.name
     final String locationIDQuery = "SELECT id FROM locations WHERE name = '${locName}';"
