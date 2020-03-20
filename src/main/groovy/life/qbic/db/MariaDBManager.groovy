@@ -59,12 +59,12 @@ class MariaDBManager implements IQueryService {
           log.error(msg)
           throw new NotFoundException(msg)
         }
-        log.info "person "+personId
-        log.info "locID "+locationId
         if(!isCurrentSampleLocation(sampleId, location, sql)) {
           log.info "is new sample location"
           setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
           addOrUpdateSample(sampleId, locationId, sql)
+        } else {
+          log.info "sample is already at current location - ignored"
         }
       }
     } catch (Exception ex) {
@@ -189,7 +189,7 @@ class MariaDBManager implements IQueryService {
     String locName = location.name
     final String locationIDQuery = "SELECT id FROM locations WHERE name = '${locName}';"
     List<GroovyRowResult> results = sql.rows(locationIDQuery)
-    boolean res = true;
+    boolean res = false;
     if( results.size() > 0 ) {
       GroovyRowResult rs = results.get(0)
       int id = rs.get("id")
