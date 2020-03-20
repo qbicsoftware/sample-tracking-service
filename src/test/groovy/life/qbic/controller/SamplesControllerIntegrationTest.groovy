@@ -358,7 +358,6 @@ class SamplesControllerIntegrationTest {
     HttpRequest request = HttpRequest.POST("/samples/"+validCode4+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
     assertEquals(response.status.getCode(), 200)
-
     Location testLocation = db.searchSample(validCode4).currentLocation
     assertEquals(location,testLocation)
   }
