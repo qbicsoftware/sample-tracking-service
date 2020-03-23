@@ -6,6 +6,7 @@ import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
 import io.micronaut.context.annotation.Parameter
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.annotation.PathVariable
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
 import io.swagger.v3.oas.annotations.Operation
@@ -46,7 +47,7 @@ class LocationsController {
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Contact not found")
   @RolesAllowed(["READER", "WRITER"])
-  HttpResponse<Contact> contacts(@Parameter('email') String email){
+  HttpResponse<Contact> contacts(@PathVariable('email') String email){
     if(!RegExValidator.isValidMail(email)) {
       HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
       return res
@@ -70,12 +71,12 @@ class LocationsController {
   @ApiResponse(responseCode = "200", description = "Current locations associated with the email address",
           content = @Content(
                   mediaType = "application/json",
-                  array = @ArraySchema(schema = @Schema(implementation = Location.class))))
+                  schema = @Schema(implementation = Location.class)))
   @ApiResponse(responseCode = "400", description = "Invalid e-mail address")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Location not found")
   @RolesAllowed(["READER", "WRITER"])
-  HttpResponse<List<Location>> locations(@Parameter('contact_email') String contact_email){
+  HttpResponse<List<Location>> locations(@PathVariable('contact_email') String contact_email){
     if(!RegExValidator.isValidMail(contact_email)) {
       HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
       return res
