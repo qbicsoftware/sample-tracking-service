@@ -10,6 +10,10 @@ import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Put
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import life.qbic.micronaututils.auth.Authentication
 
 import javax.annotation.security.RolesAllowed
@@ -30,6 +34,16 @@ class SamplesController {
   }
 
   @Get(uri = "/{sampleId}", produces = MediaType.APPLICATION_JSON)
+  @Operation(summary = "Request a sample's tracking information",
+          description = "Requests a sample resource with the given identifier.",
+          tags = "Sample")
+  @ApiResponse(
+          responseCode = "200", description = "Returns a sample with tracking information", content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = Sample.class)))
+  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
+  @ApiResponse(responseCode = "401", description = "Unauthorized access")
+  @ApiResponse(responseCode = "404", description = "Sample not found")
   @RolesAllowed([ "READER", "WRITER"])
   HttpResponse<Sample> sample(@Parameter('sampleId') String code) {
     if(!RegExValidator.isValidSampleCode(code)) {
