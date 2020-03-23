@@ -1,5 +1,10 @@
 package life.qbic
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition
+import io.swagger.v3.oas.annotations.info.Contact
+import io.swagger.v3.oas.annotations.info.Info
+import io.swagger.v3.oas.annotations.info.License
+
 import javax.sql.DataSource
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.LoggerContext
@@ -14,6 +19,15 @@ import io.micronaut.context.env.Environment
 import io.micronaut.runtime.Micronaut
 import java.sql.Connection
 
+@OpenAPIDefinition(
+        info = @Info(
+                title = "Sample Tracking Service",
+                version = "1.0.3",
+                description = "Information about sample status and location information for QBiC's data management platform.",
+                license = @License(name = "", url = ""),
+                contact = @Contact(url = "https://github.com/sven1103", name = "Sven Fillinger", email = "sven.filliner@qbic.uni-tuebingen.de")
+        )
+)
 @CompileStatic
 @Log4j2
 class SampleTracking {
