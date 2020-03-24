@@ -6,10 +6,15 @@ import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
+import io.micronaut.http.annotation.PathVariable
 import io.micronaut.http.annotation.Post
 import io.micronaut.http.annotation.Put
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import life.qbic.micronaututils.auth.Authentication
 
 import javax.annotation.security.RolesAllowed
@@ -29,9 +34,19 @@ class SamplesController {
     this.sampleService = sampleService
   }
 
+  @Operation(summary = "Request a sample's tracking information",
+          description = "Requests a sample resource with the given identifier.",
+          tags = "Sample")
+  @ApiResponse(
+          responseCode = "200", description = "Returns a sample with tracking information", content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = Sample.class)))
+  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
+  @ApiResponse(responseCode = "401", description = "Unauthorized access")
+  @ApiResponse(responseCode = "404", description = "Sample not found")
   @Get(uri = "/{sampleId}", produces = MediaType.APPLICATION_JSON)
   @RolesAllowed([ "READER", "WRITER"])
-  HttpResponse<Sample> sample(@Parameter('sampleId') String code) {
+  HttpResponse<Sample> sample(@PathVariable('sampleId') String code) {
     if(!RegExValidator.isValidSampleCode(code)) {
       return HttpResponse.badRequest("Not a valid sample code!");
     } else {
@@ -45,8 +60,15 @@ class SamplesController {
   }
 
   @Post("/{sampleId}/currentLocation/")
+  @Operation(summary = "Sets a sample's current location",
+          description = "Sets a sample current location with the given identifier.",
+          tags = "Sample Location")
+  @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
+  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
+  @ApiResponse(responseCode = "401", description = "Unauthorized access")
+  @ApiResponse(responseCode = "404", description = "Sample not found")
   @RolesAllowed("WRITER")
-  HttpResponse<Location> newLocation(@Parameter('sampleId') String sampleId, Location location) {
+  HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.badRequest("Not a valid sample code!");
     } else {
@@ -61,8 +83,15 @@ class SamplesController {
    * @return
    */
   @Put("/{sampleId}/currentLocation/")
+  @Operation(summary = "Updates a sample's current location",
+          description = "Updates a sample current location with the given identifier.",
+          tags = "Sample Location")
+  @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
+  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
+  @ApiResponse(responseCode = "401", description = "Unauthorized access")
+  @ApiResponse(responseCode = "404", description = "Sample not found")
   @RolesAllowed("WRITER")
-  HttpResponse<Location> updateLocation(@Parameter('sampleId') String sampleId, Location location) {
+  HttpResponse<Location> updateLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.badRequest("Not a valid sample code!");
     } else {
@@ -71,8 +100,15 @@ class SamplesController {
   }
 
   @Put("/{sampleId}/currentLocation/{status}")
+  @Operation(summary = "Sets a sample's current location status",
+          description = "Sets a sample current location status with the given identifier.",
+          tags = "Sample Status")
+  @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
+  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
+  @ApiResponse(responseCode = "401", description = "Unauthorized access")
+  @ApiResponse(responseCode = "404", description = "Sample not found")
   @RolesAllowed("WRITER")
-  HttpResponse sampleStatus(@Parameter('sampleId') String sampleId, @Parameter('status') Status status) {
+  HttpResponse sampleStatus(@PathVariable('sampleId') String sampleId, @PathVariable('status') Status status) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.badRequest("Not a valid sample code!");
     }
