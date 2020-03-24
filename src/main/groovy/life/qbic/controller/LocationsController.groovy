@@ -36,6 +36,7 @@ class LocationsController {
   }
 
   @Get(uri = "/contacts/{email}", produces = MediaType.APPLICATION_JSON)
+  @RolesAllowed(["READER", "WRITER"])
   @Operation(summary = "Provides the contact information linked to an e-mail",
           description = "Provides detailed contact information that is linked to an e-mail",
           tags = "Contact")
@@ -46,7 +47,6 @@ class LocationsController {
   @ApiResponse(responseCode = "400", description = "Invalid e-mail address")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Contact not found")
-  @RolesAllowed(["READER", "WRITER"])
   HttpResponse<Contact> contacts(@PathVariable('email') String email){
     if(!RegExValidator.isValidMail(email)) {
       HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
