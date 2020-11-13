@@ -126,12 +126,6 @@ class SamplesControllerIntegrationTest {
     assertEquals(s.code,validCode1)
     assertEquals(s.currentLocation,currentLocation)
     assertEquals(s.pastLocations,pastLocations)
-    //    JSONObject json = new JSONObject(body);
-    //
-    //    assertNotNull(body)
-    //    assertEquals(json.get("code"),validCode1)
-    //    assertEquals(json.get("current_location"),currentLocation)
-    //    assertEquals(json.get("past_locations"),pastLocations)
   }
 
   @Test void testReadSample() {

@@ -59,6 +59,12 @@ class SamplesController {
     }
   }
 
+  /**
+   * create location for a specific sample. sample does not need to exist in the system
+   * @param sampleId sample code from the URL
+   * @param location location object, transferred via json body
+   * @return
+   */
   @Post("/{sampleId}/currentLocation/")
   @Operation(summary = "Sets a sample's current location",
           description = "Sets a sample current location with the given identifier.",
@@ -66,7 +72,6 @@ class SamplesController {
   @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
   @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample not found")
   @RolesAllowed("WRITER")
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
@@ -77,7 +82,7 @@ class SamplesController {
   }
 
   /**
-   * update or create location of a specific sample
+   * update location of a specific sample that already exists
    * @param sampleId sample code from the URL
    * @param location location object, transferred via json body
    * @return
