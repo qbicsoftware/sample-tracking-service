@@ -59,13 +59,11 @@ class MariaDBManager implements IQueryService {
           log.error(msg)
           throw new NotFoundException(msg)
         }
-        if(!isCurrentSampleLocation(sampleId, location, sql)) {
-          log.info "is new sample location"
-          setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
-          addOrUpdateSample(sampleId, locationId, sql)
-        } else {
-          log.info "sample is already at current location - ignored"
-        }
+
+        log.info "Set new sample location ${location} for sample ${sampleId}."
+        setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
+        addOrUpdateSample(sampleId, locationId, sql)
+
       }
     } catch (Exception ex) {
       String msg = ex.getMessage()
@@ -95,13 +93,9 @@ class MariaDBManager implements IQueryService {
           log.error(msg)
           throw new NotFoundException(msg)
         }
-        // if location is the same, update information about the sample at the current location (times, status, etc.)
-        if(isCurrentSampleLocation(sampleId, location, sql)) {
-          updateCurrentLocationObjectInDB(sampleId, personId, locationId, location, sql)
-        } else {
-          // if the location changed, change the location of the sample
-          setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
-        }
+        // Always set new location as current
+        setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
+
         // update sample table current location id OR create new row
         addOrUpdateSample(sampleId, locationId, sql)
 
@@ -254,6 +248,18 @@ class MariaDBManager implements IQueryService {
     }
   }
 
+  /**
+   * @depredcated
+   * Not needed anymore, as we will add new location entries always.
+   *
+   * @param sampleId
+   * @param personId
+   * @param locationId
+   * @param location
+   * @param sql
+   * @return <code>true</code> if executed successfully, <code>false</code> otherwise
+   */
+  @Deprecated
   private boolean updateCurrentLocationObjectInDB(String sampleId, int personId, int locationId, Location location, Sql sql) {
     final String query = "UPDATE samples_locations SET arrival_time=?, forwarded_time=?, sample_status=?, responsible_person_id=? WHERE sample_id=? AND location_id=?"
     int count = sql.executeUpdate(query, toTimestamp(location.getArrivalDate()), toTimestamp(location.getForwardDate()), location.getStatus().toString(), personId, sampleId, locationId)
@@ -287,6 +293,7 @@ class MariaDBManager implements IQueryService {
       List<GroovyRowResult> results = sql.rows(query)
       List<Location> pastLocs = new ArrayList<>()
       Location currLoc = null;
+      java.util.Date currDate = null
       for(GroovyRowResult rs: results) {
         int currID = rs.get("current_location_id")
         int locID = rs.get("location_id")
@@ -302,8 +309,24 @@ class MariaDBManager implements IQueryService {
         int personID = rs.get("responsible_person_id");
         Person pers = getPersonNameByID(personID)
 
-        if(currID == locID) {
-          currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
+        if(currID == locID ) {
+           // Compare if current location is the newest entry
+            if (currDate && currDate.before(arrivalDate)) {
+              // Set the current location to the newer one
+              log.info("Newer location entry found!")
+              pastLocs.add(new Location(name: currLoc.name, responsiblePerson: currLoc.responsiblePerson,
+                      responsibleEmail: currLoc.responsibleEmail, address: currLoc.address,
+                      status: currLoc.status, arrivalDate: currDate))
+              currDate = arrivalDate
+              currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
+            } else if(currDate && !currDate.before(arrivalDate)) {
+              // The location is the current one, but arrival date is older
+              pastLocs.add(new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate))
+            } else {
+              // Current location was not yet set, so we set it the first time
+              currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
+              currDate = arrivalDate
+          }
         } else {
           pastLocs.add(new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate));
         }
