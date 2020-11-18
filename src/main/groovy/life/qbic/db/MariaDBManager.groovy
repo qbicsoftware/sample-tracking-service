@@ -314,12 +314,16 @@ class MariaDBManager implements IQueryService {
             if (currDate && currDate.before(arrivalDate)) {
               // Set the current location to the newer one
               log.info("Newer location entry found!")
-              pastLocs.add(new Location(name: currLoc.name, responsiblePerson: currLoc.name,
+              pastLocs.add(new Location(name: currLoc.name, responsiblePerson: currLoc.responsiblePerson,
                       responsibleEmail: currLoc.responsibleEmail, address: currLoc.address,
                       status: currLoc.status, arrivalDate: currDate))
               currDate = arrivalDate
               currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
+            } else if(currDate && !currDate.before(arrivalDate)) {
+              // The location is the current one, but arrival date is older
+              pastLocs.add(new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate))
             } else {
+              // Current location was not yet set, so we set it the first time
               currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
               currDate = arrivalDate
           }
