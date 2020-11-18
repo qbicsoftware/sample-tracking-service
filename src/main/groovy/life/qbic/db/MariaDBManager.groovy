@@ -250,14 +250,14 @@ class MariaDBManager implements IQueryService {
 
   /**
    * @depredcated
-   * Not needed anymore, as we will add ne location entries always.
+   * Not needed anymore, as we will add new location entries always.
    *
    * @param sampleId
    * @param personId
    * @param locationId
    * @param location
    * @param sql
-   * @return
+   * @return <code>true</code> if executed successfully, <code>false</code> otherwise
    */
   @Deprecated
   private boolean updateCurrentLocationObjectInDB(String sampleId, int personId, int locationId, Location location, Sql sql) {

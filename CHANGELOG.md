@@ -4,3 +4,4 @@
 
 - Append new location to history even if old location is the same as
   current
+- Fix #13 
