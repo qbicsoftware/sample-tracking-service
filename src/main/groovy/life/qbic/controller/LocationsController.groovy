@@ -70,20 +70,20 @@ class LocationsController {
   @Get(uri = '{?username,email}', produces = MediaType.APPLICATION_JSON)
   @RolesAllowed(["READER", "WRITER"])
   HttpResponse<List<Location>> listLocations(@Nullable String username, @Nullable String email) {
-    List<Location> res = new ArrayList<>()
+    Set<Location> locationSet = new ArrayList<>()
     if(!username && !email) {
-      res = locService.listLocations()
-      return HttpResponse.ok(res)
+      return HttpResponse.ok(locService.listLocations())
     }
     if(username) {
-      res.addAll(locService.getLocationsForUsername(username))
+      locationSet.addAll(locService.getLocationsForUsername(username))
     }
     if(email) {
       if(!RegExValidator.isValidMail(email)) {
         return HttpResponse.badRequest("Not a valid email address!")
       }
-      res.addAll(locService.getLocationsForEmail(email))
+      locationSet.addAll(locService.getLocationsForEmail(email))
     }
+    List<Location> res = new ArrayList<>(locationSet)
     return HttpResponse.ok(res)
   }
 }
