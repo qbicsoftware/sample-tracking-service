@@ -9,7 +9,11 @@ interface IQueryService {
 
   Contact searchPersonByEmail(String email)
   
+  Contact searchPersonByUsername(String username)
+  
   List<Location> listLocations()
+  
+  List<Location> getLocationsForUsername(String username)
   
   List<Location> getLocationsForEmail(String email)
 

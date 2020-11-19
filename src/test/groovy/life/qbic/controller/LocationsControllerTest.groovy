@@ -35,12 +35,18 @@ class LocationsControllerTest {
 
   @Before
   void setupMock() {
-    locations = new LocationsController(new LocationServiceCenter(new QueryMock()));
+    locations = new LocationsController(new LocationServiceCenter(new QueryMock()))
+  }
+
+  @Test
+  void testContactTwoParameters() throws Exception {
+    HttpResponse<Contact> response = locations.contacts("player", "wrong@wrong.de")
+    assertEquals(response.getStatus().getCode(),404)
   }
 
   @Test
   void testNonExistingContact() throws Exception {
-    HttpResponse<Contact> response = locations.contacts("ian.banks@limitingfactor.com")
+    HttpResponse<Contact> response = locations.contacts(null, "wrong@wrong.de")
     assertEquals(response.getStatus().getCode(),404)
   }
 
@@ -54,7 +60,7 @@ class LocationsControllerTest {
     int zip = 0
     String country = "Chiark"
 
-    HttpResponse response = locations.contacts(email)
+    HttpResponse response = locations.contacts(null, email)
     assertEquals(response.getStatus().getCode(),200)
     Contact c = response.body.orElse(null)
 
@@ -68,31 +74,53 @@ class LocationsControllerTest {
   }
 
   @Test
-  void testMalformedContact() throws Exception {
-    HttpResponse response = locations.contacts("justreadtheinstructions")
+  void testContactUsername() throws Exception {
+    String email = "jernau@hassease.gv"
+    String first = "Jernau"
+    String last ="Gurgeh"
+    String affName = "Gevantsa"
+    String street = "Hassease"
+    int zip = 0
+    String country = "Chiark"
+
+    HttpResponse response = locations.contacts("player", null)
+    assertEquals(response.getStatus().getCode(),200)
+    Contact c = response.body.orElse(null)
+
+    assertEquals(c.fullName,first+" "+last)
+    assertEquals(c.email,email)
+    Address address = c.address
+    assertEquals(address.affiliation,affName)
+    assertEquals(address.street,street)
+    assertEquals(address.zipCode,zip)
+    assertEquals(address.country,country)
+  }
+
+  @Test
+  void testMalformedContactMail() throws Exception {
+    HttpResponse response = locations.contacts(null, "justreadtheinstructions")
     assertEquals(response.getStatus().getCode(), 400)
   }
-  
+
   @Test
   void testLocationsMail() throws Exception {
-    HttpResponse response = locations.locations("right@right.de")
+    HttpResponse response = locations.listLocations(null, "right@right.de")
     assertEquals(response.getStatus().getCode(), 200)
     List<Location> loc = response.body.orElse(null)
     assertEquals(loc.size(),1)
   }
-  
+
   @Test
   void testMalformedLocationsMail() throws Exception {
-    HttpResponse response = locations.locations("justreadtheinstructions")
+    HttpResponse response = locations.listLocations(null, "justreadtheinstructions")
     assertEquals(response.getStatus().getCode(), 400)
   }
-  
+
   @Test
   void testLocations() throws Exception {
-    HttpResponse response = locations.listLocations()
+    HttpResponse response = locations.listLocations(null, null)
     assertEquals(response.getStatus().getCode(), 200)
     List<Location> loc = response.body.orElse(null)
     assertEquals(loc.size(),2)
   }
-
 }

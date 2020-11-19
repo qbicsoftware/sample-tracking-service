@@ -19,11 +19,17 @@ class LocationServiceCenter implements ILocationService {
   @Inject LocationServiceCenter(IQueryService database) {
     this.database = database
   }
-
+  
   @Override
   Contact searchPersonByEmail(String email) {
     log.info "Searching for person with e-mail "+email
     return database.searchPersonByEmail(email)
+  }
+  
+  @Override
+  Contact searchPersonByUsername(String username) {
+    log.info "Searching for person with username "+username
+    return database.searchPersonByUsername(username)
   }
 
   @Override
@@ -31,10 +37,16 @@ class LocationServiceCenter implements ILocationService {
     log.info "Listing all known locations"
     return database.listLocations();
   }
-
+  
   @Override
   List<Location> getLocationsForEmail(String email) {
     log.info "Listing all known locations for person with e-mail "+email
     return database.getLocationsForEmail(email);
+  }
+  
+  @Override
+  List<Location> getLocationsForUsername(String username) {
+    log.info "Listing all known locations for person with username "+username
+    return database.getLocationsForUsername(username);
   }
 }

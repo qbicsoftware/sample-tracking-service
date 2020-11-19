@@ -48,11 +48,21 @@ class QueryMock implements IQueryService {
     return null
   }
 
-//  @Override
+  Contact searchPersonByUsername(String username) {
+    String user = "player"
+    if(username.equals(user)) {
+      String mail = "jernau@hassease.gv"
+      Address adr = new Address(affiliation: "Gevantsa", country: "Chiark", street: "Hassease", zipCode: 0)
+      return new Contact(fullName: "Jernau Gurgeh", email: mail, address: adr)
+    }
+    return null
+  }
+
+  //  @Override
   public Sample searchSample(String sampleId) {
     String code = "QABCD001A0"
     if(sampleId.equals(code)) {
-      
+
       Date d = new java.sql.Date(new Date().getTime());
 
       Address adr1 = new Address(affiliation: "Gevantsa", country: "Chiark", street: "Hassease", zipCode: 0)
@@ -67,7 +77,7 @@ class QueryMock implements IQueryService {
     return null
   }
 
-//  @Override
+  //  @Override
   public boolean updateSampleStatus(String sampleId, Status status) {
     return status!=null
   }
@@ -75,7 +85,7 @@ class QueryMock implements IQueryService {
   @Override
   List<Location> listLocations() {
     Date d = new java.sql.Date(new Date().getTime());
-    
+
     Address adr1 = new Address(affiliation: "Gevantsa", country: "Chiark", street: "Hassease", zipCode: 0)
     Address adr2 = new Address(affiliation: "QBiC", country: "Germany", street: "Morgenstelle 10", zipCode: 72076)
     List<Location> locs = new ArrayList<>()
@@ -88,19 +98,33 @@ class QueryMock implements IQueryService {
   @Override
   List<Location> getLocationsForEmail(String email) {
     Date d = new java.sql.Date(new Date().getTime());
-    
+
     Address adr1 = new Address(affiliation: "Gevantsa", country: "Chiark", street: "Hassease", zipCode: 0)
     Address adr2 = new Address(affiliation: "QBiC", country: "Germany", street: "Morgenstelle 10", zipCode: 72076)
     List<Location> locs = new ArrayList<>()
     Location loc1 = new Location(name: "Current", responsiblePerson: "Current Person", responsibleEmail: "wrong@wrong.de", address: adr1, status: Status.WAITING, arrivalDate: d, forwardDate: d)
     locs.add(new Location(name: "Past", responsiblePerson: "Old Person", responsibleEmail: "right@right.de", address: adr2, status: Status.PROCESSED, arrivalDate: d, forwardDate: d))
     locs.add(loc1)
-    
+
     List<Location> res = new ArrayList<Location>()
     for(Location l : locs) {
       if(l.responsibleEmail.equals(email))
         res.add(l)
     }
     return res;
+  }
+
+  @Override
+  List<Location> getLocationsForUsername(String username) {
+    Date d = new java.sql.Date(new Date().getTime());
+
+    Address adr1 = new Address(affiliation: "Gevantsa", country: "Chiark", street: "Hassease", zipCode: 0)
+    Address adr2 = new Address(affiliation: "QBiC", country: "Germany", street: "Morgenstelle 10", zipCode: 72076)
+    List<Location> locs = new ArrayList<>()
+    Location loc1 = new Location(name: "Current", responsiblePerson: "Current Person", responsibleEmail: "wrong@wrong.de", address: adr1, status: Status.WAITING, arrivalDate: d, forwardDate: d)
+    locs.add(new Location(name: "Past", responsiblePerson: "Old Person", responsibleEmail: "right@right.de", address: adr2, status: Status.PROCESSED, arrivalDate: d, forwardDate: d))
+    //    locs.add(loc1)
+
+    return locs;
   }
 }

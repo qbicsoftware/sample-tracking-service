@@ -9,7 +9,11 @@ interface ILocationService {
 
   Contact searchPersonByEmail(String email)
   
+  Contact searchPersonByUsername(String username)
+  
   List<Location> listLocations()
   
   List<Location> getLocationsForEmail(String email)
+  
+  List<Location> getLocationsForUsername(String username)
 }
