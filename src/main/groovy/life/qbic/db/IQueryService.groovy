@@ -26,7 +26,7 @@ interface IQueryService {
   List<Location> listLocations()
 
   /**
-   * List all locations attached to a person based on the the provided email
+   * List all locations attached to a person based on the provided email
    * @param email email address
    * @return list of Location objects
    * @since 1.0.0

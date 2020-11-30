@@ -11,25 +11,25 @@ import life.qbic.datamodel.services.*
 interface ILocationService {
 
   /**
-   * //TODO describe intended method behaviour
-   * @param email
-   * @return TODO
-   * @since TODO
+   * Returns the contact using the provided email address
+   * @param email email address
+   * @return Contact object of the contact with the provided email address
+   * @since 1.0.0
    */
   Contact searchPersonByEmail(String email)
 
   /**
-   * //TODO describe intended method behaviour
-   * @return TODO
-   * @since TODO
+   * List all known locations irrespective of user or samples at that location
+   * @return list of Location objects
+   * @since 1.0.0
    */
   List<Location> listLocations()
 
   /**
-   * //TODO describe intended method behaviour
-   * @param email
-   * @return TODO
-   * @since TODO
+   * List all locations attached to a person based on the provided email
+   * @param email email address
+   * @return list of Location objects
+   * @since 1.0.0
    */
   List<Location> getLocationsForEmail(String email)
 }
