@@ -110,7 +110,7 @@ class QueryMock implements IQueryService {
    * @return an optional containing two example locations for a Dummy user with the provided identifier
    * @InheritDoc
    */
-  @Override  Optional<List<Location>> getLocationsForPerson(String identifier) {
+  @Override  List<Location> getLocationsForPerson(String identifier) {
     Date date = new java.sql.Date(new Date().getTime());
     String responsiblePerson = "Dummy"
 
@@ -123,6 +123,6 @@ class QueryMock implements IQueryService {
     locations.add(location1)
     locations.add(location2)
 
-    return Optional.of(locations);
+    return locations;
   }
 }

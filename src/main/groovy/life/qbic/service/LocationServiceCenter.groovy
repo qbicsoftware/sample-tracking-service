@@ -39,9 +39,9 @@ class LocationServiceCenter implements ILocationService {
   }
 
   @Override
-  Optional<List<Location>> getLocationsForPerson(String identifier) {
+  List<Location> getLocationsForPerson(String identifier) {
     throw new RuntimeException("Method not implemented.")
-    List<Location> locations = null
-    return Optional.ofNullable(locations)
+    List<Location> locations = new ArrayList<>()
+    return locations
   }
 }

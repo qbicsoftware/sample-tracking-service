@@ -43,8 +43,8 @@ interface ILocationService {
    * List all locations attached to a person with the provided identifier.<br/>
    * Currently one email address is used as identifier for a person in the system
    * @param identifier the identifier for a person
-   * @return a list of locations if any could be found
+   * @return a list of locations found
    * @since 1.1.0
    */
-  Optional<List<Location>> getLocationsForPerson(String identifier)
+  List<Location> getLocationsForPerson(String identifier)
 }

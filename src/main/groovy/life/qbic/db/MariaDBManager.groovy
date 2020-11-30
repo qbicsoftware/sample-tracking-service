@@ -140,10 +140,10 @@ class MariaDBManager implements IQueryService {
   }
 
   @Override
-  Optional<List<Location>> getLocationsForPerson(String identifier) {
-    List<Location> locations = null
+  List<Location> getLocationsForPerson(String identifier) {
     throw new RuntimeException("Method not implemented.")
-    return Optional.ofNullable(locations)
+    List<Location> locations = new ArrayList<>()
+    return locations
   }
 
   List<Location> listLocations() {
