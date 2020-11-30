@@ -37,4 +37,11 @@ class LocationServiceCenter implements ILocationService {
     log.info "Listing all known locations for person with e-mail "+email
     return database.getLocationsForEmail(email);
   }
+
+  @Override
+  Optional<List<Location>> getLocationsForPerson(String identifier) {
+    throw new RuntimeException("Method not implemented.")
+    List<Location> locations = null
+    return Optional.ofNullable(locations)
+  }
 }

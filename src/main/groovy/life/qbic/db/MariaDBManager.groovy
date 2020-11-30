@@ -110,6 +110,7 @@ class MariaDBManager implements IQueryService {
     return response
   }
 
+  @Override
   Contact searchPersonByEmail(String email) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     this.sql = new Sql(dataSource)
@@ -136,6 +137,13 @@ class MariaDBManager implements IQueryService {
       }
     }
     return res
+  }
+
+  @Override
+  Optional<List<Location>> getLocationsForPerson(String identifier) {
+    List<Location> locations = null
+    throw new RuntimeException("Method not implemented.")
+    return Optional.ofNullable(locations)
   }
 
   List<Location> listLocations() {
