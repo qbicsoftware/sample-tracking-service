@@ -5,7 +5,7 @@ import io.micronaut.http.HttpResponse
 import life.qbic.datamodel.services.*
 
 /**
- * //TODO describe this interface
+ * Service interface to search location and contact information
  */
 @Singleton
 interface ILocationService {
