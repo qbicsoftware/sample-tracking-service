@@ -109,7 +109,7 @@ class MariaDBManager implements IQueryService {
       GroovyRowResult res = results.get(0)
       int id = res.get("id")
       String first = res.get("first_name")
-      String last = res.get("family_name")
+      String last = res.get("last_name")
       Address adr = getAddressByPerson(id, sql)
       contact = new Contact(fullName: first + " " + last, email: email, address: adr)
     }
@@ -135,9 +135,14 @@ class MariaDBManager implements IQueryService {
       sql = new Sql(this.dataSource)
       sql.withTransaction {
         Map userInformation = getPersonById(identifier, sql)
+        log.error("JONSADANSDJNASDN")
+        log.error(userInformation)
+        
         // find locations for user
         int userDbId = userInformation.get("id") as int
-        String query = "SELECT name FROM locations INNER JOIN persons_locations ON id=location_id WHERE person_id = '$userDbId';"
+        String query = "SELECT * FROM locations INNER JOIN persons_locations ON id=location_id WHERE person_id = $userDbId;"
+        log.error("query:")
+        log.error(query)
         List<GroovyRowResult> rowResults = sql.rows(query)
         rowResults.each { locations.add(parseLocationFromMap(it)) }
       }
@@ -156,7 +161,7 @@ class MariaDBManager implements IQueryService {
    *     <ul>
    *         <li><code>country</code></li>
    *         <li><code>email</code></li>
-   *         <li><code>family_name</code></li>
+   *         <li><code>last_name</code></li>
    *         <li><code>first_name</code></li>
    *         <li><code>name</code></li>
    *         <li><code>street</code></li>
@@ -166,7 +171,7 @@ class MariaDBManager implements IQueryService {
    */
   private static Location parseLocationFromMap(Map input) {
 
-    Collection<String> expectedKeys = ["name", "street", "zip_code", "country", "first_name", "family_name", "email"]
+    Collection<String> expectedKeys = ["name", "street", "zip_code", "country", "first_name", "last_name", "email"]
     if (!input.keySet().containsAll(expectedKeys.each {it.toUpperCase()})) {
       log.info(input.keySet())
       throw new IllegalArgumentException ("The provided input did not provide all expected keys.")
@@ -180,7 +185,7 @@ class MariaDBManager implements IQueryService {
     Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
     //Person
     String first = input.get("first_name")
-    String last = input.get("family_name")
+    String last = input.get("last_name")
     String mail = input.get("email")
     return new Location(name: name, responsiblePerson: first+" "+last, responsibleEmail: mail, address: address);
   }
@@ -201,7 +206,7 @@ class MariaDBManager implements IQueryService {
       Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
       //Person
       String first = rs.get("first_name")
-      String last = rs.get("family_name")
+      String last = rs.get("last_name")
       String mail = rs.get("email")
       Location l = new Location(name: name, responsiblePerson: first+" "+last, responsibleEmail: mail, address: address);
       locs.add(l)
@@ -402,7 +407,7 @@ class MariaDBManager implements IQueryService {
         GroovyRowResult rs = results.get(0)
         //        logger.info("email found!");
         String firstName = rs.get("first_name")
-        String lastName = rs.get("family_name")
+        String lastName = rs.get("last_name")
         String email = rs.get("email")
         res = new Person(firstName, lastName, email)
       }
@@ -476,7 +481,11 @@ class MariaDBManager implements IQueryService {
    */
   private static Map<String, ?> getPersonById(String identifier, Sql sql) {
     String query = "SELECT * FROM $PERSONS_TABLE WHERE user_id = '$identifier'"
+    log.error(query)
     List<GroovyRowResult> rowResults = sql.rows(query)
+    log.error("LJANSDANDS")
+    log.error(rowResults)
+    log.error("LJANSDANDS")
     if (rowResults.size() == 1) {
       return rowResults.first() as Map
     } else {
