@@ -117,11 +117,9 @@ class QueryMock implements IQueryService {
     Address address1 = new Address(affiliation: "Gevantsa", country: "Chiark", street: "Hassease", zipCode: 0)
     Address address2 = new Address(affiliation: "QBiC", country: "Germany", street: "Morgenstelle 10", zipCode: 72076)
     Location location1 = new Location(name: "Test Location 1", responsiblePerson: responsiblePerson, responsibleEmail: identifier, address: address1, status: Status.WAITING, arrivalDate: date, forwardDate: date)
-    Location location2 = new Location(name: "Test Location 2", responsiblePerson: responsiblePerson, responsibleEmail: identifier, address: address2, status: Status.PROCESSED, arrivalDate: date, forwardDate: date)
 
     List<Location> locations = new ArrayList<>()
     locations.add(location1)
-    locations.add(location2)
 
     return locations;
   }

@@ -40,8 +40,7 @@ class LocationServiceCenter implements ILocationService {
 
   @Override
   List<Location> getLocationsForPerson(String identifier) {
-    throw new RuntimeException("Method not implemented.")
-    List<Location> locations = new ArrayList<>()
-    return locations
+    log.info "Listing all known locations for the person identified by $identifier"
+    return database.getLocationsForPerson(identifier)
   }
 }

@@ -1,11 +1,10 @@
 package life.qbic.controller
 
 import io.micronaut.context.annotation.Requires
+import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
-import io.micronaut.context.annotation.Parameter
-import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
@@ -14,14 +13,13 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import life.qbic.datamodel.services.Sample
+import life.qbic.datamodel.services.Contact
+import life.qbic.datamodel.services.Location
 import life.qbic.micronaututils.auth.Authentication
+import life.qbic.service.ILocationService
 
 import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
-import life.qbic.datamodel.services.Contact
-import life.qbic.datamodel.services.Location
-import life.qbic.service.ILocationService
 
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)
@@ -35,6 +33,13 @@ class LocationsController {
     this.locService = locService
   }
 
+  /**
+   * Endpoint for retrieving contact information for a user given an email address.
+   *
+   * @param email
+   * @return an HTTPResponse with the associated contact
+   * @deprecated As of 1.1.0 this method is marked as deprecated. Please avoid using it.
+   */
   @Get(uri = "/contacts/{email}", produces = MediaType.APPLICATION_JSON)
   @RolesAllowed(["READER", "WRITER"])
   @Operation(summary = "Provides the contact information linked to an e-mail",
@@ -47,6 +52,8 @@ class LocationsController {
   @ApiResponse(responseCode = "400", description = "Invalid e-mail address")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Contact not found")
+  //@Deprecated(since=1.1.0, forRemoval=false) // works for Java11
+  @Deprecated
   HttpResponse<Contact> contacts(@PathVariable('email') String email){
     if(!RegExValidator.isValidMail(email)) {
       HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
@@ -64,24 +71,25 @@ class LocationsController {
     }
   }
 
-  @Get(uri = "/{contact_email}", produces = MediaType.APPLICATION_JSON)
-  @Operation(summary = "Provides the locations information linked to an e-mail",
-          description = "Provides detailed locations information that is linked to an e-mail",
+  @Get(uri = "/{user_id}", produces = MediaType.APPLICATION_JSON)
+  @Operation(summary = "Provides the locations information linked to a username",
+          description = "Provides detailed locations information that is linked to a username",
           tags = "Contact")
-  @ApiResponse(responseCode = "200", description = "Current locations associated with the email address",
+  @ApiResponse(responseCode = "200", description = "Current locations associated with the username",
           content = @Content(
                   mediaType = "application/json",
                   schema = @Schema(implementation = Location.class)))
-  @ApiResponse(responseCode = "400", description = "Invalid e-mail address")
+  @ApiResponse(responseCode = "400", description = "Invalid user")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Location not found")
   @RolesAllowed(["READER", "WRITER"])
-  HttpResponse<List<Location>> locations(@PathVariable('contact_email') String contact_email){
-    if(!RegExValidator.isValidMail(contact_email)) {
-      HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
+  HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId){
+    // We take the assumption here that the user id is an email address. While this is true as of 1.1.0 we need to be careful here.
+    if(!RegExValidator.isValidMail(userId)) {
+      HttpResponse res = HttpResponse.badRequest("Not a valid email address!")
       return res
     } else {
-      List<Location> locations = locService.getLocationsForEmail(contact_email);
+      List<Location> locations = locService.getLocationsForPerson(userId);
       return HttpResponse.ok(locations)
     }
   }
