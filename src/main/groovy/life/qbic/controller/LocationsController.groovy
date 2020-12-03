@@ -84,14 +84,7 @@ class LocationsController {
   @ApiResponse(responseCode = "404", description = "Location not found")
   @RolesAllowed(["READER", "WRITER"])
   HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId){
-    // We take the assumption here that the user id is an email address. While this is true as of 1.1.0 we need to be careful here.
-    if(!RegExValidator.isValidMail(userId)) {
-      HttpResponse res = HttpResponse.badRequest("Not a valid email address!")
-      return res
-    } else {
-      List<Location> locations = locService.getLocationsForPerson(userId);
-      return HttpResponse.ok(locations)
-    }
+      return locService.getLocationsForPerson(userId)
   }
 
   @Get(uri = "/", produces = MediaType.APPLICATION_JSON)

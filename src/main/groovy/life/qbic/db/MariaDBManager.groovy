@@ -128,30 +128,30 @@ class MariaDBManager implements IQueryService {
   }
 
   @Override
-  List<Location> getLocationsForPerson(String identifier) {
+  HttpResponse<List<Location>> getLocationsForPerson(String identifier) {
     Sql sql = null
     List<Location> locations = new ArrayList<>()
+    HttpResponse<List<Location>> response = HttpResponse.ok(locations)
     try {
       sql = new Sql(this.dataSource)
       sql.withTransaction {
         Map userInformation = getPersonById(identifier, sql)
-        log.error("JONSADANSDJNASDN")
-        log.error(userInformation)
         
         // find locations for user
         int userDbId = userInformation.get("id") as int
-        String query = "SELECT * FROM locations INNER JOIN persons_locations ON id=location_id WHERE person_id = $userDbId;"
-        log.error("query:")
-        log.error(query)
+        String query = "SELECT * FROM locations INNER JOIN persons_locations ON id = location_id INNER JOIN person ON person_id = person.id WHERE person_id = $userDbId;"
+
         List<GroovyRowResult> rowResults = sql.rows(query)
         rowResults.each { locations.add(parseLocationFromMap(it)) }
       }
     } catch(Exception e) {
-      log.error("Retrieving locations for $identifier failed unexpectedly.", e)
+      String msg = "Retrieving locations for $identifier failed unexpectedly."
+      log.error(msg, e)
+      response = HttpResponse.badRequest(msg)
     } finally {
       sql?.close()
     }
-    return locations
+    return response
   }
 
   /**
@@ -170,11 +170,11 @@ class MariaDBManager implements IQueryService {
    * @return a location with the information provided by the map
    */
   private static Location parseLocationFromMap(Map input) {
-
     Collection<String> expectedKeys = ["name", "street", "zip_code", "country", "first_name", "last_name", "email"]
-    if (!input.keySet().containsAll(expectedKeys.each {it.toUpperCase()})) {
-      log.info(input.keySet())
-      throw new IllegalArgumentException ("The provided input did not provide all expected keys.")
+    for(String key: expectedKeys) {
+      if(!input.keySet().contains(key.toUpperCase())) {
+        throw new IllegalArgumentException ("The provided input did not provide the expected key $key.")
+      }
     }
 
     //Location
@@ -483,9 +483,6 @@ class MariaDBManager implements IQueryService {
     String query = "SELECT * FROM $PERSONS_TABLE WHERE user_id = '$identifier'"
     log.error(query)
     List<GroovyRowResult> rowResults = sql.rows(query)
-    log.error("LJANSDANDS")
-    log.error(rowResults)
-    log.error("LJANSDANDS")
     if (rowResults.size() == 1) {
       return rowResults.first() as Map
     } else {

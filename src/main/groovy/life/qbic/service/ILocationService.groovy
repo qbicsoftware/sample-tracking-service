@@ -1,7 +1,7 @@
 package life.qbic.service;
 
 import javax.inject.Singleton
-
+import io.micronaut.http.HttpResponse
 import life.qbic.datamodel.services.*
 
 /**
@@ -43,8 +43,8 @@ interface ILocationService {
    * List all locations attached to a person with the provided identifier.<br/>
    * Currently one email address is used as identifier for a person in the system
    * @param identifier the identifier for a person
-   * @return a list of locations found
+   * @return a HttpResponse object containing a list of locations found, if the query was successful, failure status infos otherwise
    * @since 1.1.0
    */
-  List<Location> getLocationsForPerson(String identifier)
+  HttpResponse getLocationsForPerson(String identifier)
 }
