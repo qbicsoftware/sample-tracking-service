@@ -55,7 +55,7 @@ class SamplesControllerIntegrationTest {
     db.loginWithCredentials(driver, url, user, pw);
 
     db.createTables()
-    db.addPerson("a", "b", "c", existingPersonMail, "0123")
+    db.addPerson("a", "b", "c", existingPersonMail)
     db.addLocation(existingLocation, "a", "b", 123)
   }
 
@@ -163,8 +163,8 @@ class SamplesControllerIntegrationTest {
     Location l1 = new Location(name: "Location 1", responsiblePerson: "Location 1 Person", responsibleEmail: email1, address: adr1, status: Status.PROCESSED, arrivalDate: d, forwardDate: d);
     Address adr2 = new Address(affiliation: "Location 2", country: "Germany", street: "Location 2 street", zipCode: 2)
     Location l2 = new Location(name: "Location 2", responsiblePerson: "Location 2 Person", responsibleEmail: email2, address: adr2, status: Status.PROCESSED, arrivalDate: d, forwardDate: d);
-    db.addPerson("u1","Location 1", "Person",email1,"123")
-    db.addPerson("u2","Location 2", "Person",email2,"456")
+    db.addPerson("u1","Location 1", "Person",email1)
+    db.addPerson("u2","Location 2", "Person",email2)
     db.addLocation(l1)
     db.addLocation(l2)
 
@@ -353,7 +353,7 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 1", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
-    db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email, "123")
+    db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email)
 
     HttpRequest request = HttpRequest.POST("/samples/"+validCode4+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
@@ -370,7 +370,7 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 1", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.METADATA_REGISTERED, arrivalDate: d);
     int locID = db.addLocation(location.name, adr.street, adr.country, adr.zipCode)
-    db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email, "123")
+    db.addPerson("u", currentPerson.firstName, currentPerson.lastName, email)
     println location
 
     HttpRequest request = HttpRequest.POST("/samples/"+missingValidCode2+"/currentLocation/", location).basicAuth("servicewriter", "123456!")

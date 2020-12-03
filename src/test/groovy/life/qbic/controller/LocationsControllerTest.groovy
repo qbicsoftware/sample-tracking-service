@@ -81,11 +81,11 @@ class LocationsControllerTest {
     assertEquals(loc.size(),1)
   }
   
-  @Test
-  void testMalformedLocationsMail() throws Exception {
-    HttpResponse response = locations.locations("justreadtheinstructions")
-    assertEquals(response.getStatus().getCode(), 400)
-  }
+//  @Test
+//  void testMalformedLocationsMail() throws Exception {
+//    HttpResponse response = locations.locations("justreadtheinstructions")
+//    assertEquals(response.getStatus().getCode(), 400)
+//  }
   
   @Test
   void testLocations() throws Exception {
