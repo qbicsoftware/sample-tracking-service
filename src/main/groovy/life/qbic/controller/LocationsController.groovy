@@ -87,6 +87,8 @@ class LocationsController {
     try {
       searchResult = locService.getLocationsForPerson(userId)
       return HttpResponse.ok(searchResult)
+    } catch (IllegalArgumentException ignored) {
+      return HttpResponse.badRequest()
     } catch (Exception ignored) {
       return HttpResponse.serverError()
     }
