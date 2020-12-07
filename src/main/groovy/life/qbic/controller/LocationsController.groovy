@@ -81,6 +81,7 @@ class LocationsController {
           content = @Content(
                   mediaType = "application/json",
                   schema = @Schema(implementation = Location.class)))
+  @ApiResponse(responseCode = "400", description = "Bad Request")
   @ApiResponse(responseCode = "500", description = "Unexpected error during execution")
   @RolesAllowed(["READER"])
   HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId) {
@@ -88,12 +89,14 @@ class LocationsController {
     List<Location> searchResult
     try {
       searchResult = locService.getLocationsForPerson(userId)
-      return HttpResponse.ok(searchResult)
+      response = HttpResponse.ok(searchResult)
     } catch (IllegalArgumentException ignored) {
-      return HttpResponse.badRequest()
+      response = HttpResponse.status(HttpStatus.BAD_REQUEST, ignored.getMessage())
     } catch (Exception ignored) {
-      return HttpResponse.serverError()
+      response = HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, ignored.getMessage())
     }
+    return response
+    
   }
 
   @Get(uri = "/", produces = MediaType.APPLICATION_JSON)
