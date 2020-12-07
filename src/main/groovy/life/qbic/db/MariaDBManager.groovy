@@ -135,7 +135,7 @@ class MariaDBManager implements IQueryService {
       sql = new Sql(this.dataSource)
       sql.withTransaction {
         Map userInformation = getPersonById(identifier, sql)
-        
+
         // find locations for user
         int userDbId = userInformation.get("id") as int
         String query = "SELECT * FROM locations INNER JOIN persons_locations ON id = location_id INNER JOIN person ON person_id = person.id WHERE person_id = $userDbId;"
@@ -143,6 +143,9 @@ class MariaDBManager implements IQueryService {
         List<GroovyRowResult> rowResults = sql.rows(query)
         rowResults.each { locations.add(parseLocationFromMap(it)) }
       }
+    } catch(NotFoundException notFoundException) {
+      String msg = "Invalid user id"
+      throw new IllegalArgumentException(msg)
     } catch(Exception e) {
       String msg = "Retrieving locations for $identifier failed unexpectedly."
       log.error(msg, e)
@@ -484,7 +487,7 @@ class MariaDBManager implements IQueryService {
     if (rowResults.size() == 1) {
       return rowResults.first() as Map
     } else {
-      throw new IllegalArgumentException("No user or multiple users with the same id.")
+      throw new NotFoundException("No user or multiple users with the same id.")
     }
   }
 
