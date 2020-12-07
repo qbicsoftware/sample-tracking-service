@@ -129,11 +129,9 @@ class MariaDBManager implements IQueryService {
 
   @Override
   List<Location> getLocationsForPerson(String identifier) {
-    Sql sql = null
     List<Location> locations = new ArrayList<>()
+    this.sql = new Sql(dataSource)
     try {
-      sql = new Sql(this.dataSource)
-      sql.withTransaction {
         Map userInformation = getPersonById(identifier, sql)
 
         // find locations for user
@@ -142,11 +140,13 @@ class MariaDBManager implements IQueryService {
 
         List<GroovyRowResult> rowResults = sql.rows(query)
         rowResults.each { locations.add(parseLocationFromMap(it)) }
-      }
+        
     } catch(NotFoundException notFoundException) {
+      
       String msg = "Invalid user id"
       throw new IllegalArgumentException(msg)
     } catch(Exception e) {
+
       String msg = "Retrieving locations for $identifier failed unexpectedly."
       log.error(msg, e)
     } finally {
@@ -154,7 +154,24 @@ class MariaDBManager implements IQueryService {
     }
     return locations
   }
-
+  
+  /**
+   * Retrieves the person row from the database for the given identifier
+   *
+   * @param identifier the primary user identifier. NOT the db entry id
+   * @return a map containing all columns as keys and the respective values
+   */
+  private static Map<String, ?> getPersonById(String identifier, Sql sql) {
+    String query = "SELECT * FROM $PERSONS_TABLE WHERE user_id = '$identifier'"
+    log.error(query)
+    List<GroovyRowResult> rowResults = sql.rows(query)
+    if (rowResults.size() == 1) {
+      return rowResults.first() as Map
+    } else {
+      throw new NotFoundException("No user or multiple users with the same id.")
+    }
+  }
+  
   /**
    * This method parses a map and create a location from it.<br>
    * @param input the map containing information to be used in creating the location
@@ -472,23 +489,6 @@ class MariaDBManager implements IQueryService {
       e.printStackTrace();
     }
     return res
-  }
-
-  /**
-   * Retrieves the person row from the database for the given identifier
-   *
-   * @param identifier the primary user identifier. NOT the db entry id
-   * @return a map containing all columns as keys and the respective values
-   */
-  private static Map<String, ?> getPersonById(String identifier, Sql sql) {
-    String query = "SELECT * FROM $PERSONS_TABLE WHERE user_id = '$identifier'"
-    log.error(query)
-    List<GroovyRowResult> rowResults = sql.rows(query)
-    if (rowResults.size() == 1) {
-      return rowResults.first() as Map
-    } else {
-      throw new NotFoundException("No user or multiple users with the same id.")
-    }
   }
 
   private int getPersonIdFromEmail(String email, Sql sql) {
