@@ -10,6 +10,7 @@ import io.micronaut.context.env.PropertySource
 import io.micronaut.core.util.CollectionUtils
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
@@ -102,13 +103,14 @@ class LocationsControllerIntegrationTest {
   @Test
   void testLocationsForUnknownUser() throws Exception {
     HttpRequest request = HttpRequest.GET("/locations/justreadtheinstructions").basicAuth("servicewriter", "123456!")
-    String error = "noerror"
+    HttpStatus exceptionStatus
+    HttpResponse response
     try {
-      HttpResponse response = client.toBlocking().exchange(request)
-    } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      response = client.toBlocking().exchange(request)
+    } catch (HttpClientResponseException responseException) {
+      exceptionStatus = responseException.getStatus()
     }
-    assertEquals("Bad Request", error)
+    assertEquals(HttpStatus.BAD_REQUEST, exceptionStatus)
   }
   
   @Test
@@ -163,14 +165,18 @@ class LocationsControllerIntegrationTest {
 
   @Test
   void testNonExistingContact() throws Exception {
+    String expectedReason = "Email address was not found in the system!"
+    String reason
+    HttpStatus status
     HttpRequest request = HttpRequest.GET("/locations/contacts/ian.banks@limitingfactor.com").basicAuth("servicewriter", "123456!")
-    String error = "";
     try {
       HttpResponse response = client.toBlocking().exchange(request)
-    } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+    } catch (HttpClientResponseException responseException) {
+      reason = responseException.getMessage()
+      status = responseException.getStatus()
     }
-    assertEquals(error, "Not Found")
+    assertEquals(status, HttpStatus.NOT_FOUND)
+    assertEquals(reason, expectedReason)
   }
 
   @Test

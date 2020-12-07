@@ -2,6 +2,7 @@ package life.qbic.controller
 
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
@@ -65,8 +66,8 @@ class LocationsController {
         return res
       }
       else {
-        HttpResponse<Contact> res = HttpResponse.notFound(contact)
-        res.reason = "Email address was not found in the system!"
+        String reason = "Email address was not found in the system!"
+        HttpResponse<Contact> res = HttpResponse.status(HttpStatus.NOT_FOUND, reason);
         return res
       }
     }
@@ -88,6 +89,8 @@ class LocationsController {
     try {
       searchResult = locService.getLocationsForPerson(userId)
       return HttpResponse.ok(searchResult)
+    } catch (IllegalArgumentException ignored) {
+      return HttpResponse.badRequest()
     } catch (Exception ignored) {
       return HttpResponse.serverError()
     }
