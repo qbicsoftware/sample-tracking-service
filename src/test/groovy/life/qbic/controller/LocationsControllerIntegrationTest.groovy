@@ -102,7 +102,7 @@ class LocationsControllerIntegrationTest {
   @Test
   void testLocationsForUnknownUser() throws Exception {
     HttpRequest request = HttpRequest.GET("/locations/justreadtheinstructions").basicAuth("servicewriter", "123456!")
-    String error = ""
+    String error = "noerror"
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {

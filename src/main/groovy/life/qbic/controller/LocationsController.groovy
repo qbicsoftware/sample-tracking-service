@@ -59,13 +59,14 @@ class LocationsController {
       HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
       return res
     } else {
-      Contact contact = locService.searchPersonByEmail(email);
+      Contact contact = locService.searchPersonByEmail(email)
       if(contact!=null) {
         HttpResponse<Contact> res = HttpResponse.ok(contact)
         return res
       }
       else {
-        HttpResponse<Contact> res = HttpResponse.notFound("Email address was not found in the system!")
+        HttpResponse<Contact> res = HttpResponse.notFound(contact)
+        res.reason = "Email address was not found in the system!"
         return res
       }
     }
