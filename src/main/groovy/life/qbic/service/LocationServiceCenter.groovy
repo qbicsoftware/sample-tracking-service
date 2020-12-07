@@ -39,7 +39,7 @@ class LocationServiceCenter implements ILocationService {
   }
 
   @Override
-  HttpResponse getLocationsForPerson(String identifier) {
+  List<Location> getLocationsForPerson(String identifier) {
     log.info "Listing all known locations for the person identified by $identifier"
     return database.getLocationsForPerson(identifier)
   }

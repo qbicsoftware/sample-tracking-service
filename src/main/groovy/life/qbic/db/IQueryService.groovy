@@ -43,10 +43,10 @@ interface IQueryService {
    * List all locations attached to a person with the provided identifier
    * Currently one email address is used as identifier for a person in the system
    * @param identifier the identifier for a person
-   * @return HttpResponse containing a list of locations for the given person, if the query was successfull
+   * @return a list of locations for the given person, if the query was successful
    * @since 1.1.0
    */
-  HttpResponse getLocationsForPerson(String identifier)
+  List<Location> getLocationsForPerson(String identifier)
 
   /**
    * Adds a new location for a provided sample code to the database, signifying the forwarding of that sample to that location.

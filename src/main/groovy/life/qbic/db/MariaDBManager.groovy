@@ -128,10 +128,9 @@ class MariaDBManager implements IQueryService {
   }
 
   @Override
-  HttpResponse<List<Location>> getLocationsForPerson(String identifier) {
+  List<Location> getLocationsForPerson(String identifier) {
     Sql sql = null
     List<Location> locations = new ArrayList<>()
-    HttpResponse<List<Location>> response = HttpResponse.ok(locations)
     try {
       sql = new Sql(this.dataSource)
       sql.withTransaction {
@@ -147,11 +146,10 @@ class MariaDBManager implements IQueryService {
     } catch(Exception e) {
       String msg = "Retrieving locations for $identifier failed unexpectedly."
       log.error(msg, e)
-      response = HttpResponse.badRequest(msg)
     } finally {
       sql?.close()
     }
-    return response
+    return locations
   }
 
   /**

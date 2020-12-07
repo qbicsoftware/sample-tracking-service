@@ -76,9 +76,9 @@ class LocationsControllerTest {
   @Test
   void testLocationsMail() throws Exception {
     HttpResponse response = locations.locations("right@right.de")
-    assertEquals(response.getStatus().getCode(), 200)
+    assertEquals(200, response.getStatus().getCode())
     List<Location> loc = response.body.orElse(null)
-    assertEquals(loc.size(),1)
+    assertEquals(1, loc.size())
   }
   
 //  @Test

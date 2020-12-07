@@ -110,7 +110,7 @@ class QueryMock implements IQueryService {
    * @return an optional containing two example locations for a Dummy user with the provided identifier
    * @InheritDoc
    */
-  @Override  HttpResponse<List<Location>> getLocationsForPerson(String identifier) {
+  @Override  List<Location> getLocationsForPerson(String identifier) {
     Date date = new java.sql.Date(new Date().getTime());
     String responsiblePerson = "Dummy"
 
