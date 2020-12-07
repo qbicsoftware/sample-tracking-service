@@ -121,6 +121,6 @@ class QueryMock implements IQueryService {
     List<Location> locations = new ArrayList<>()
     locations.add(location1)
 
-    return HttpResponse.ok(locations);
+    return locations;
   }
 }
