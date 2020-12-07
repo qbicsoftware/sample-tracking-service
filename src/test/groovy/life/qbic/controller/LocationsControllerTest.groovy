@@ -41,7 +41,7 @@ class LocationsControllerTest {
   @Test
   void testNonExistingContact() throws Exception {
     HttpResponse<Contact> response = locations.contacts("ian.banks@limitingfactor.com")
-    assertEquals(response.getStatus().getCode(),404)
+    assertEquals(404, response.getStatus().getCode())
   }
 
   @Test
