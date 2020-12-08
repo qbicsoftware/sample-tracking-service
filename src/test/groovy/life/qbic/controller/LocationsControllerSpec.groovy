@@ -1,6 +1,7 @@
 package life.qbic.controller
 
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import life.qbic.datamodel.services.Address
 import life.qbic.datamodel.services.Location
 import life.qbic.datamodel.services.Status
@@ -43,12 +44,31 @@ class LocationsControllerSpec extends Specification {
         HttpResponse response = locationsController.locations(exampleUId)
 
         then: "the HttpResponse succeeds"
-        response.code() == 200
+        response.status() == HttpStatus.OK
         and: "there is a body returned"
         response.body.isPresent()
         and: "the response returns a list of locations"
         response.body() instanceof List<Location>
         and: "the list is as expected"
         response.body() == locations
+    }
+
+    def "The locations endpoint creates a BAD_REQUEST(400) response on missing user"() {
+        given: "a locationService throwing an IllegalArgumentException"
+        ILocationService locationService = Mock(ILocationService, {
+            getLocationsForPerson(_ as String) >> { throw new IllegalArgumentException() }
+        })
+
+        and: "a LocationsController (under test) with this location service"
+        LocationsController locationsController = new LocationsController(locationService)
+
+        when: "the LocationsController is accessed through the /{user_id} endpoint"
+        HttpResponse response = locationsController.locations(userId)
+
+        then: "the HttpResponse is a bad request"
+        response.status() == HttpStatus.BAD_REQUEST
+
+        where:
+        userId = "ThisIsAValidButNonExistingId"
     }
 }
