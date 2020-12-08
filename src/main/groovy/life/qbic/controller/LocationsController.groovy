@@ -1,11 +1,11 @@
 package life.qbic.controller
 
 import io.micronaut.context.annotation.Requires
+import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
-import io.micronaut.context.annotation.Parameter
-import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
@@ -14,14 +14,13 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import life.qbic.datamodel.services.Sample
+import life.qbic.datamodel.services.Contact
+import life.qbic.datamodel.services.Location
 import life.qbic.micronaututils.auth.Authentication
+import life.qbic.service.ILocationService
 
 import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
-import life.qbic.datamodel.services.Contact
-import life.qbic.datamodel.services.Location
-import life.qbic.service.ILocationService
 
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)
@@ -35,6 +34,13 @@ class LocationsController {
     this.locService = locService
   }
 
+  /**
+   * Endpoint for retrieving contact information for a user given an email address.
+   *
+   * @param email
+   * @return an HTTPResponse with the associated contact
+   * @deprecated As of 1.1.0 this method is marked as deprecated. Please avoid using it.
+   */
   @Get(uri = "/contacts/{email}", produces = MediaType.APPLICATION_JSON)
   @RolesAllowed(["READER", "WRITER"])
   @Operation(summary = "Provides the contact information linked to an e-mail",
@@ -47,43 +53,50 @@ class LocationsController {
   @ApiResponse(responseCode = "400", description = "Invalid e-mail address")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Contact not found")
+  //@Deprecated(since=1.1.0, forRemoval=false) // works for Java11
+  @Deprecated
   HttpResponse<Contact> contacts(@PathVariable('email') String email){
     if(!RegExValidator.isValidMail(email)) {
       HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
       return res
     } else {
-      Contact contact = locService.searchPersonByEmail(email);
+      Contact contact = locService.searchPersonByEmail(email)
       if(contact!=null) {
         HttpResponse<Contact> res = HttpResponse.ok(contact)
         return res
       }
       else {
-        HttpResponse<Contact> res = HttpResponse.notFound("Email address was not found in the system!")
+        String reason = "Email address was not found in the system!"
+        HttpResponse<Contact> res = HttpResponse.status(HttpStatus.NOT_FOUND, reason);
         return res
       }
     }
   }
 
-  @Get(uri = "/{contact_email}", produces = MediaType.APPLICATION_JSON)
-  @Operation(summary = "Provides the locations information linked to an e-mail",
-          description = "Provides detailed locations information that is linked to an e-mail",
+  @Get(uri = "/{user_id}", produces = MediaType.APPLICATION_JSON)
+  @Operation(summary = "Provides the locations information linked to a username",
+          description = "Provides detailed locations information that is linked to a username",
           tags = "Contact")
-  @ApiResponse(responseCode = "200", description = "Current locations associated with the email address",
+  @ApiResponse(responseCode = "200", description = "Current locations associated with the username",
           content = @Content(
                   mediaType = "application/json",
                   schema = @Schema(implementation = Location.class)))
-  @ApiResponse(responseCode = "400", description = "Invalid e-mail address")
-  @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Location not found")
-  @RolesAllowed(["READER", "WRITER"])
-  HttpResponse<List<Location>> locations(@PathVariable('contact_email') String contact_email){
-    if(!RegExValidator.isValidMail(contact_email)) {
-      HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
-      return res
-    } else {
-      List<Location> locations = locService.getLocationsForEmail(contact_email);
-      return HttpResponse.ok(locations)
+  @ApiResponse(responseCode = "400", description = "Bad Request")
+  @ApiResponse(responseCode = "500", description = "Unexpected error during execution")
+  @RolesAllowed(["READER"])
+  HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId) {
+    HttpResponse<List<Location>> response
+    List<Location> searchResult
+    try {
+      searchResult = locService.getLocationsForPerson(userId)
+      response = HttpResponse.ok(searchResult)
+    } catch (IllegalArgumentException ignored) {
+      response = HttpResponse.status(HttpStatus.BAD_REQUEST, ignored.getMessage())
+    } catch (Exception ignored) {
+      response = HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, ignored.getMessage())
     }
+    return response
+    
   }
 
   @Get(uri = "/", produces = MediaType.APPLICATION_JSON)

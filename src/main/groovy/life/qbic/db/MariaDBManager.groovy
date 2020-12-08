@@ -1,34 +1,22 @@
 package life.qbic.db
 
-import io.micronaut.context.annotation.Requires
+
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
-import io.micronaut.context.annotation.Property
-import io.micronaut.context.event.BeanCreatedEvent
-import io.micronaut.context.event.BeanCreatedEventListener
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
-import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Controller
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Produces
-import io.micronaut.http.annotation.Put
 import life.qbic.datamodel.services.*
 import life.qbic.micronaututils.QBiCDataSource
-import java.sql.Connection
-import java.sql.Date
-import java.sql.ResultSet
+
+import javax.inject.Inject
+import javax.inject.Singleton
+import javax.sql.DataSource
 import java.sql.SQLException
 import java.sql.Timestamp
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.OffsetDateTime
-import java.util.regex.Matcher
-import javax.inject.Inject
-import javax.inject.Singleton
-import javax.sql.DataSource
-import javax.validation.metadata.ReturnValueDescriptor
 
 @Log4j2
 @Singleton
@@ -37,6 +25,8 @@ class MariaDBManager implements IQueryService {
   private DataSource dataSource
 
   private Sql sql
+
+  private static final PERSONS_TABLE = "person"
 
   @Inject MariaDBManager(QBiCDataSource dataSource) {
     this.dataSource = dataSource.getSource()
@@ -48,14 +38,14 @@ class MariaDBManager implements IQueryService {
     try {
       sql.withTransaction {
         int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
-        if(personId == -1) {
-          String msg = "User with email "+location.getResponsibleEmail()+" was not found."
+        if (personId == -1) {
+          String msg = "User with email " + location.getResponsibleEmail() + " was not found."
           log.error(msg)
           throw new NotFoundException(msg)
         }
         int locationId = getLocationIdFromName(location.getName(), sql);
-        if(locationId == -1) {
-          String msg = "Location "+location.getName()+" was not found."
+        if (locationId == -1) {
+          String msg = "Location " + location.getName() + " was not found."
           log.error(msg)
           throw new NotFoundException(msg)
         }
@@ -65,10 +55,14 @@ class MariaDBManager implements IQueryService {
         addOrUpdateSample(sampleId, locationId, sql)
 
       }
+    } catch (SQLException sqlException) {
+      String msg = sqlException.getMessage()
+      log.warn "SQL exception: $msg. Rolling back previous changes and returning bad request."
+      response = HttpResponse.status(HttpStatus.BAD_REQUEST, msg)
     } catch (Exception ex) {
       String msg = ex.getMessage()
-      log.info msg+" Rolling back previous changes and returning bad request."
-      response = HttpResponse.badRequest(msg)
+      log.warn msg+" Rolling back previous changes and returning bad request."
+      response = HttpResponse.status(HttpStatus.BAD_REQUEST, msg)
     } finally {
       sql.close()
     }
@@ -82,14 +76,14 @@ class MariaDBManager implements IQueryService {
       sql.withTransaction {
         int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql);
 
-        if(personId == -1) {
-          String msg = "User with email "+location.getResponsibleEmail()+" was not found."
+        if (personId == -1) {
+          String msg = "User with email " + location.getResponsibleEmail() + " was not found."
           log.error(msg)
           throw new NotFoundException(msg)
         }
         int locationId = getLocationIdFromName(location.getName(), sql);
-        if(locationId == -1) {
-          String msg = "Location "+location.getName()+" was not found."
+        if (locationId == -1) {
+          String msg = "Location " + location.getName() + " was not found."
           log.error(msg)
           throw new NotFoundException(msg)
         }
@@ -110,17 +104,18 @@ class MariaDBManager implements IQueryService {
     return response
   }
 
+  @Override
   Contact searchPersonByEmail(String email) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     this.sql = new Sql(dataSource)
     Contact contact = null;
-    final String query = "SELECT * from persons WHERE UPPER(email) = UPPER('${email}');"
+    final String query = "SELECT * from $PERSONS_TABLE WHERE UPPER(email) = UPPER('${email}');"
     List<GroovyRowResult> results = sql.rows(query)
     if( results.size() > 0 ) {
       GroovyRowResult res = results.get(0)
       int id = res.get("id")
       String first = res.get("first_name")
-      String last = res.get("family_name")
+      String last = res.get("last_name")
       Address adr = getAddressByPerson(id, sql)
       contact = new Contact(fullName: first + " " + last, email: email, address: adr)
     }
@@ -138,10 +133,95 @@ class MariaDBManager implements IQueryService {
     return res
   }
 
+  @Override
+  List<Location> getLocationsForPerson(String identifier) {
+    List<Location> locations = new ArrayList<>()
+    this.sql = new Sql(dataSource)
+    Map userInformation
+
+    try {
+      userInformation = getPersonById(identifier, sql)
+    } catch (NotFoundException notFoundException) {
+      String msg = "Invalid user id"
+      throw new IllegalArgumentException(msg, notFoundException)
+    }
+    try {
+      // find locations for user
+      int userDbId = userInformation.get("id") as int
+      String query = "SELECT * FROM locations INNER JOIN persons_locations ON id = location_id INNER JOIN person ON person_id = person.id WHERE person_id = $userDbId;"
+
+      List<GroovyRowResult> rowResults = sql.rows(query)
+      rowResults.each { locations.add(parseLocationFromMap(it)) }
+
+    } catch (SQLException sqlException) {
+      String msg = "Retrieving locations for $identifier caused an SQLException"
+      log.error(msg, sqlException)
+    } catch (Exception e) {
+      String msg = "Retrieving locations for $identifier failed unexpectedly."
+      log.error(msg, e)
+    } finally {
+      sql?.close()
+    }
+    return locations
+  }
+
+  /**
+   * Retrieves the person row from the database for the given identifier
+   *
+   * @param identifier the primary user identifier. NOT the db entry id
+   * @return a map containing all columns as keys and the respective values
+   * @throws NotFoundException in case no user or multiple users could be found in the db
+   */
+  private static Map<String, ?> getPersonById(String identifier, Sql sql) throws NotFoundException {
+    String query = "SELECT * FROM $PERSONS_TABLE WHERE user_id = '$identifier'"
+    List<GroovyRowResult> rowResults = sql.rows(query)
+    if (rowResults.size() == 1) {
+      return rowResults.first() as Map
+    } else {
+      throw new NotFoundException("No user or multiple users with the id: '$identifier'.")
+    }
+  }
+  
+  /**
+   * This method parses a map and create a location from it.<br>
+   * @param input the map containing information to be used in creating the location
+   * The following keys are expected to be present in the map:
+   *     <ul>
+   *         <li><code>country</code></li>
+   *         <li><code>email</code></li>
+   *         <li><code>last_name</code></li>
+   *         <li><code>first_name</code></li>
+   *         <li><code>name</code></li>
+   *         <li><code>street</code></li>
+   *         <li><code>zip_code</code></li>
+   *     </ul>
+   * @return a location with the information provided by the map
+   */
+  private static Location parseLocationFromMap(Map input) {
+    Collection<String> expectedKeys = ["name", "street", "zip_code", "country", "first_name", "last_name", "email"]
+    for(String key: expectedKeys) {
+      if(!input.keySet().contains(key.toUpperCase())) {
+        throw new IllegalArgumentException ("The provided input did not provide the expected key $key.")
+      }
+    }
+
+    //Location
+    String name = input.get("name")
+    String street = input.get("street")
+    int zip = input.get("zip_code") as int
+    String country = input.get("country")
+    Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
+    //Person
+    String first = input.get("first_name")
+    String last = input.get("last_name")
+    String mail = input.get("email")
+    return new Location(name: name, responsiblePerson: first+" "+last, responsibleEmail: mail, address: address);
+  }
+
   List<Location> listLocations() {
     this.sql = new Sql(dataSource)
     List<Location> locs = new ArrayList<>()
-    final String query = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id inner join persons on persons_locations.person_id = persons.id"
+    final String query = "SELECT * FROM locations INNER JOIN persons_locations ON locations.id = persons_locations.location_id INNER JOIN $PERSONS_TABLE ON persons_locations.person_id = ${PERSONS_TABLE}.id"
     List<GroovyRowResult> results = sql.rows(query)
 
     for(GroovyRowResult rs: results) {
@@ -154,7 +234,7 @@ class MariaDBManager implements IQueryService {
       Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
       //Person
       String first = rs.get("first_name")
-      String last = rs.get("family_name")
+      String last = rs.get("last_name")
       String mail = rs.get("email")
       Location l = new Location(name: name, responsiblePerson: first+" "+last, responsibleEmail: mail, address: address);
       locs.add(l)
@@ -166,7 +246,7 @@ class MariaDBManager implements IQueryService {
   private Address getAddressByPerson(int personID, Sql sql) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Address res = null;
-    final String query = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id WHERE person_id = '${personID}';"
+    final String query = "SELECT * FROM locations INNER JOIN persons_locations ON locations.id = persons_locations.location_id WHERE person_id = '${personID}';"
     List<GroovyRowResult> results = sql.rows(query)
     if( results.size() > 0 ) {
       GroovyRowResult rs = results.get(0)
@@ -188,7 +268,7 @@ class MariaDBManager implements IQueryService {
       GroovyRowResult rs = results.get(0)
       int id = rs.get("id")
 
-      final String currentLocationQuery = "SELECT * from samples WHERE current_location_id = '${id}' AND id = '${sampleId}';"
+      final String currentLocationQuery = "SELECT * FROM samples WHERE current_location_id = '${id}' AND id = '${sampleId}';"
 
       List<GroovyRowResult> currLocRes = sql.rows(currentLocationQuery)
       if(currLocRes.size() > 0 ) {
@@ -272,10 +352,10 @@ class MariaDBManager implements IQueryService {
   }
 
   private void addOrUpdateSample(String sampleId, int locationId, Sql sql) {
-    final String search = "SELECT * FROM samples where id = '${sampleId}';"
+    final String search = "SELECT * FROM samples WHERE id = '${sampleId}';"
     List<GroovyRowResult> results = sql.rows(search)
     if( results.size() == 0 ) {
-      final String create = "INSERT into samples (id, current_location_id) VALUES(?,?)"
+      final String create = "INSERT INTO samples (id, current_location_id) VALUES(?,?)"
       sql.execute(create, sampleId, locationId)
     } else {
       final String update = "UPDATE samples SET current_location_id = ? WHERE id = ?"
@@ -286,7 +366,7 @@ class MariaDBManager implements IQueryService {
   Sample searchSample(String code) {
     Sample res = null;
     this.sql = new Sql(dataSource)
-    final String query = "SELECT * from samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
+    final String query = "SELECT * FROM samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
         "INNER JOIN locations ON samples_locations.location_id = locations.id "+
         "WHERE UPPER(samples.id) = UPPER('${code}');"
     try {
@@ -348,14 +428,14 @@ class MariaDBManager implements IQueryService {
     Person res = null;
     this.sql = new Sql(dataSource)
 
-    final String query = "SELECT * from persons WHERE id = ${id};"
+    final String query = "SELECT * from $PERSONS_TABLE WHERE id = ${id};"
     try {
       List<GroovyRowResult> results = sql.rows(query)
       if( results.size() > 0 ) {
         GroovyRowResult rs = results.get(0)
         //        logger.info("email found!");
         String firstName = rs.get("first_name")
-        String lastName = rs.get("family_name")
+        String lastName = rs.get("last_name")
         String email = rs.get("email")
         res = new Person(firstName, lastName, email)
       }
@@ -424,7 +504,7 @@ class MariaDBManager implements IQueryService {
   private int getPersonIdFromEmail(String email, Sql sql) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     int res = -1;
-    final String query = "SELECT * from persons WHERE UPPER(email) = UPPER('${email}')";
+    final String query = "SELECT * from $PERSONS_TABLE WHERE UPPER(email) = UPPER('${email}')";
     try {
       List<GroovyRowResult> results = sql.rows(query)
       if( results.size() > 0 ) {

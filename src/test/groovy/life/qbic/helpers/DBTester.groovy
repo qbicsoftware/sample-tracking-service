@@ -38,7 +38,7 @@ class DBTester {
     }
     try {
       Statement statement = connection.createStatement()
-      statement.executeUpdate("DROP TABLE if exists PERSONS")
+      statement.executeUpdate("DROP TABLE if exists PERSON")
     } catch (SQLException e) {
       e.printStackTrace();
     }
@@ -72,15 +72,13 @@ class DBTester {
         "COUNTRY VARCHAR(64) NOT NULL,"+
         "PRIMARY KEY (ID))"
 
-    String persons = "CREATE TABLE PERSONS"+
+    String persons = "CREATE TABLE PERSON"+
         "(ID INTEGER NOT NULL IDENTITY,"+
-        "USERNAME VARCHAR(8) NOT NULL,"+
+        "USER_ID VARCHAR(256),"+
+        "FIRST_NAME VARCHAR(45) NOT NULL,"+
+        "LAST_NAME VARCHAR(45) NOT NULL,"+
         "TITLE VARCHAR(5),"+
-        "FIRST_NAME VARCHAR(35) NOT NULL,"+
-        "FAMILY_NAME VARCHAR(35) NOT NULL,"+
-        "EMAIL VARCHAR(64) NOT NULL,"+
-        "PHONE VARCHAR(50),"+
-        "ACTIVE TINYINT DEFAULT 0,"+
+        "EMAIL VARCHAR(256) NOT NULL,"+
         "PRIMARY KEY (ID))"
 
     String samples = "CREATE TABLE SAMPLES"+
@@ -216,11 +214,11 @@ class DBTester {
   }
 
   int addPersonStandardMetadata(Person p) {
-    return addPerson("user",p.getFirstName(), p.getLastName(),p.getEMail(),"phone")
+    return addPerson("user",p.getFirstName(), p.getLastName(),p.getEMail())
   }
 
-  int addPerson(String user, String first, String last, String email, String phone) {
-    String sql = "INSERT INTO persons(username,first_name,family_name,email,phone) VALUES(?,?,?,?,?)";
+  int addPerson(String user, String first, String last, String email) {
+    String sql = "INSERT INTO person(user_id,first_name,last_name,email) VALUES(?,?,?,?)";
     int res = -1;
     try {
       connection.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS).withCloseable { PreparedStatement statement ->
@@ -228,7 +226,6 @@ class DBTester {
         statement.setString(2, first);
         statement.setString(3, last);
         statement.setString(4, email);
-        statement.setString(5, phone);
         statement.execute();
         ResultSet rs = statement.getGeneratedKeys();
         if (rs.next()) {
@@ -362,7 +359,7 @@ class DBTester {
   private Person getPersonNameByID(int id) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Person res = null;
-    String sql = "SELECT * from persons WHERE id = ?";
+    String sql = "SELECT * from person WHERE id = ?";
     try {
       connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
         statement.setInt(1, id);
@@ -370,7 +367,7 @@ class DBTester {
           if (rs.next()) {
             //        logger.info("email found!");
             String firstName = rs.getString("first_name")
-            String lastName = rs.getString("family_name")
+            String lastName = rs.getString("last_name")
             String email = rs.getString("email")
             res = new Person(firstName, lastName, email)
           }
@@ -398,9 +395,21 @@ class DBTester {
     return locationID;
   }
 
+  void removePerson(int personID) {
+    String sql2 = "DELETE FROM person WHERE id = ?"
+    try {
+      connection.prepareStatement(sql2).withCloseable { PreparedStatement statement ->
+        statement.setInt(1, personID);
+        statement.execute();
+      }
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+  }
+  
   void removeLocationAndPerson(int personID, int locationID) {
     String sql1 = "DELETE FROM persons_locations WHERE person_id = ? AND location_id = ?"
-    String sql2 = "DELETE FROM persons WHERE id = ?"
+    String sql2 = "DELETE FROM person WHERE id = ?"
     String sql3 = "DELETE FROM locations WHERE id = ?"
     try {
       connection.prepareStatement(sql1).withCloseable { PreparedStatement statement ->
@@ -411,14 +420,7 @@ class DBTester {
     } catch (SQLException e) {
       e.printStackTrace();
     }
-    try {
-      connection.prepareStatement(sql2).withCloseable { PreparedStatement statement ->
-        statement.setInt(1, personID);
-        statement.execute();
-      }
-    } catch (SQLException e) {
-      e.printStackTrace();
-    }
+    removePerson(personID)
     try {
       connection.prepareStatement(sql3).withCloseable { PreparedStatement statement ->
         statement.setInt(1, locationID);

@@ -10,6 +10,7 @@ import io.micronaut.context.env.PropertySource
 import io.micronaut.core.util.CollectionUtils
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Get
 import io.micronaut.http.annotation.Post
@@ -75,7 +76,8 @@ class LocationsControllerIntegrationTest {
   }
 
   @Test
-  void testLocationsMail() throws Exception {
+  void testLocationsUserID() throws Exception {
+    String user_id = "Morat"
     String email = "jernau@hassease.gv"
     String first = "Jernau"
     String last ="Gurgeh"
@@ -84,10 +86,10 @@ class LocationsControllerIntegrationTest {
     int zip = 0
     String country = "Chiark"
 
-    int personID = db.addPerson("Morat", first, last, email, "")
+    int personID = db.addPerson(user_id, first, last, email)
     int locationID = db.addLocationForPerson(affName, street, country, 0, personID)
 
-    HttpRequest request = HttpRequest.GET("/locations/"+email).basicAuth("servicewriter", "123456!")
+    HttpRequest request = HttpRequest.GET("/locations/"+user_id).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
     assertEquals(arr.size(), 1)
@@ -97,29 +99,45 @@ class LocationsControllerIntegrationTest {
 
     db.removeLocationAndPerson(personID, locationID)
   }
-
+  
   @Test
-  void testMalformedLocationsMail() throws Exception {
+  void testLocationsForUnknownUser() throws Exception {
     HttpRequest request = HttpRequest.GET("/locations/justreadtheinstructions").basicAuth("servicewriter", "123456!")
-    String error = ""
+    HttpStatus exceptionStatus
+    HttpResponse response
     try {
-      HttpResponse response = client.toBlocking().exchange(request)
-    } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      response = client.toBlocking().exchange(request)
+    } catch (HttpClientResponseException responseException) {
+      exceptionStatus = responseException.getStatus()
     }
-    assertEquals(error, "Bad Request")
+    assertEquals(HttpStatus.BAD_REQUEST, exceptionStatus)
+  }
+  
+  @Test
+  void testLocationsForUserWithoutLocations() throws Exception {
+    String user_id = "lonely"
+    String first = "A"
+    String last = "Hermit"
+    String email = "hermit@bugmenot.no"
+    int personID = db.addPerson(user_id, first, last, email)
+    HttpRequest request = HttpRequest.GET("/locations/"+user_id).basicAuth("servicewriter", "123456!")
+    String body = client.toBlocking().retrieve(request)
+    JSONArray arr = new JSONArray(body)
+    assertEquals(arr.size(), 0)
+    
+    db.removePerson(personID)
   }
 
   @Test
   void testLocations() throws Exception {
     List<String> locNames = Arrays.asList("loc1","loc2","loc3")
-    int personID = db.addPerson("u1", "Paul", "Panther", "abc1@bla.de", "")
+    int personID = db.addPerson("u1", "Paul", "Panther", "abc1@bla.de")
     int locationID = db.addLocationForPerson("loc1", "street 1", "germany", 0, personID)
 
-    int personID2 = db.addPerson("u2", "Peter", "Parker", "abc2@bla.de", "")
+    int personID2 = db.addPerson("u2", "Peter", "Parker", "abc2@bla.de")
     int locationID2 = db.addLocationForPerson("loc2", "street 2", "united kingdom", 0, personID2)
 
-    int personID3 = db.addPerson("u3", "Markus", "Meier", "abc3@bla.de", "")
+    int personID3 = db.addPerson("u3", "Markus", "Meier", "abc3@bla.de")
     int locationID3 = db.addLocationForPerson("loc3", "street 3", "france", 0, personID3)
 
     HttpRequest request = HttpRequest.GET("/locations/").basicAuth("servicewriter", "123456!")
@@ -147,14 +165,18 @@ class LocationsControllerIntegrationTest {
 
   @Test
   void testNonExistingContact() throws Exception {
+    String expectedReason = "Email address was not found in the system!"
+    String reason
+    HttpStatus status
     HttpRequest request = HttpRequest.GET("/locations/contacts/ian.banks@limitingfactor.com").basicAuth("servicewriter", "123456!")
-    String error = "";
     try {
       HttpResponse response = client.toBlocking().exchange(request)
-    } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+    } catch (HttpClientResponseException responseException) {
+      reason = responseException.getMessage()
+      status = responseException.getStatus()
     }
-    assertEquals(error, "Not Found")
+    assertEquals(status, HttpStatus.NOT_FOUND)
+    assertEquals(reason, expectedReason)
   }
 
   @Test
@@ -167,7 +189,7 @@ class LocationsControllerIntegrationTest {
     int zip = 0
     String country = "Chiark"
 
-    int personID = db.addPerson("Morat", first, last, email, "")
+    int personID = db.addPerson("Morat", first, last, email)
     int locationID = db.addLocationForPerson(affName, street, country, 0, personID)
 
     HttpRequest request = HttpRequest.GET("/locations/contacts/"+email).basicAuth("servicewriter", "123456!")

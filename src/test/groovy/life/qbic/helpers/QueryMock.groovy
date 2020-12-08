@@ -103,4 +103,24 @@ class QueryMock implements IQueryService {
     }
     return res;
   }
+
+  /**
+   * This mocked method provides some example locations for the given identifier
+   *
+   * @return an optional containing two example locations for a Dummy user with the provided identifier
+   * @InheritDoc
+   */
+  @Override  List<Location> getLocationsForPerson(String identifier) {
+    Date date = new java.sql.Date(new Date().getTime());
+    String responsiblePerson = "Dummy"
+
+    Address address1 = new Address(affiliation: "Gevantsa", country: "Chiark", street: "Hassease", zipCode: 0)
+    Address address2 = new Address(affiliation: "QBiC", country: "Germany", street: "Morgenstelle 10", zipCode: 72076)
+    Location location1 = new Location(name: "Test Location 1", responsiblePerson: responsiblePerson, responsibleEmail: identifier, address: address1, status: Status.WAITING, arrivalDate: date, forwardDate: date)
+
+    List<Location> locations = new ArrayList<>()
+    locations.add(location1)
+
+    return locations;
+  }
 }
