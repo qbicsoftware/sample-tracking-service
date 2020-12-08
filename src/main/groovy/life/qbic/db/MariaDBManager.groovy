@@ -1,9 +1,11 @@
 package life.qbic.db
 
+
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import life.qbic.datamodel.services.*
 import life.qbic.micronaututils.QBiCDataSource
 
@@ -36,14 +38,14 @@ class MariaDBManager implements IQueryService {
     try {
       sql.withTransaction {
         int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
-        if(personId == -1) {
-          String msg = "User with email "+location.getResponsibleEmail()+" was not found."
+        if (personId == -1) {
+          String msg = "User with email " + location.getResponsibleEmail() + " was not found."
           log.error(msg)
           throw new NotFoundException(msg)
         }
         int locationId = getLocationIdFromName(location.getName(), sql);
-        if(locationId == -1) {
-          String msg = "Location "+location.getName()+" was not found."
+        if (locationId == -1) {
+          String msg = "Location " + location.getName() + " was not found."
           log.error(msg)
           throw new NotFoundException(msg)
         }
@@ -53,10 +55,14 @@ class MariaDBManager implements IQueryService {
         addOrUpdateSample(sampleId, locationId, sql)
 
       }
+    } catch (SQLException sqlException) {
+      String msg = sqlException.getMessage()
+      log.warn "SQL exception: $msg. Rolling back previous changes and returning bad request."
+      response = HttpResponse.status(HttpStatus.BAD_REQUEST, msg)
     } catch (Exception ex) {
       String msg = ex.getMessage()
-      log.info msg+" Rolling back previous changes and returning bad request."
-      response = HttpResponse.badRequest(msg)
+      log.warn msg+" Rolling back previous changes and returning bad request."
+      response = HttpResponse.status(HttpStatus.BAD_REQUEST, msg)
     } finally {
       sql.close()
     }
@@ -70,14 +76,14 @@ class MariaDBManager implements IQueryService {
       sql.withTransaction {
         int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql);
 
-        if(personId == -1) {
-          String msg = "User with email "+location.getResponsibleEmail()+" was not found."
+        if (personId == -1) {
+          String msg = "User with email " + location.getResponsibleEmail() + " was not found."
           log.error(msg)
           throw new NotFoundException(msg)
         }
         int locationId = getLocationIdFromName(location.getName(), sql);
-        if(locationId == -1) {
-          String msg = "Location "+location.getName()+" was not found."
+        if (locationId == -1) {
+          String msg = "Location " + location.getName() + " was not found."
           log.error(msg)
           throw new NotFoundException(msg)
         }
@@ -131,22 +137,26 @@ class MariaDBManager implements IQueryService {
   List<Location> getLocationsForPerson(String identifier) {
     List<Location> locations = new ArrayList<>()
     this.sql = new Sql(dataSource)
+    Map userInformation
+
     try {
-        Map userInformation = getPersonById(identifier, sql)
-
-        // find locations for user
-        int userDbId = userInformation.get("id") as int
-        String query = "SELECT * FROM locations INNER JOIN persons_locations ON id = location_id INNER JOIN person ON person_id = person.id WHERE person_id = $userDbId;"
-
-        List<GroovyRowResult> rowResults = sql.rows(query)
-        rowResults.each { locations.add(parseLocationFromMap(it)) }
-        
-    } catch(NotFoundException notFoundException) {
-      
+      userInformation = getPersonById(identifier, sql)
+    } catch (NotFoundException notFoundException) {
       String msg = "Invalid user id"
-      throw new IllegalArgumentException(msg)
-    } catch(Exception e) {
+      throw new IllegalArgumentException(msg, notFoundException)
+    }
+    try {
+      // find locations for user
+      int userDbId = userInformation.get("id") as int
+      String query = "SELECT * FROM locations INNER JOIN persons_locations ON id = location_id INNER JOIN person ON person_id = person.id WHERE person_id = $userDbId;"
 
+      List<GroovyRowResult> rowResults = sql.rows(query)
+      rowResults.each { locations.add(parseLocationFromMap(it)) }
+
+    } catch (SQLException sqlException) {
+      String msg = "Retrieving locations for $identifier caused an SQLException"
+      log.error(msg, sqlException)
+    } catch (Exception e) {
       String msg = "Retrieving locations for $identifier failed unexpectedly."
       log.error(msg, e)
     } finally {
@@ -154,21 +164,21 @@ class MariaDBManager implements IQueryService {
     }
     return locations
   }
-  
+
   /**
    * Retrieves the person row from the database for the given identifier
    *
    * @param identifier the primary user identifier. NOT the db entry id
    * @return a map containing all columns as keys and the respective values
+   * @throws NotFoundException in case no user or multiple users could be found in the db
    */
-  private static Map<String, ?> getPersonById(String identifier, Sql sql) {
+  private static Map<String, ?> getPersonById(String identifier, Sql sql) throws NotFoundException {
     String query = "SELECT * FROM $PERSONS_TABLE WHERE user_id = '$identifier'"
-    log.error(query)
     List<GroovyRowResult> rowResults = sql.rows(query)
     if (rowResults.size() == 1) {
       return rowResults.first() as Map
     } else {
-      throw new NotFoundException("No user or multiple users with the same id.")
+      throw new NotFoundException("No user or multiple users with the id: '$identifier'.")
     }
   }
   
