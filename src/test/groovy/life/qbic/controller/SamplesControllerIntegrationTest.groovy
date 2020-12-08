@@ -82,8 +82,8 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals(status, HttpStatus.BAD_REQUEST)
-    assertEquals(reason, "Bad Request")
+    assertEquals(HttpStatus.BAD_REQUEST, status)
+    assertEquals("Bad Request", reason)
   }
 
   @Test
@@ -95,7 +95,7 @@ class SamplesControllerIntegrationTest {
     } catch (HttpClientResponseException e) {
       status = e.getStatus()
     }
-    assertEquals(status, HttpStatus.UNAUTHORIZED)
+    assertEquals(HttpStatus.UNAUTHORIZED, status)
   }
 
   @Test
@@ -127,9 +127,9 @@ class SamplesControllerIntegrationTest {
 
     Sample s = mapper.readValue(body, Sample.class);
     assertNotNull(s)
-    assertEquals(s.code,validCode1)
-    assertEquals(s.currentLocation,currentLocation)
-    assertEquals(s.pastLocations,pastLocations)
+    assertEquals(validCode1, s.code)
+    assertEquals(currentLocation, s.currentLocation)
+    assertEquals(pastLocations, s.pastLocations)
   }
 
   @Test void testReadSample() {
@@ -146,9 +146,9 @@ class SamplesControllerIntegrationTest {
       String body = client.toBlocking().retrieve(request)
       Sample s = mapper.readValue(body, Sample.class);
       assertNotNull(s)
-      assertEquals(s.code,"QTRAK005A9")
-      assertEquals(s.currentLocation,l1)
-      assertEquals(s.pastLocations,null)
+      assertEquals("QTRAK005A9", s.code)
+      assertEquals(l1, s.currentLocation)
+      assertEquals(null, s.pastLocations)
     }
   }
 
@@ -169,14 +169,14 @@ class SamplesControllerIntegrationTest {
     for(String code : codes) {
       HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l1).basicAuth("servicewriter", "123456!")
       HttpResponse response = client.toBlocking().exchange(request)
-      assertEquals(response.status.getCode(), 200)
+      assertEquals(200, response.status.getCode())
 
       Location testLocation = db.searchSample(code).currentLocation
-      assertEquals(l1.address,testLocation.address)
-      assertEquals(l1.name,testLocation.name)
-      assertEquals(l1.status,testLocation.status)
-      assertEquals(l1.responsiblePerson,testLocation.responsiblePerson)
-      assertEquals(l1.responsibleEmail,testLocation.responsibleEmail)
+      assertEquals(l1.address, testLocation.address)
+      assertEquals(l1.name, testLocation.name)
+      assertEquals(l1.status, testLocation.status)
+      assertEquals(l1.responsiblePerson, testLocation.responsiblePerson)
+      assertEquals(l1.responsibleEmail, testLocation.responsibleEmail)
     }
 
     for(String code : codes) {
@@ -184,26 +184,26 @@ class SamplesControllerIntegrationTest {
       String body = client.toBlocking().retrieve(request)
       Sample s = mapper.readValue(body, Sample.class);
       assertNotNull(s)
-      assertEquals(s.code,code)
-      assertEquals(l1.address,s.currentLocation.address)
-      assertEquals(l1.name,s.currentLocation.name)
-      assertEquals(l1.status,s.currentLocation.status)
-      assertEquals(l1.responsiblePerson,s.currentLocation.responsiblePerson)
-      assertEquals(l1.responsibleEmail,s.currentLocation.responsibleEmail)
-      assertEquals(s.pastLocations,null)
+      assertEquals(code, s.code)
+      assertEquals(l1.address, s.currentLocation.address)
+      assertEquals(l1.name, s.currentLocation.name)
+      assertEquals(l1.status, s.currentLocation.status)
+      assertEquals(l1.responsiblePerson, s.currentLocation.responsiblePerson)
+      assertEquals(l1.responsibleEmail, s.currentLocation.responsibleEmail)
+      assertEquals(null, s.pastLocations)
     }
 
     for(String code : codes) {
       HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l2).basicAuth("servicewriter", "123456!")
       HttpResponse response = client.toBlocking().exchange(request)
-      assertEquals(response.status.getCode(), 200)
+      assertEquals(200, response.status.getCode())
 
       Location testLocation = db.searchSample(code).currentLocation
-      assertEquals(l2.address,testLocation.address)
-      assertEquals(l2.name,testLocation.name)
-      assertEquals(l2.status,testLocation.status)
-      assertEquals(l2.responsiblePerson,testLocation.responsiblePerson)
-      assertEquals(l2.responsibleEmail,testLocation.responsibleEmail)
+      assertEquals(l2.address, testLocation.address)
+      assertEquals(l2.name, testLocation.name)
+      assertEquals(l2.status, testLocation.status)
+      assertEquals(l2.responsiblePerson, testLocation.responsiblePerson)
+      assertEquals(l2.responsibleEmail, testLocation.responsibleEmail)
     }
 
     for(String code : codes) {
@@ -211,13 +211,13 @@ class SamplesControllerIntegrationTest {
       String body = client.toBlocking().retrieve(request)
       Sample s = mapper.readValue(body, Sample.class);
       assertNotNull(s)
-      assertEquals(s.code,code)
+      assertEquals(code, s.code)
       assertEquals(l2.address,s.currentLocation.address)
       assertEquals(l2.name,s.currentLocation.name)
       assertEquals(l2.status,s.currentLocation.status)
       assertEquals(l2.responsiblePerson,s.currentLocation.responsiblePerson)
       assertEquals(l2.responsibleEmail,s.currentLocation.responsibleEmail)
-      assertEquals(s.pastLocations.size(),1)
+      assertEquals(1, s.pastLocations.size())
     }
   }
 
@@ -232,8 +232,8 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals(reason, "Not Found")
-    assertEquals(status, HttpStatus.NOT_FOUND)
+    assertEquals("Not Found", reason)
+    assertEquals(HttpStatus.NOT_FOUND, status)
   }
 
 
@@ -249,8 +249,8 @@ class SamplesControllerIntegrationTest {
     reason = e.getMessage()
     status = e.getStatus()
     }
-    assertEquals(reason, "Bad Request")
-    assertEquals(status, HttpStatus.BAD_REQUEST)
+    assertEquals("Bad Request", reason)
+    assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
   @Test
@@ -266,23 +266,23 @@ class SamplesControllerIntegrationTest {
 
     HttpRequest request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/WAITING","").basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
-    assertEquals(body, "Sample status updated.")
+    assertEquals("Sample status updated.", body)
 
     request = HttpRequest.GET("/samples/"+validCode2).basicAuth("servicewriter", "123456!")
     body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
     json = json.get("current_location")
-    assertEquals(json.get("sample_status"), Status.WAITING.toString());
+    assertEquals(Status.WAITING.toString(), json.get("sample_status"));
 
     request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/PROCESSED","").basicAuth("servicewriter", "123456!")
     body = client.toBlocking().retrieve(request)
-    assertEquals(body, "Sample status updated.")
+    assertEquals("Sample status updated.", body)
 
     request = HttpRequest.GET("/samples/"+validCode2).basicAuth("servicewriter", "123456!")
     body = client.toBlocking().retrieve(request)
     json = new JSONObject(body);
     json = json.get("current_location")
-    assertEquals(json.get("sample_status"), Status.PROCESSED.toString());
+    assertEquals(Status.PROCESSED.toString(), json.get("sample_status"));
   }
 
   @Test
@@ -318,8 +318,8 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals(reason, "Not Found")
-    assertEquals(status, HttpStatus.NOT_FOUND)
+    assertEquals("Not Found", reason)
+    assertEquals(HttpStatus.NOT_FOUND, status)
   }
 
   @Test
@@ -338,8 +338,8 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals(reason, "Bad Request")
-    assertEquals(status, HttpStatus.BAD_REQUEST)
+    assertEquals("Bad Request", reason)
+    assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
 
@@ -368,9 +368,9 @@ class SamplesControllerIntegrationTest {
 
     HttpRequest request = HttpRequest.POST("/samples/"+validCode4+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
-    assertEquals(response.status.getCode(), 200)
+    assertEquals(200, response.status.getCode())
     Location testLocation = db.searchSample(validCode4).currentLocation
-    assertEquals(location,testLocation)
+    assertEquals(location, testLocation)
   }
 
   @Test
@@ -386,10 +386,10 @@ class SamplesControllerIntegrationTest {
 
     HttpRequest request = HttpRequest.POST("/samples/"+missingValidCode2+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
-    assertEquals(response.status.getCode(), 200)
+    assertEquals(200, response.status.getCode())
 
     Location testLocation = db.searchSample(missingValidCode2).currentLocation
-    assertEquals(location,testLocation)
+    assertEquals(location, testLocation)
   }
 
   @Test
@@ -402,20 +402,20 @@ class SamplesControllerIntegrationTest {
     db.addSampleWithHistory(validCode5, location, currentPerson, new ArrayList<>(), new ArrayList<>())
     HttpRequest request = HttpRequest.PUT("/samples/"+validCode5+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
-    assertEquals(response.status.getCode(), 200)
+    assertEquals(200, response.status.getCode())
 
     Location testLocation = db.searchSample(validCode5).currentLocation
 
-    assertEquals(location,testLocation)
+    assertEquals(location, testLocation)
 
     d = new java.sql.Date(new Date().getTime());
     location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.PROCESSED, arrivalDate: d, forwardDate: d);
     request = HttpRequest.PUT("/samples/"+validCode5+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     response = client.toBlocking().exchange(request)
-    assertEquals(response.status.getCode(), 200)
+    assertEquals(200, response.status.getCode(), )
 
     testLocation = db.searchSample(validCode5).currentLocation
-    assertEquals(location,testLocation)
+    assertEquals(location, testLocation)
   }
 
   @Test
@@ -433,7 +433,7 @@ class SamplesControllerIntegrationTest {
     } catch (HttpClientResponseException e) {          
       status = e.getStatus()
     }
-    assertEquals(status, HttpStatus.BAD_REQUEST)
+    assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
   @Test
@@ -451,7 +451,7 @@ class SamplesControllerIntegrationTest {
     } catch (HttpClientResponseException e) {          
       status = e.getStatus()
     }
-    assertEquals(status, HttpStatus.BAD_REQUEST)
+    assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
   @Test
@@ -469,7 +469,7 @@ class SamplesControllerIntegrationTest {
     } catch (HttpClientResponseException e) {
       status = e.getStatus()
     }
-    assertEquals(status, HttpStatus.BAD_REQUEST)
+    assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
   @Test
@@ -487,6 +487,6 @@ class SamplesControllerIntegrationTest {
     } catch (HttpClientResponseException e) {
       status = e.getStatus()
     }
-    assertEquals(status, HttpStatus.BAD_REQUEST)
+    assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 }
