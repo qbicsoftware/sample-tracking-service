@@ -1,41 +1,20 @@
 package life.qbic.controller
 
 import io.micronaut.context.ApplicationContext
-import io.micronaut.context.BeanContext
-import io.micronaut.context.annotation.Parameter
-import io.micronaut.context.annotation.Property
-import io.micronaut.context.annotation.Requires
 import io.micronaut.context.env.Environment
-import io.micronaut.context.env.PropertySource
-import io.micronaut.core.util.CollectionUtils
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
-import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Post
-import io.micronaut.http.annotation.Put
 import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.RxHttpClient
-import io.micronaut.http.client.annotation.Client
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
-import io.micronaut.test.annotation.MicronautTest
-import life.qbic.db.MariaDBManager
 import life.qbic.helpers.DBTester
-
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.ResultSet
-import java.sql.Statement
-import javax.inject.Inject
-
 import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.AfterClass
-import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
 
@@ -92,10 +71,10 @@ class LocationsControllerIntegrationTest {
     HttpRequest request = HttpRequest.GET("/locations/"+user_id).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
-    assertEquals(arr.size(), 1)
+    assertEquals(1, arr.size())
     JSONObject json = arr.getJSONObject(0)
 
-    assertEquals(json.get("name"),affName)
+    assertEquals(affName, json.get("name"))
 
     db.removeLocationAndPerson(personID, locationID)
   }
@@ -123,7 +102,7 @@ class LocationsControllerIntegrationTest {
     HttpRequest request = HttpRequest.GET("/locations/"+user_id).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
-    assertEquals(arr.size(), 0)
+    assertEquals(0, arr.size())
     
     db.removePerson(personID)
   }
@@ -144,7 +123,7 @@ class LocationsControllerIntegrationTest {
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
     println arr
-    assertEquals(arr.size(), 3)
+    assertEquals(3, arr.size())
     for(int i = 0; i<arr.size();i++) {
       JSONObject json = arr.getJSONObject(i)
       assert(locNames.contains(json.get("name")))
@@ -175,8 +154,8 @@ class LocationsControllerIntegrationTest {
       reason = responseException.getMessage()
       status = responseException.getStatus()
     }
-    assertEquals(status, HttpStatus.NOT_FOUND)
-    assertEquals(reason, expectedReason)
+    assertEquals(HttpStatus.NOT_FOUND, status)
+    assertEquals(expectedReason, reason)
   }
 
   @Test
@@ -192,17 +171,17 @@ class LocationsControllerIntegrationTest {
     int personID = db.addPerson("Morat", first, last, email)
     int locationID = db.addLocationForPerson(affName, street, country, 0, personID)
 
-    HttpRequest request = HttpRequest.GET("/locations/contacts/"+email).basicAuth("servicewriter", "123456!")
+    HttpRequest request = HttpRequest.GET("/locations/contacts/" + email).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
     assertNotNull(body)
-    assertEquals(json.get("full_name"),first+" "+last)
-    assertEquals(json.get("email"),email)
-    JSONObject address = json.get("address")
-    assertEquals(address.get("affiliation"),affName)
-    assertEquals(address.get("street"),street)
-    assertEquals(address.get("zip_code"),zip)
-    assertEquals(address.get("country"),country)
+    assertEquals(first + " " + last, json.get("full_name"))
+    assertEquals(email, json.get("email"))
+    JSONObject address = json.get("address") as JSONObject
+    assertEquals(affName, address.get("affiliation"))
+    assertEquals(street, address.get("street"))
+    assertEquals(zip, address.get("zip_code"))
+    assertEquals(country, address.get("country"))
 
     db.removeLocationAndPerson(personID, locationID)
   }
@@ -210,12 +189,15 @@ class LocationsControllerIntegrationTest {
   @Test
   void testMalformedContact() throws Exception {
     HttpRequest request = HttpRequest.GET("/locations/contacts/justreadtheinstructions").basicAuth("servicewriter", "123456!")
-    String error = ""
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      reason = e.getMessage()
+      status = e.getStatus()
     }
-    assertEquals(error, "Bad Request")
+    assertEquals("Bad Request", reason)
+    assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 }
