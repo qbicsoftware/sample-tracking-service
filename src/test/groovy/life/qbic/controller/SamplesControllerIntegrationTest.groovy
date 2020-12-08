@@ -4,6 +4,7 @@ import io.micronaut.context.ApplicationContext
 import io.micronaut.context.env.Environment
 
 import io.micronaut.http.HttpRequest
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
@@ -73,25 +74,28 @@ class SamplesControllerIntegrationTest {
   @Test
   void testMalformedSample() throws Exception {
     HttpRequest request = HttpRequest.GET("/samples/wrong").basicAuth("servicewriter", "123456!")
-    String error = "";
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {
-      error = e.getMessage();
+      reason = e.getMessage()
+      status = e.getStatus()
     }
-    assertEquals(error, "Bad Request")
+    assertEquals(status, HttpStatus.BAD_REQUEST)
+    assertEquals(reason, "Bad Request")
   }
 
   @Test
   void testAuthenticationRequired() throws Exception {
     HttpRequest request = HttpRequest.GET("/samples/" + validCode1)
-    def statusCode
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {
-      statusCode = e.getStatus().code
+      status = e.getStatus()
     }
-    assertEquals(401, statusCode)
+    assertEquals(status, HttpStatus.UNAUTHORIZED)
   }
 
   @Test
@@ -126,12 +130,6 @@ class SamplesControllerIntegrationTest {
     assertEquals(s.code,validCode1)
     assertEquals(s.currentLocation,currentLocation)
     assertEquals(s.pastLocations,pastLocations)
-    //    JSONObject json = new JSONObject(body);
-    //
-    //    assertNotNull(body)
-    //    assertEquals(json.get("code"),validCode1)
-    //    assertEquals(json.get("current_location"),currentLocation)
-    //    assertEquals(json.get("past_locations"),pastLocations)
   }
 
   @Test void testReadSample() {
@@ -226,26 +224,33 @@ class SamplesControllerIntegrationTest {
   @Test
   void testMissingSample() throws Exception {
     HttpRequest request = HttpRequest.GET("/samples/"+missingValidCode).basicAuth("servicewriter", "123456!")
-    String error = "";
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      reason = e.getMessage()
+      status = e.getStatus()
     }
-    assertEquals(error, "Not Found")
+    assertEquals(reason, "Not Found")
+    assertEquals(status, HttpStatus.NOT_FOUND)
   }
 
 
   @Test
   void testStatusMalformedSample() throws Exception {
     HttpRequest request = HttpRequest.PUT("/samples/wrong/currentLocation/WAITING","").basicAuth("servicewriter", "123456!")
-    String error = ""
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+          
+    reason = e.getMessage()
+    status = e.getStatus()
     }
-    assertEquals(error, "Bad Request")
+    assertEquals(reason, "Bad Request")
+    assertEquals(status, HttpStatus.BAD_REQUEST)
   }
 
   @Test
@@ -305,13 +310,16 @@ class SamplesControllerIntegrationTest {
   void testStatusNoSample() throws Exception {
     String code = "QNONE001AC"
     HttpRequest request = HttpRequest.PUT("/samples/"+code+"/currentLocation/WAITING","").basicAuth("servicewriter", "123456!")
-    String error = ""
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      reason = e.getMessage()
+      status = e.getStatus()
     }
-    assertEquals(error, "Not Found")
+    assertEquals(reason, "Not Found")
+    assertEquals(status, HttpStatus.NOT_FOUND)
   }
 
   @Test
@@ -322,13 +330,16 @@ class SamplesControllerIntegrationTest {
     Location location = new Location(name: "locname", responsiblePerson: "some person", responsibleEmail: "some@person.de", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
 
     HttpRequest request = HttpRequest.POST("/samples/"+malformedCode+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
-    String error = ""
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      reason = e.getMessage()
+      status = e.getStatus()
     }
-    assertEquals(error, "Bad Request")
+    assertEquals(reason, "Bad Request")
+    assertEquals(status, HttpStatus.BAD_REQUEST)
   }
 
 
@@ -415,13 +426,14 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 2", zipCode: 213)
     Location location = new Location(name: "unknown", responsiblePerson: "some person", responsibleEmail: existingPersonMail, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     HttpRequest request = HttpRequest.POST("/samples/"+validCode6+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
-    int stat = -1
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
-    } catch (HttpClientResponseException e) {
-      stat =  e.getResponse().getStatus().code
+    } catch (HttpClientResponseException e) {          
+      status = e.getStatus()
     }
-    assertEquals(stat, 400)
+    assertEquals(status, HttpStatus.BAD_REQUEST)
   }
 
   @Test
@@ -432,13 +444,14 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 3", zipCode: 213)
     Location location = new Location(name: "unknown", responsiblePerson: "some person", responsibleEmail: existingPersonMail, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     HttpRequest request = HttpRequest.PUT("/samples/"+validCode6+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
-    int stat = -1
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
-    } catch (HttpClientResponseException e) {
-      stat =  e.getResponse().getStatus().code
+    } catch (HttpClientResponseException e) {          
+      status = e.getStatus()
     }
-    assertEquals(stat, 400)
+    assertEquals(status, HttpStatus.BAD_REQUEST)
   }
 
   @Test
@@ -449,13 +462,14 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 4", zipCode: 213)
     Location location = new Location(name: existingLocation, responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     HttpRequest request = HttpRequest.POST("/samples/"+validCode6+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
-    int stat = -1
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {
-      stat =  e.getResponse().getStatus().code
+      status = e.getStatus()
     }
-    assertEquals(stat, 400)
+    assertEquals(status, HttpStatus.BAD_REQUEST)
   }
 
   @Test
@@ -466,13 +480,13 @@ class SamplesControllerIntegrationTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet 5", zipCode: 213)
     Location location = new Location(name: existingLocation, responsiblePerson: "some person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     HttpRequest request = HttpRequest.PUT("/samples/"+validCode6+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
-    int stat = -1
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
-      println response.getStatus()
     } catch (HttpClientResponseException e) {
-      stat =  e.getResponse().getStatus().code
+      status = e.getStatus()
     }
-    assertEquals(stat, 400)
+    assertEquals(status, HttpStatus.BAD_REQUEST)
   }
 }

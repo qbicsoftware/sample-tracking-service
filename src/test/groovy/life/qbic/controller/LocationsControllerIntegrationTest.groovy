@@ -219,6 +219,6 @@ class LocationsControllerIntegrationTest {
       status = e.getStatus()
     }
     assertEquals(reason, "Bad Request")
-    assertEquals(status, HttpStatus.NOT_FOUND)
+    assertEquals(status, HttpStatus.BAD_REQUEST)
   }
 }
