@@ -210,12 +210,15 @@ class LocationsControllerIntegrationTest {
   @Test
   void testMalformedContact() throws Exception {
     HttpRequest request = HttpRequest.GET("/locations/contacts/justreadtheinstructions").basicAuth("servicewriter", "123456!")
-    String error = ""
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      reason = e.getMessage()
+      status = e.getStatus()
     }
-    assertEquals(error, "Bad Request")
+    assertEquals(reason, "Bad Request")
+    assertEquals(status, HttpStatus.NOT_FOUND)
   }
 }
