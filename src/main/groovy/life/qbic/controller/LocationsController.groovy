@@ -52,7 +52,7 @@ class LocationsController {
                         schema = @Schema(implementation = Contact.class)))
   @ApiResponse(responseCode = "400", description = "Invalid e-mail address")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Contact not found")
+  @ApiResponse(responseCode = "404", description = "Contact for the provided e-mail address not found")
   //@Deprecated(since=1.1.0, forRemoval=false) // works for Java11
   @Deprecated
   HttpResponse<Contact> contacts(@PathVariable('email') String email){
@@ -74,16 +74,16 @@ class LocationsController {
   }
 
   @Get(uri = "/{user_id}", produces = MediaType.APPLICATION_JSON)
-  @Operation(summary = "Provides the locations information linked to a username",
-          description = "Provides detailed locations information that is linked to a username",
-          tags = "Contact")
-  @ApiResponse(responseCode = "200", description = "Current locations associated with the username",
+  @RolesAllowed(["READER"])
+  @Operation(summary = "Provides the locations information linked to a user identifier",
+          description = "Provides detailed locations information that is linked to a user",
+          tags = "Location")
+  @ApiResponse(responseCode = "200", description = "Location information associated with the user identifier is provided",
           content = @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = Location.class)))
-  @ApiResponse(responseCode = "400", description = "Bad Request")
-  @ApiResponse(responseCode = "500", description = "Unexpected error during execution")
-  @RolesAllowed(["READER"])
+                  array = @ArraySchema(schema = @Schema(implementation = Location.class))))
+  @ApiResponse(responseCode = "400", description = "Bad Request. The provided user identification is not valid.")
+  @ApiResponse(responseCode = "401", description = "Unauthorized access")
   HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId) {
     HttpResponse<List<Location>> response
     List<Location> searchResult
@@ -96,7 +96,6 @@ class LocationsController {
       response = HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, ignored.getMessage())
     }
     return response
-    
   }
 
   @Get(uri = "/", produces = MediaType.APPLICATION_JSON)
