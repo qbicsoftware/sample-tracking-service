@@ -114,7 +114,10 @@ class SamplesController {
     boolean found = sampleService.searchSample(sampleId)!=null;
     if(found) {
       sampleService.updateSampleStatus(sampleId, status);
-      return HttpResponse.status(HttpStatus.CREATED, "Sample status updated.")
+      String msg = "Sample status updated."
+      HttpResponse response = HttpResponse.status(HttpStatus.CREATED, msg)
+      response.body(msg)
+      return response
     } else {
       return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample was not found in the system!")
     }

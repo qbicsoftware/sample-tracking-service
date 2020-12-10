@@ -197,7 +197,7 @@ class LocationsControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Bad Request", reason)
+    assertEquals("Not a valid email address!", reason)
     assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 }

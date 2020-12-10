@@ -1,25 +1,23 @@
 package life.qbic.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.env.Environment
-
 import io.micronaut.http.HttpRequest
-import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import life.qbic.datamodel.services.*
 import life.qbic.helpers.DBTester
-
 import org.json.JSONObject
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
-
-import com.fasterxml.jackson.databind.ObjectMapper
 
 class SamplesControllerIntegrationTest {
 
@@ -83,7 +81,7 @@ class SamplesControllerIntegrationTest {
       status = e.getStatus()
     }
     assertEquals(HttpStatus.BAD_REQUEST, status)
-    assertEquals("Bad Request", reason)
+    assertEquals("Not a valid sample code!", reason)
   }
 
   @Test
@@ -232,7 +230,7 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Not Found", reason)
+    assertEquals("Sample was not found in the system!", reason)
     assertEquals(HttpStatus.NOT_FOUND, status)
   }
 
@@ -249,7 +247,7 @@ class SamplesControllerIntegrationTest {
     reason = e.getMessage()
     status = e.getStatus()
     }
-    assertEquals("Bad Request", reason)
+    assertEquals("Not a valid sample code!", reason)
     assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
@@ -318,7 +316,7 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Not Found", reason)
+    assertEquals("Sample was not found in the system!", reason)
     assertEquals(HttpStatus.NOT_FOUND, status)
   }
 
@@ -338,7 +336,7 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Bad Request", reason)
+    assertEquals("Not a valid sample code!", reason)
     assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
