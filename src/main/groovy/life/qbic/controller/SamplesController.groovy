@@ -1,26 +1,25 @@
 package life.qbic.controller
 
-import io.micronaut.context.annotation.Parameter
+
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Controller
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.PathVariable
-import io.micronaut.http.annotation.Post
-import io.micronaut.http.annotation.Put
+import io.micronaut.http.annotation.*
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import life.qbic.datamodel.services.Location
+import life.qbic.datamodel.services.Sample
+import life.qbic.datamodel.services.Status
 import life.qbic.micronaututils.auth.Authentication
+import life.qbic.service.ISampleService
 
 import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
-import life.qbic.datamodel.services.*
-import life.qbic.service.ISampleService
 
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)
@@ -72,6 +71,7 @@ class SamplesController {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.badRequest("Not a valid sample code!");
     } else {
+      //fixme the HttpResponse should be generated here and not somewhere in the code!
       return sampleService.addNewLocation(sampleId, location)
     }
   }
@@ -95,6 +95,7 @@ class SamplesController {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.badRequest("Not a valid sample code!");
     } else {
+      //fixme the HttpResponse should be generated here and not somewhere in the code!
       return sampleService.updateLocation(sampleId, location)
     }
   }
@@ -107,6 +108,7 @@ class SamplesController {
   @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Sample not found")
+  @ApiResponse(responseCode = "500", description = "Update of sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
   HttpResponse sampleStatus(@PathVariable('sampleId') String sampleId, @PathVariable('status') Status status) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
@@ -114,8 +116,12 @@ class SamplesController {
     }
     boolean found = sampleService.searchSample(sampleId)!=null;
     if(found) {
-      sampleService.updateSampleStatus(sampleId, status);
-      return HttpResponse.created("Sample status updated.");
+      boolean successful = sampleService.updateSampleStatus(sampleId, status)
+      if (successful) {
+        return HttpResponse.created("Sample status updated.")
+      } else {
+        return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, "Sample status could not be updated.")
+      }
     } else {
       return HttpResponse.notFound("Sample was not found in the system!");
     }
