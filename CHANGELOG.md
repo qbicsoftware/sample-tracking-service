@@ -4,6 +4,9 @@
 - Add missing JavaDoc (Issue #15)
 - the `/{email}` endpoint now searches by the newly introduced `user_id` instead.
     This is no change in the behaviour as of now since they are identical as of now.
+- HttpResponses now contain the error messages in the status reason 
+    instead of the response body  
+
 ## Release 1.0.4
 
 - Append new location to history even if old location is the same as
