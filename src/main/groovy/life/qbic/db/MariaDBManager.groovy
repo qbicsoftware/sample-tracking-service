@@ -55,7 +55,7 @@ class MariaDBManager implements IQueryService {
 
       }
     } catch (Exception ex) {
-      throw ex
+      throw new Exception(ex.message+" Rolling back previous changes.")
     } finally {
       sql.close()
     }
@@ -83,9 +83,11 @@ class MariaDBManager implements IQueryService {
         addOrUpdateSample(sampleId, locationId, sql)
 
       }
-    } catch (Exception ex) {
-      throw ex
-    } finally {
+    }
+    catch(Exception ex){
+      throw new Exception(ex.message+" Rolling back previous changes.")
+    }
+    finally {
       sql.close()
     }
   }

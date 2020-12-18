@@ -75,8 +75,9 @@ class SamplesController {
     try{
       sampleService.addNewLocation(sampleId, location)
       return HttpResponse.ok(location)
-    } catch(Exception e) {
-        return HttpResponse.status(HttpStatus.BAD_REQUEST, "Could not add Sample to Location in the system!")
+    }
+    catch(Exception e) {
+        return HttpResponse.status(HttpStatus.BAD_REQUEST, e.message) //todo find status dynamically??
     }
   }
 
@@ -104,7 +105,7 @@ class SamplesController {
       return HttpResponse.ok(location)
     }
     catch(Exception e){
-      return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample and Location were not found in the system!")
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, e.message) //todo find response dynamically
     }
   }
 
