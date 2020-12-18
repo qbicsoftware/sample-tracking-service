@@ -1,7 +1,8 @@
-package life.qbic.service;
+package life.qbic.service
+
+import life.qbic.db.NotFoundException;
 
 import javax.inject.Singleton
-import io.micronaut.http.HttpResponse
 import life.qbic.datamodel.services.*
 
 /**
@@ -18,7 +19,7 @@ interface ISampleService {
    * @return HttpResponse signifying the success status of the performed action
    * @since 1.0.0
    */
-  HttpResponse addNewLocation(String sampleId, Location location)
+  Location addNewLocation(String sampleId, Location location) throws NotFoundException
 
   /**
    * Updates or adds a new location for a provided sample code, signifying an update to sample status or the
@@ -29,7 +30,7 @@ interface ISampleService {
    * @return HttpResponse signifying the success status of the performed action
    * @since 1.0.0
    */
-  HttpResponse updateLocation(String sampleId, Location location)
+  Location updateLocation(String sampleId, Location location) throws NotFoundException
 
   /**
    * Returns sample location, status and history information given a sample identifier
@@ -46,5 +47,5 @@ interface ISampleService {
    * @return boolean denoting if the update was successful
    * @since 1.0.0
    */
-  boolean updateSampleStatus(String sampleId, Status status)
+   void updateSampleStatus(String sampleId, Status status) throws NotFoundException
 }
