@@ -32,9 +32,8 @@ class MariaDBManager implements IQueryService {
     this.dataSource = dataSource.getSource()
   }
 
-  HttpResponse<Location> addNewLocation(String sampleId, Location location) {
+  void addNewLocation(String sampleId, Location location) {
     this.sql = new Sql(dataSource)
-    HttpResponse response = HttpResponse.ok(location);
     try {
       sql.withTransaction {
         int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
@@ -55,36 +54,26 @@ class MariaDBManager implements IQueryService {
         addOrUpdateSample(sampleId, locationId, sql)
 
       }
-    } catch (SQLException sqlException) {
-      String msg = sqlException.getMessage()
-      log.warn "SQL exception: $msg. Rolling back previous changes and returning bad request."
-      response = HttpResponse.status(HttpStatus.BAD_REQUEST, msg)
     } catch (Exception ex) {
-      String msg = ex.getMessage()
-      log.warn msg+" Rolling back previous changes and returning bad request."
-      response = HttpResponse.status(HttpStatus.BAD_REQUEST, msg)
+      throw ex
     } finally {
       sql.close()
     }
-    return response
   }
 
-  HttpResponse<Location> updateLocation(String sampleId, Location location) {
-    HttpResponse response = HttpResponse.ok(location);
+  void updateLocation(String sampleId, Location location) {
     this.sql = new Sql(dataSource)
     try {
       sql.withTransaction {
-        int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql);
+        int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
 
         if (personId == -1) {
           String msg = "User with email " + location.getResponsibleEmail() + " was not found."
-          log.error(msg)
           throw new NotFoundException(msg)
         }
-        int locationId = getLocationIdFromName(location.getName(), sql);
+        int locationId = getLocationIdFromName(location.getName(), sql)
         if (locationId == -1) {
-          String msg = "Location " + location.getName() + " was not found."
-          log.error(msg)
+           String msg = "Location " + location.getName() + " was not found."
           throw new NotFoundException(msg)
         }
         // Always set new location as current
@@ -95,13 +84,10 @@ class MariaDBManager implements IQueryService {
 
       }
     } catch (Exception ex) {
-      String msg = ex.getMessage()
-      log.info msg+" Rolling back previous changes and returning bad request."
-      response = HttpResponse.badRequest(msg)
+      throw ex
     } finally {
       sql.close()
     }
-    return response
   }
 
   @Override
@@ -448,9 +434,7 @@ class MariaDBManager implements IQueryService {
     return res
   }
 
-  boolean updateSampleStatus(String sampleId, Status status) {
-    //    logger.info("Looking for user with email " + email + " in the DB");
-    boolean res = false;
+  void updateSampleStatus(String sampleId, Status status) {
     this.sql = new Sql(dataSource)
 
     final String query = "SELECT * from samples WHERE UPPER(id) = UPPER('${sampleId}');"
@@ -459,20 +443,13 @@ class MariaDBManager implements IQueryService {
       if( results.size() > 0 ) {
         GroovyRowResult rs = results.get(0)
         int locationID = rs.get("current_location_ID")
-        //        String oldStatus = getStatus(sampleID, locationID);
-        //        int currIndex = stati.indexOf(oldStatus);
-        //        if(currIndex+1 < stati.size()) {
         setStatus(sampleId, locationID, status, sql)
-        res = true;
-        //        }
       }
-    } catch (SQLException e) {
-      //      logger.error("SQL operation unsuccessful: " + e.getMessage());
-      e.printStackTrace();
+    } catch (Exception e) {
+      throw e
     } finally {
       sql.close()
     }
-    return res
   }
 
   private void setStatus(String sampleID, int locationID, Status status, Sql sql) {

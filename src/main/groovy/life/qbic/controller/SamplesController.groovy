@@ -71,13 +71,12 @@ class SamplesController {
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
-    } else {
-      Location loc = sampleService.addNewLocation(sampleId, location)
-      if(loc!=null) {
-        return HttpResponse.ok(loc)
-      } else {
+    }
+    try{
+      sampleService.addNewLocation(sampleId, location)
+      return HttpResponse.ok(location)
+    } catch(Exception e) {
         return HttpResponse.status(HttpStatus.BAD_REQUEST, "Could not add Sample to Location in the system!")
-      }
     }
   }
 
@@ -99,13 +98,13 @@ class SamplesController {
   HttpResponse<Location> updateLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
-    } else {
-      Location loc = sampleService.updateLocation(sampleId, location)
-      if(loc!=null) {
-        return HttpResponse.ok(loc)
-      } else {
-        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample and Location were not found in the system!")
-      }
+    }
+    try {
+      sampleService.updateLocation(sampleId, location)
+      return HttpResponse.ok(location)
+    }
+    catch(Exception e){
+      return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample and Location were not found in the system!")
     }
   }
 
@@ -127,7 +126,7 @@ class SamplesController {
       sampleService.updateSampleStatus(sampleId, status)
       return HttpResponse.status(HttpStatus.CREATED, "Sample status updated.")
     }
-    catch(NotFoundException notFoundException) {
+    catch(Exception e) {
       return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample was not found in the system!")
     }
   }
