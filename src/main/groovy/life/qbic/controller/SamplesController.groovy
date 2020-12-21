@@ -74,7 +74,7 @@ class SamplesController {
     }
     try{
       sampleService.addNewLocation(sampleId, location)
-      return HttpResponse.ok(location)
+      return HttpResponse.created(location)
     }
     catch(Exception e) {
         return HttpResponse.status(HttpStatus.BAD_REQUEST, e.message) //todo find status dynamically??
@@ -122,12 +122,11 @@ class SamplesController {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
     }
-    try{
-      sampleService.searchSample(sampleId)
+    if(null != sampleService.searchSample(sampleId)){
       sampleService.updateSampleStatus(sampleId, status)
       return HttpResponse.status(HttpStatus.CREATED, "Sample status updated.")
     }
-    catch(Exception e) {
+    else {
       return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample was not found in the system!")
     }
   }
