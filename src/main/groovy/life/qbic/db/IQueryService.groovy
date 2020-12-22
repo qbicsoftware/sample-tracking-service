@@ -56,7 +56,7 @@ interface IQueryService {
    * @return HttpResponse signifying the success status of the performed action
    * @since 1.0.0
    */
-  HttpResponse addNewLocation(String sampleId, Location location)
+  void addNewLocation(String sampleId, Location location)
 
   /**
    * Updates or adds a new location for a provided sample code to the database, signifying an update to sample status or the
@@ -67,7 +67,7 @@ interface IQueryService {
    * @return HttpResponse signifying the success status of the performed action
    * @since 1.0.0
    */
-  HttpResponse updateLocation(String sampleId, Location location)
+  void updateLocation(String sampleId, Location location)
 
   /**
    * Returns sample location, status and history information given a sample identifier
@@ -84,5 +84,5 @@ interface IQueryService {
    * @return boolean denoting if the update was successful
    * @since 1.0.0
    */
-  boolean updateSampleStatus(String sampleId, Status status)
+  void updateSampleStatus(String sampleId, Status status) throws NotFoundException
 }

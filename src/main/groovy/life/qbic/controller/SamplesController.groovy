@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import life.qbic.datamodel.services.Location
 import life.qbic.datamodel.services.Sample
 import life.qbic.datamodel.services.Status
+import life.qbic.db.NotFoundException
 import life.qbic.micronaututils.auth.Authentication
 import life.qbic.service.ISampleService
 
@@ -49,9 +50,9 @@ class SamplesController {
     if(!RegExValidator.isValidSampleCode(code)) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
     } else {
-      Sample s = sampleService.searchSample(code);
+      Sample s = sampleService.searchSample(code)
       if(s!=null) {
-        return HttpResponse.ok(s);
+        return HttpResponse.ok(s)
       } else {
         return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample was not found in the system!")
       }
@@ -70,8 +71,13 @@ class SamplesController {
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
-    } else {
-      return sampleService.addNewLocation(sampleId, location)
+    }
+    try{
+      sampleService.addNewLocation(sampleId, location)
+      return HttpResponse.created(location)
+    }
+    catch(Exception e) {
+        return HttpResponse.status(HttpStatus.BAD_REQUEST, e.message) //todo find status dynamically??
     }
   }
 
@@ -93,8 +99,13 @@ class SamplesController {
   HttpResponse<Location> updateLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
-    } else {
-      return sampleService.updateLocation(sampleId, location)
+    }
+    try {
+      sampleService.updateLocation(sampleId, location)
+      return HttpResponse.ok(location)
+    }
+    catch(Exception e){
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, e.message) //todo find response dynamically
     }
   }
 
@@ -111,14 +122,11 @@ class SamplesController {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
     }
-    boolean found = sampleService.searchSample(sampleId)!=null;
-    if(found) {
-      sampleService.updateSampleStatus(sampleId, status);
-      String msg = "Sample status updated."
-      HttpResponse response = HttpResponse.status(HttpStatus.CREATED, msg)
-      response.body(msg)
-      return response
-    } else {
+    if(null != sampleService.searchSample(sampleId)){
+      sampleService.updateSampleStatus(sampleId, status)
+      return HttpResponse.status(HttpStatus.CREATED, "Sample status updated.")
+    }
+    else {
       return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample was not found in the system!")
     }
   }
