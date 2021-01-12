@@ -1,25 +1,23 @@
 package life.qbic.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.env.Environment
-
 import io.micronaut.http.HttpRequest
-import io.micronaut.http.HttpStatus
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import life.qbic.datamodel.services.*
 import life.qbic.helpers.DBTester
-
 import org.json.JSONObject
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
-
-import com.fasterxml.jackson.databind.ObjectMapper
 
 class SamplesControllerIntegrationTest {
 
@@ -83,7 +81,7 @@ class SamplesControllerIntegrationTest {
       status = e.getStatus()
     }
     assertEquals(HttpStatus.BAD_REQUEST, status)
-    assertEquals("Bad Request", reason)
+    assertEquals("Not a valid sample code!", reason)
   }
 
   @Test
@@ -169,7 +167,7 @@ class SamplesControllerIntegrationTest {
     for(String code : codes) {
       HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l1).basicAuth("servicewriter", "123456!")
       HttpResponse response = client.toBlocking().exchange(request)
-      assertEquals(200, response.status.getCode())
+      assertEquals(201, response.status.getCode())
 
       Location testLocation = db.searchSample(code).currentLocation
       assertEquals(l1.address, testLocation.address)
@@ -196,7 +194,7 @@ class SamplesControllerIntegrationTest {
     for(String code : codes) {
       HttpRequest request = HttpRequest.POST("/samples/"+code+"/currentLocation/", l2).basicAuth("servicewriter", "123456!")
       HttpResponse response = client.toBlocking().exchange(request)
-      assertEquals(200, response.status.getCode())
+      assertEquals(201, response.status.getCode())
 
       Location testLocation = db.searchSample(code).currentLocation
       assertEquals(l2.address, testLocation.address)
@@ -232,7 +230,7 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Not Found", reason)
+    assertEquals("Sample was not found in the system!", reason)
     assertEquals(HttpStatus.NOT_FOUND, status)
   }
 
@@ -249,7 +247,7 @@ class SamplesControllerIntegrationTest {
     reason = e.getMessage()
     status = e.getStatus()
     }
-    assertEquals("Bad Request", reason)
+    assertEquals("Not a valid sample code!", reason)
     assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
@@ -263,20 +261,21 @@ class SamplesControllerIntegrationTest {
     Location currentLocation = new Location(name: "Location 4", responsiblePerson: "Location 4 Person", responsibleEmail: email, address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
 
     db.addSampleWithHistory(validCode2, currentLocation, currentPerson, new ArrayList<>(), new ArrayList<>())
-
     HttpRequest request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/WAITING","").basicAuth("servicewriter", "123456!")
-    String body = client.toBlocking().retrieve(request)
-    assertEquals("Sample status updated.", body)
+
+    HttpResponse response  = client.toBlocking().exchange(request)
+    assertEquals(201, response.status.getCode())
+    assertEquals("Sample status updated.", response.reason())
 
     request = HttpRequest.GET("/samples/"+validCode2).basicAuth("servicewriter", "123456!")
-    body = client.toBlocking().retrieve(request)
+    String body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
     json = json.get("current_location")
     assertEquals(Status.WAITING.toString(), json.get("sample_status"));
 
     request = HttpRequest.PUT("/samples/"+validCode2+"/currentLocation/PROCESSED","").basicAuth("servicewriter", "123456!")
-    body = client.toBlocking().retrieve(request)
-    assertEquals("Sample status updated.", body)
+    response = client.toBlocking().exchange(request)
+    assertEquals("Sample status updated.", response.reason())
 
     request = HttpRequest.GET("/samples/"+validCode2).basicAuth("servicewriter", "123456!")
     body = client.toBlocking().retrieve(request)
@@ -318,7 +317,7 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Not Found", reason)
+    assertEquals("Sample was not found in the system!", reason)
     assertEquals(HttpStatus.NOT_FOUND, status)
   }
 
@@ -338,7 +337,7 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Bad Request", reason)
+    assertEquals("Not a valid sample code!", reason)
     assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
@@ -368,7 +367,7 @@ class SamplesControllerIntegrationTest {
 
     HttpRequest request = HttpRequest.POST("/samples/"+validCode4+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
-    assertEquals(200, response.status.getCode())
+    assertEquals(201, response.status.getCode())
     Location testLocation = db.searchSample(validCode4).currentLocation
     assertEquals(location, testLocation)
   }
@@ -386,7 +385,7 @@ class SamplesControllerIntegrationTest {
 
     HttpRequest request = HttpRequest.POST("/samples/"+missingValidCode2+"/currentLocation/", location).basicAuth("servicewriter", "123456!")
     HttpResponse response = client.toBlocking().exchange(request)
-    assertEquals(200, response.status.getCode())
+    assertEquals(201, response.status.getCode())
 
     Location testLocation = db.searchSample(missingValidCode2).currentLocation
     assertEquals(location, testLocation)

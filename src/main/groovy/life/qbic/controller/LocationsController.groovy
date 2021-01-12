@@ -57,7 +57,7 @@ class LocationsController {
   @Deprecated
   HttpResponse<Contact> contacts(@PathVariable('email') String email){
     if(!RegExValidator.isValidMail(email)) {
-      HttpResponse<Contact> res = HttpResponse.badRequest("Not a valid email address!")
+      HttpResponse<Contact> res = HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid email address!")
       return res
     } else {
       Contact contact = locService.searchPersonByEmail(email)

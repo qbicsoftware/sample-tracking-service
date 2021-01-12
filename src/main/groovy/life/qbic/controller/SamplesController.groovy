@@ -47,13 +47,13 @@ class SamplesController {
   @RolesAllowed([ "READER", "WRITER"])
   HttpResponse<Sample> sample(@PathVariable('sampleId') String code) {
     if(!RegExValidator.isValidSampleCode(code)) {
-      return HttpResponse.badRequest("Not a valid sample code!");
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
     } else {
-      Sample s = sampleService.searchSample(code);
+      Sample s = sampleService.searchSample(code)
       if(s!=null) {
-        return HttpResponse.ok(s);
+        return HttpResponse.ok(s)
       } else {
-        return HttpResponse.notFound("Sample was not found in the system!");
+        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample was not found in the system!")
       }
     }
   }
@@ -69,10 +69,14 @@ class SamplesController {
   @RolesAllowed("WRITER")
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.badRequest("Not a valid sample code!");
-    } else {
-      //fixme the HttpResponse should be generated here and not somewhere in the code!
-      return sampleService.addNewLocation(sampleId, location)
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
+    }
+    try{
+      sampleService.addNewLocation(sampleId, location)
+      return HttpResponse.created(location)
+    }
+    catch(Exception e) {
+        return HttpResponse.status(HttpStatus.BAD_REQUEST, e.message) //todo find status dynamically??
     }
   }
 
@@ -90,13 +94,18 @@ class SamplesController {
   @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Sample not found")
+
   @RolesAllowed("WRITER")
   HttpResponse<Location> updateLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.badRequest("Not a valid sample code!");
-    } else {
-      //fixme the HttpResponse should be generated here and not somewhere in the code!
-      return sampleService.updateLocation(sampleId, location)
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
+    }
+    try {
+      sampleService.updateLocation(sampleId, location)
+      return HttpResponse.ok(location)
+    }
+    catch(Exception e){
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, e.message) //todo find response dynamically
     }
   }
 
@@ -112,18 +121,14 @@ class SamplesController {
   @RolesAllowed("WRITER")
   HttpResponse sampleStatus(@PathVariable('sampleId') String sampleId, @PathVariable('status') Status status) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.badRequest("Not a valid sample code!");
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid sample code!")
     }
-    boolean found = sampleService.searchSample(sampleId)!=null;
-    if(found) {
-      boolean successful = sampleService.updateSampleStatus(sampleId, status)
-      if (successful) {
-        return HttpResponse.created("Sample status updated.")
-      } else {
-        return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, "Sample status could not be updated.")
-      }
-    } else {
-      return HttpResponse.notFound("Sample was not found in the system!");
+    if(null != sampleService.searchSample(sampleId)){
+      sampleService.updateSampleStatus(sampleId, status)
+      return HttpResponse.status(HttpStatus.CREATED, "Sample status updated.")
+    }
+    else {
+      return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample was not found in the system!")
     }
   }
 }

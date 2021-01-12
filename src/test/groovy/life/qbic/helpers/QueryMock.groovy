@@ -29,14 +29,12 @@ import life.qbic.db.IQueryService
 @Requires(missingBeans=javax.sql.DataSource)
 class QueryMock implements IQueryService {
 
-  HttpResponse addNewLocation(String sampleId, Location location) {
-    HttpResponse<Location> response = HttpResponse.created(location)
-    return response
+  void addNewLocation(String sampleId, Location location) {
+    //no error is thrown
   }
 
-  HttpResponse<Location> updateLocation(String sampleId, Location location) {
-    HttpResponse<Location> response = HttpResponse.accepted()
-    return response
+  void updateLocation(String sampleId, Location location) {
+    //no error is thrown
   }
 
   Contact searchPersonByEmail(String email) {
@@ -68,8 +66,8 @@ class QueryMock implements IQueryService {
   }
 
 //  @Override
-  public boolean updateSampleStatus(String sampleId, Status status) {
-    return status!=null
+  void updateSampleStatus(String sampleId, Status status) {
+    //no error thrown
   }
 
   @Override
