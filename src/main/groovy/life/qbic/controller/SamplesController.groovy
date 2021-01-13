@@ -68,7 +68,7 @@ class SamplesController {
   @Operation(summary = "Sets a sample's current location",
           description = "Sets a sample current location with the given identifier.",
           tags = "Sample Location")
-  @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
+  @ApiResponse(responseCode = "201", description = "Current location for sample set successfully")
   @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Sample for the provided identifier not found")
@@ -130,7 +130,7 @@ class SamplesController {
   @Operation(summary = "Sets a sample's current location status",
           description = "Sets a sample current location status with the given identifier.",
           tags = "Sample Status")
-  @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
+  @ApiResponse(responseCode = "201", description = "Current location for sample set successfully")
   @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Sample for the provided identifier not found")
