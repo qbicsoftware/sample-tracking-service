@@ -102,11 +102,19 @@ class SamplesControllerTest {
   }
 
   @Test
-  void testSampleNewLocation() throws Exception {
+  void testMissingSampleNewLocation() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     HttpResponse response = samples.newLocation(validMissingCode, location)
+    assertEquals(404, response.status.getCode())
+  }
+  @Test
+  void testExistingSampleNewLocation() throws Exception {
+    Date d = new java.sql.Date(new Date().getTime());
+    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
+    Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
+    HttpResponse response = samples.newLocation(existingCode, location)
     assertEquals(201, response.status.getCode())
   }
 

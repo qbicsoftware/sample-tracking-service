@@ -50,53 +50,62 @@ class LocationsController {
                 content = @Content(
                         mediaType = "application/json",
                         schema = @Schema(implementation = Contact.class)))
-  @ApiResponse(responseCode = "400", description = "Invalid e-mail address")
+  @ApiResponse(responseCode = "400", description = "The provided e-mail address is invalid")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Contact not found")
+  @ApiResponse(responseCode = "404", description = "Contact for the provided e-mail address not found")
+  @ApiResponse(responseCode = "500", description = "Retrieval of contact information failed for an unknown reason")
   //@Deprecated(since=1.1.0, forRemoval=false) // works for Java11
   @Deprecated
-  HttpResponse<Contact> contacts(@PathVariable('email') String email){
-    if(!RegExValidator.isValidMail(email)) {
-      HttpResponse<Contact> res = HttpResponse.status(HttpStatus.BAD_REQUEST, "Not a valid email address!")
+  HttpResponse<Contact> contacts(@PathVariable('email') String email) {
+    if (!RegExValidator.isValidMail(email)) {
+      HttpResponse<Contact> res = HttpResponse.status(HttpStatus.BAD_REQUEST, "${email} is not a valid email address!")
       return res
-    } else {
+    }
+    try {
       Contact contact = locService.searchPersonByEmail(email)
-      if(contact!=null) {
+      if (contact != null) {
         HttpResponse<Contact> res = HttpResponse.ok(contact)
         return res
-      }
-      else {
-        String reason = "Email address was not found in the system!"
+      } else {
+        String reason = "Email address ${email} was not found in the system!"
         HttpResponse<Contact> res = HttpResponse.status(HttpStatus.NOT_FOUND, reason);
         return res
       }
     }
-  }
+    catch (Exception e) {
+      return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
+    }
+    }
 
   @Get(uri = "/{user_id}", produces = MediaType.APPLICATION_JSON)
-  @Operation(summary = "Provides the locations information linked to a username",
-          description = "Provides detailed locations information that is linked to a username",
-          tags = "Contact")
-  @ApiResponse(responseCode = "200", description = "Current locations associated with the username",
+  @RolesAllowed(["READER"])
+  @Operation(summary = "Provides the locations information linked to a user identifier",
+          description = "Provides detailed locations information that is linked to a user",
+          tags = "Location")
+  @ApiResponse(responseCode = "200", description = "Location information associated with the user identifier is provided",
           content = @Content(
                   mediaType = "application/json",
-                  schema = @Schema(implementation = Location.class)))
-  @ApiResponse(responseCode = "400", description = "Bad Request")
-  @ApiResponse(responseCode = "500", description = "Unexpected error during execution")
-  @RolesAllowed(["READER"])
+                  array = @ArraySchema(schema = @Schema(implementation = Location.class))))
+  @ApiResponse(responseCode = "400", description = "Bad Request. The provided user identification is invalid.")
+  @ApiResponse(responseCode = "401", description = "Unauthorized access")
+  @ApiResponse(responseCode = "404", description = "Location information for the provided user identifier not found")
+  @ApiResponse(responseCode = "500", description = "Retrieval of location information for the provided user failed for an unknown reason")
   HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId) {
     HttpResponse<List<Location>> response
     List<Location> searchResult
     try {
       searchResult = locService.getLocationsForPerson(userId)
-      response = HttpResponse.ok(searchResult)
+      if (searchResult != null) {
+        response = HttpResponse.ok(searchResult)
+      } else {
+        response = HttpResponse.status(HttpStatus.NOT_FOUND, "Location information for user ${userId} was not found in the system!")
+      }
     } catch (IllegalArgumentException ignored) {
       response = HttpResponse.status(HttpStatus.BAD_REQUEST, ignored.getMessage())
     } catch (Exception ignored) {
       response = HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, ignored.getMessage())
     }
     return response
-    
   }
 
   @Get(uri = "/", produces = MediaType.APPLICATION_JSON)
@@ -108,9 +117,15 @@ class LocationsController {
                   mediaType = "application/json",
                   array = @ArraySchema(schema = @Schema(implementation = Location.class))))
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
+  @ApiResponse(responseCode = "500", description = "Listing of available locations failed for an unknown reason")
   @RolesAllowed(["READER", "WRITER"])
   HttpResponse<List<Location>> listLocations() {
-    List<Location> res = locService.listLocations()
-    return HttpResponse.ok(res)
+    try {
+      List<Location> res = locService.listLocations()
+      return HttpResponse.ok(res)
+    }
+    catch (Exception e) {
+      HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e)
+    }
   }
 }
