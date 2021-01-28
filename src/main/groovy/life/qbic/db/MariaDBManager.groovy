@@ -36,14 +36,14 @@ class MariaDBManager implements IQueryService {
 
   private DataSource dataSource
 
-  private Sql sql
-
   @Inject MariaDBManager(QBiCDataSource dataSource) {
     this.dataSource = dataSource.getSource()
   }
 
   HttpResponse<Location> addNewLocation(String sampleId, Location location) {
-    this.sql = new Sql(dataSource)
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    Sql sql = new Sql(connection)
     HttpResponse response = HttpResponse.ok(location);
     try {
       sql.withTransaction {
@@ -76,11 +76,13 @@ class MariaDBManager implements IQueryService {
   }
 
   HttpResponse<Location> updateLocation(String sampleId, Location location) {
-    HttpResponse response = HttpResponse.ok(location);
-    this.sql = new Sql(dataSource)
+    HttpResponse response = HttpResponse.ok(location)
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    Sql sql = new Sql(connection)
     try {
       sql.withTransaction {
-        int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql);
+        int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
 
         if(personId == -1) {
           String msg = "User with email "+location.getResponsibleEmail()+" was not found."
@@ -111,8 +113,9 @@ class MariaDBManager implements IQueryService {
   }
 
   Contact searchPersonByEmail(String email) {
-    //    logger.info("Looking for user with email " + email + " in the DB");
-    this.sql = new Sql(dataSource)
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    Sql sql = new Sql(connection)
     Contact contact = null;
     final String query = "SELECT * from persons WHERE UPPER(email) = UPPER('${email}');"
     List<GroovyRowResult> results = sql.rows(query)
@@ -139,7 +142,9 @@ class MariaDBManager implements IQueryService {
   }
 
   List<Location> listLocations() {
-    this.sql = new Sql(dataSource)
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    Sql sql = new Sql(connection)
     List<Location> locs = new ArrayList<>()
     final String query = "SELECT * from locations inner join persons_locations on locations.id = persons_locations.location_id inner join persons on persons_locations.person_id = persons.id"
     List<GroovyRowResult> results = sql.rows(query)
@@ -285,7 +290,9 @@ class MariaDBManager implements IQueryService {
 
   Sample searchSample(String code) {
     Sample res = null;
-    this.sql = new Sql(dataSource)
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    Sql sql = new Sql(connection)
     final String query = "SELECT * from samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
         "INNER JOIN locations ON samples_locations.location_id = locations.id "+
         "WHERE UPPER(samples.id) = UPPER('${code}');"
@@ -346,7 +353,9 @@ class MariaDBManager implements IQueryService {
   private Person getPersonNameByID(int id) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Person res = null;
-    this.sql = new Sql(dataSource)
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    Sql sql = new Sql(connection)
 
     final String query = "SELECT * from persons WHERE id = ${id};"
     try {
@@ -371,7 +380,9 @@ class MariaDBManager implements IQueryService {
   boolean updateSampleStatus(String sampleId, Status status) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     boolean res = false;
-    this.sql = new Sql(dataSource)
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    Sql sql = new Sql(connection)
 
     final String query = "SELECT * from samples WHERE UPPER(id) = UPPER('${sampleId}');"
     try {
