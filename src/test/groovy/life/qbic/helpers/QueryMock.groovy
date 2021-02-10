@@ -19,11 +19,9 @@ import java.util.regex.Matcher
 import javax.inject.Inject
 import javax.inject.Singleton
 
-import life.qbic.datamodel.services.Address
-import life.qbic.datamodel.services.Contact
-import life.qbic.datamodel.services.Location
-import life.qbic.datamodel.services.Sample
-import life.qbic.datamodel.services.Status
+import life.qbic.datamodel.people.*
+import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.*
 import life.qbic.db.IQueryService
 
 @Requires(missingBeans=javax.sql.DataSource)

@@ -16,7 +16,9 @@ import javax.inject.Singleton
 
 import groovy.sql.ResultSetMetaDataWrapper
 import groovy.util.logging.Log4j2
+import life.qbic.datamodel.people.*
 import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.*
 import life.qbic.micronaututils.QBiCDataSource
 
 @Log4j2

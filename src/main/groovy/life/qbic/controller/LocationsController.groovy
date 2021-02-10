@@ -14,8 +14,9 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import life.qbic.datamodel.services.Contact
-import life.qbic.datamodel.services.Location
+import life.qbic.datamodel.people.*
+import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.*
 import life.qbic.micronaututils.auth.Authentication
 import life.qbic.service.ILocationService
 

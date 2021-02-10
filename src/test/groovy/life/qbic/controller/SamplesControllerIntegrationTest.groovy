@@ -9,7 +9,9 @@ import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
+import life.qbic.datamodel.people.*
 import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.*
 import life.qbic.helpers.DBTester
 import org.json.JSONObject
 import org.junit.AfterClass
@@ -71,7 +73,8 @@ class SamplesControllerIntegrationTest {
 
   @Test
   void testMalformedSample() throws Exception {
-    HttpRequest request = HttpRequest.GET("/samples/wrong").basicAuth("servicewriter", "123456!")
+    String malformedSample = "wrong"
+    HttpRequest request = HttpRequest.GET("/samples/${malformedSample}").basicAuth("servicewriter", "123456!")
     String reason
     HttpStatus status
     try {
@@ -81,7 +84,7 @@ class SamplesControllerIntegrationTest {
       status = e.getStatus()
     }
     assertEquals(HttpStatus.BAD_REQUEST, status)
-    assertEquals("Not a valid sample code!", reason)
+    assertEquals("${malformedSample} is not a valid sample identifier!".toString(), reason)
   }
 
   @Test
@@ -230,14 +233,15 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Sample was not found in the system!", reason)
+    assertEquals("Sample with ID ${missingValidCode} was not found in the system!".toString(), reason)
     assertEquals(HttpStatus.NOT_FOUND, status)
   }
 
 
   @Test
   void testStatusMalformedSample() throws Exception {
-    HttpRequest request = HttpRequest.PUT("/samples/wrong/currentLocation/WAITING","").basicAuth("servicewriter", "123456!")
+    String malformedSample = "wrong"
+    HttpRequest request = HttpRequest.PUT("/samples/${malformedSample}/currentLocation/WAITING","").basicAuth("servicewriter", "123456!")
     String reason
     HttpStatus status
     try {
@@ -247,7 +251,7 @@ class SamplesControllerIntegrationTest {
     reason = e.getMessage()
     status = e.getStatus()
     }
-    assertEquals("Not a valid sample code!", reason)
+    assertEquals("${malformedSample} is not a valid sample identifier!".toString(), reason)
     assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
@@ -265,7 +269,7 @@ class SamplesControllerIntegrationTest {
 
     HttpResponse response  = client.toBlocking().exchange(request)
     assertEquals(201, response.status.getCode())
-    assertEquals("Sample status updated.", response.reason())
+    assertEquals("Sample status updated to ${response.getStatus()}.".toString(), response.reason())
 
     request = HttpRequest.GET("/samples/"+validCode2).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
@@ -317,7 +321,7 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Sample was not found in the system!", reason)
+    assertEquals("Sample with ID ${code} was not found in the system!".toString(), reason)
     assertEquals(HttpStatus.NOT_FOUND, status)
   }
 
@@ -337,7 +341,7 @@ class SamplesControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Not a valid sample code!", reason)
+    assertEquals("${malformedCode} is not a valid sample identifier!".toString(), reason)
     assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 
