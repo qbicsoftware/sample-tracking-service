@@ -6,7 +6,9 @@ import groovy.sql.Sql
 import groovy.util.logging.Log4j2
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
+import life.qbic.datamodel.people.*
 import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.*
 import life.qbic.micronaututils.QBiCDataSource
 
 import javax.inject.Inject

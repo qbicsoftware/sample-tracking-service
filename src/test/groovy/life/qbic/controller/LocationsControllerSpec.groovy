@@ -2,9 +2,9 @@ package life.qbic.controller
 
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
-import life.qbic.datamodel.services.Address
-import life.qbic.datamodel.services.Location
-import life.qbic.datamodel.services.Status
+import life.qbic.datamodel.people.*
+import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.*
 import life.qbic.db.IQueryService
 import life.qbic.service.ILocationService
 import life.qbic.service.LocationServiceCenter

@@ -1,8 +1,8 @@
 package life.qbic.service
 
-import life.qbic.datamodel.services.Address
-import life.qbic.datamodel.services.Location
-import life.qbic.datamodel.services.Status
+import life.qbic.datamodel.people.*
+import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.*
 import life.qbic.db.IQueryService
 import spock.lang.Specification
 

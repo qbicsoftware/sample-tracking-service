@@ -16,10 +16,6 @@ import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import life.qbic.controller.SamplesController
-import life.qbic.datamodel.services.Address
-import life.qbic.datamodel.services.Location
-import life.qbic.datamodel.services.Sample
-import life.qbic.datamodel.services.Status
 import life.qbic.db.IQueryService
 import life.qbic.helpers.QueryMock
 import life.qbic.service.ISampleService
@@ -30,6 +26,9 @@ import org.junit.BeforeClass
 import org.junit.Test
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
+import life.qbic.datamodel.people.*
+import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.*
 
 class SamplesControllerTest {
 

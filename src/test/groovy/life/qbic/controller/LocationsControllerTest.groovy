@@ -16,9 +16,9 @@ import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
 import life.qbic.controller.LocationsController
-import life.qbic.datamodel.services.Address
-import life.qbic.datamodel.services.Contact
-import life.qbic.datamodel.services.Location
+import life.qbic.datamodel.people.*
+import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.*
 import life.qbic.helpers.QueryMock
 import life.qbic.service.LocationServiceCenter
 
@@ -58,9 +58,9 @@ class LocationsControllerTest {
     assertEquals(response.getStatus().getCode(),200)
     Contact c = response.body.orElse(null)
 
-    assertEquals(c.fullName,first+" "+last)
+    assertEquals(c.fullName, first+" "+last)
     assertEquals(c.email,email)
-    Address address = c.address
+    Address address = c.getAddress()
     assertEquals(address.affiliation,affName)
     assertEquals(address.street,street)
     assertEquals(address.zipCode,zip)

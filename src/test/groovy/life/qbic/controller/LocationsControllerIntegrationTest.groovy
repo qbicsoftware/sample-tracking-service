@@ -144,10 +144,11 @@ class LocationsControllerIntegrationTest {
 
   @Test
   void testNonExistingContact() throws Exception {
-    String expectedReason = "Email address was not found in the system!"
+    String emailAddress = "ian.banks@limitingfactor.com"
+    String expectedReason = "Email address ${emailAddress} was not found in the system!"
     String reason
     HttpStatus status
-    HttpRequest request = HttpRequest.GET("/locations/contacts/ian.banks@limitingfactor.com").basicAuth("servicewriter", "123456!")
+    HttpRequest request = HttpRequest.GET("/locations/contacts/${emailAddress}").basicAuth("servicewriter", "123456!")
     try {
       HttpResponse response = client.toBlocking().exchange(request)
     } catch (HttpClientResponseException responseException) {
@@ -188,7 +189,8 @@ class LocationsControllerIntegrationTest {
 
   @Test
   void testMalformedContact() throws Exception {
-    HttpRequest request = HttpRequest.GET("/locations/contacts/justreadtheinstructions").basicAuth("servicewriter", "123456!")
+    String invalidContact = "justreadtheinstructions"
+    HttpRequest request = HttpRequest.GET("/locations/contacts/${invalidContact}").basicAuth("servicewriter", "123456!")
     String reason
     HttpStatus status
     try {
@@ -197,7 +199,7 @@ class LocationsControllerIntegrationTest {
       reason = e.getMessage()
       status = e.getStatus()
     }
-    assertEquals("Not a valid email address!", reason)
+    assertEquals("${invalidContact} is not a valid email address!".toString(), reason)
     assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 }

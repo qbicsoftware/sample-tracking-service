@@ -12,9 +12,10 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import life.qbic.datamodel.services.Location
-import life.qbic.datamodel.services.Sample
-import life.qbic.datamodel.services.Status
+import life.qbic.datamodel.samples.Status
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+
 import life.qbic.micronaututils.auth.Authentication
 import life.qbic.service.ISampleService
 
