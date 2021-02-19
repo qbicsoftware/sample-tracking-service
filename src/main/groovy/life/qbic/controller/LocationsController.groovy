@@ -1,11 +1,10 @@
 package life.qbic.controller
 
 import io.micronaut.context.annotation.Requires
+import io.micronaut.http.HttpResponse
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.Controller
 import io.micronaut.http.annotation.Get
-import io.micronaut.context.annotation.Parameter
-import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.PathVariable
 import io.micronaut.security.annotation.Secured
 import io.micronaut.security.rules.SecurityRule
@@ -14,14 +13,13 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import life.qbic.datamodel.services.Sample
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.samples.Location
 import life.qbic.micronaututils.auth.Authentication
+import life.qbic.service.ILocationService
 
 import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
-import life.qbic.datamodel.services.Contact
-import life.qbic.datamodel.services.Location
-import life.qbic.service.ILocationService
 
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)

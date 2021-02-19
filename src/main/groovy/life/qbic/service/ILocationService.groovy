@@ -1,8 +1,9 @@
-package life.qbic.service;
+package life.qbic.service
+
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.samples.Location
 
 import javax.inject.Singleton
-import io.micronaut.http.HttpResponse
-import life.qbic.datamodel.services.*
 
 @Singleton
 interface ILocationService {

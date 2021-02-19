@@ -1,34 +1,26 @@
 package life.qbic.db
 
-import io.micronaut.context.annotation.Requires
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
-import io.micronaut.context.annotation.Property
-import io.micronaut.context.event.BeanCreatedEvent
-import io.micronaut.context.event.BeanCreatedEventListener
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
-import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Controller
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Produces
-import io.micronaut.http.annotation.Put
-import life.qbic.datamodel.services.*
+import life.qbic.datamodel.people.Address
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.people.Person
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+import life.qbic.datamodel.samples.Status
 import life.qbic.micronaututils.QBiCDataSource
+
+import javax.inject.Inject
+import javax.inject.Singleton
+import javax.sql.DataSource
 import java.sql.Connection
-import java.sql.Date
-import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Timestamp
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.OffsetDateTime
-import java.util.regex.Matcher
-import javax.inject.Inject
-import javax.inject.Singleton
-import javax.sql.DataSource
-import javax.validation.metadata.ReturnValueDescriptor
 
 @Log4j2
 @Singleton

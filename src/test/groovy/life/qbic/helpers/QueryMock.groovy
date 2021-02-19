@@ -1,29 +1,13 @@
 package life.qbic.helpers
 
-import io.micronaut.context.annotation.Parameter
+
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
-import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Controller
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Produces
-import io.micronaut.http.annotation.Put
-
-import java.sql.Connection
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.SQLException
-import java.util.List
-import java.util.regex.Matcher
-import javax.inject.Inject
-import javax.inject.Singleton
-
-import life.qbic.datamodel.services.Address
-import life.qbic.datamodel.services.Contact
-import life.qbic.datamodel.services.Location
-import life.qbic.datamodel.services.Sample
-import life.qbic.datamodel.services.Status
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+import life.qbic.datamodel.people.Address
+import life.qbic.datamodel.samples.Status
 import life.qbic.db.IQueryService
 
 @Requires(missingBeans=javax.sql.DataSource)
