@@ -1,33 +1,16 @@
 package life.qbic.controller
 
-import io.micronaut.context.ApplicationContext
-import io.micronaut.context.BeanContext
-import io.micronaut.context.annotation.Parameter
-import io.micronaut.context.env.Environment
-import io.micronaut.context.env.PropertySource
-import io.micronaut.core.util.CollectionUtils
-import io.micronaut.http.HttpRequest
+
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Post
-import io.micronaut.http.annotation.Put
-import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.exceptions.HttpClientResponseException
-import io.micronaut.runtime.server.EmbeddedServer
-import life.qbic.controller.LocationsController
-import life.qbic.datamodel.services.Address
-import life.qbic.datamodel.services.Contact
-import life.qbic.datamodel.services.Location
+import life.qbic.datamodel.people.Address
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.samples.Location
 import life.qbic.helpers.QueryMock
 import life.qbic.service.LocationServiceCenter
-
-import org.junit.AfterClass
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertNotNull
 
 class LocationsControllerTest {
 

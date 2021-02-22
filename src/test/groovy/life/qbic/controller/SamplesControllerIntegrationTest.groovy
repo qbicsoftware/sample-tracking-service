@@ -1,24 +1,26 @@
 package life.qbic.controller
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.micronaut.context.ApplicationContext
 import io.micronaut.context.env.Environment
-
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
-import life.qbic.datamodel.services.*
+import life.qbic.datamodel.people.Address
+import life.qbic.datamodel.people.Person
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+import life.qbic.datamodel.samples.Status
 import life.qbic.helpers.DBTester
-
 import org.json.JSONObject
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
-
-import com.fasterxml.jackson.databind.ObjectMapper
 
 class SamplesControllerIntegrationTest {
 

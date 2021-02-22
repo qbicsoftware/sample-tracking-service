@@ -1,8 +1,12 @@
-package life.qbic.db;
+package life.qbic.db
+
+import io.micronaut.http.HttpResponse
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+import life.qbic.datamodel.samples.Status
 
 import javax.inject.Singleton
-import io.micronaut.http.HttpResponse
-import life.qbic.datamodel.services.*
 
 @Singleton
 interface IQueryService {
