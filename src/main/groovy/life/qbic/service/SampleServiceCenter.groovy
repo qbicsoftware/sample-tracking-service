@@ -1,12 +1,14 @@
-package life.qbic.service;
-
-import javax.inject.Inject
-import javax.inject.Singleton
+package life.qbic.service
 
 import groovy.util.logging.Log4j2
 import io.micronaut.http.HttpResponse
-import life.qbic.datamodel.services.*
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+import life.qbic.datamodel.samples.Status
 import life.qbic.db.IQueryService
+
+import javax.inject.Inject
+import javax.inject.Singleton
 
 @Singleton
 @Log4j2
