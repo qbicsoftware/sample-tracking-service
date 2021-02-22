@@ -1,5 +1,15 @@
 # Changelog
 
+## Release 1.0.6 (2021-02-22)
+- Increase `data-model-lib:1.6.0` -> `2.0.0`
+  - The following imports were changed `life.qbic.datamodel.`
+    * `services.Sample` -> `samples.Sample`
+    * `services.Location` -> `samples.Location`
+    * `services.Status` -> `samples.Status`
+    * `services.Address` -> `people.Address`
+    * `services.Contact` -> `people.Contact`
+    * `services.Person` -> `people.Person`
+
 ## Release 1.0.5 (2021-01-28)
 
 - Configures JDBC Driver to use a connection pool
