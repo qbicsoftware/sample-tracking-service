@@ -1,5 +1,8 @@
 # Changelog
 
+## Release 1.0.7 (2021-03-18)
+- Increase `data-model-lib:2.0.0` -> `2.4.0`
+
 ## Release 1.0.6 (2021-02-22)
 - Increase `data-model-lib:1.6.0` -> `2.0.0`
   - The following imports were changed `life.qbic.datamodel.`
