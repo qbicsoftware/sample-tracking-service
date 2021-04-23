@@ -279,7 +279,7 @@ class SamplesControllerIntegrationTest {
 
     HttpResponse response  = client.toBlocking().exchange(request)
     //fixme is this expected to be 200 or 201 (created)?
-    assertEquals(200, response.status.getCode())
+    assertEquals(201, response.status.getCode())
     assertEquals("Sample status updated to ${response.getStatus()}.".toString(), response.reason())
 
     request = HttpRequest.GET("/samples/"+validCode2).basicAuth("servicewriter", "123456!")
