@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.0
+- Add missing JavaDoc (Issue #15)
+- the `/{email}` endpoint now searches by the newly introduced `user_id` instead.
+  This is no change in the behaviour as of now since they are identical as of now.
+- HttpResponses now contain the error messages in the status reason
+  instead of the response body
+
 ## Release 1.0.7 (2021-03-18)
 - Increase `data-model-lib:2.0.0` -> `2.4.0`
 

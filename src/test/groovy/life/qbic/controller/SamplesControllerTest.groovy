@@ -33,7 +33,7 @@ class SamplesControllerTest {
   @Test
   void testMalformedSample() throws Exception {
     HttpResponse response = samples.sample("wrong")
-    assertEquals(response.status.getCode(), 400)
+    assertEquals(400, response.status.getCode())
   }
 
   @Test
@@ -48,20 +48,21 @@ class SamplesControllerTest {
   @Test
   void testMissingSample() throws Exception {
     HttpResponse response = samples.sample(missingSampleCode);
-    assertEquals(response.getStatus().getCode(),404)
+    assertEquals(404, response.getStatus().getCode())
   }
 
 
   @Test
   void testStatusMalformedSample() throws Exception {
     HttpResponse response = samples.sampleStatus("", Status.PROCESSED)
-    assertEquals(response.getStatus().getCode(), 400)
+    assertEquals(400, response.getStatus().getCode())
   }
 
   @Test
   void testStatus() throws Exception {
     HttpResponse response = samples.sampleStatus(existingCode, Status.PROCESSED)
-    assertEquals(response.getStatus().getCode(), 201)
+    //fixme is this expected to be 200 or 201 (created)?
+    assertEquals(201, response.getStatus().getCode())
   }
 
   @Test
@@ -73,7 +74,7 @@ class SamplesControllerTest {
   @Test
   void testStatusNoSample() throws Exception {
     HttpResponse response = samples.sampleStatus(missingSampleCode, null)
-    assertEquals(response.status.getCode(), 404)
+    assertEquals(404, response.status.getCode())
   }
 
   @Test
@@ -82,16 +83,25 @@ class SamplesControllerTest {
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     HttpResponse response = samples.newLocation("x", location)
-    assertEquals(response.status.getCode(), 400)
+    assertEquals(400, response.status.getCode())
   }
 
   @Test
-  void testSampleNewLocation() throws Exception {
+  void testMissingSampleNewLocation() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     HttpResponse response = samples.newLocation(validMissingCode, location)
-    assertEquals(response.status.getCode(), 201)
+    assertEquals(404, response.status.getCode())
+  }
+  //todo why do we expect different results here for the same code?
+  @Test
+  void testExistingSampleNewLocation() throws Exception {
+    Date d = new java.sql.Date(new Date().getTime());
+    Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
+    Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
+    HttpResponse response = samples.newLocation(existingCode, location)
+    assertEquals(201, response.status.getCode())
   }
 
   @Test
@@ -101,6 +111,6 @@ class SamplesControllerTest {
     Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     samples.updateLocation(validMissingCode, location)
     HttpResponse response = samples.sampleStatus(validMissingCode, null)
-    assertEquals(response.status.getCode(), 404)
+    assertEquals(404, response.status.getCode())
   }
 }

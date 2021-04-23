@@ -3,6 +3,7 @@ package life.qbic.controller
 
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.MediaType
 import io.micronaut.http.annotation.*
 import io.micronaut.security.annotation.Secured
@@ -39,23 +40,30 @@ class SamplesController {
           responseCode = "200", description = "Returns a sample with tracking information", content = @Content(
                   mediaType = "application/json",
                   schema = @Schema(implementation = Sample.class)))
-  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
+  @ApiResponse(responseCode = "400", description = "Bad Request, Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample not found")
+  @ApiResponse(responseCode = "404", description = "Sample tracking information for the provided identifier not found")
+  @ApiResponse(responseCode = "500", description = "Sample tracking information retrieval failed for an unknown reason")
   @Get(uri = "/{sampleId}", produces = MediaType.APPLICATION_JSON)
   @RolesAllowed([ "READER", "WRITER"])
-  HttpResponse<Sample> sample(@PathVariable('sampleId') String code) {
-    if(!RegExValidator.isValidSampleCode(code)) {
-      return HttpResponse.badRequest("Not a valid sample code!");
-    } else {
-      Sample s = sampleService.searchSample(code);
-      if(s!=null) {
-        return HttpResponse.ok(s);
-      } else {
-        return HttpResponse.notFound("Sample was not found in the system!");
+  HttpResponse<Sample> sample(@PathVariable('sampleId') String sampleId) {
+    if(!RegExValidator.isValidSampleCode(sampleId)) {
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+    }
+
+    try {
+      Sample sample = sampleService.searchSample(sampleId)
+      if(sample) {
+        return HttpResponse.ok(sample)
+      }
+      else {
+        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
       }
     }
-  }
+      catch(Exception e) {
+        return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
+      }
+    }
 
   @Post("/{sampleId}/currentLocation/")
   @Operation(summary = "Sets a sample's current location",
@@ -64,13 +72,17 @@ class SamplesController {
   @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
   @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample not found")
+  @ApiResponse(responseCode = "500", description = "Update of sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.badRequest("Not a valid sample code!");
-    } else {
-      return sampleService.addNewLocation(sampleId, location)
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+    }
+    try{
+        sampleService.addNewLocation(sampleId, location)
+        return HttpResponse.ok(location)
+    } catch(Exception e) {
+        return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
 
@@ -87,13 +99,23 @@ class SamplesController {
   @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
   @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample not found")
+  @ApiResponse(responseCode = "404", description = "Sample for the provided identifier not found")
+  @ApiResponse(responseCode = "500", description = "Update of current sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
   HttpResponse<Location> updateLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.badRequest("Not a valid sample code!");
-    } else {
-      return sampleService.updateLocation(sampleId, location)
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+    }
+    try {
+//      if (null != sampleService.searchSample(sampleId)) {
+        sampleService.updateLocation(sampleId, location)
+//        return HttpResponse.ok(location)
+//      }
+//      else {
+//        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
+//      }
+    } catch(Exception e){
+      return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
 
@@ -101,21 +123,26 @@ class SamplesController {
   @Operation(summary = "Sets a sample's current location status",
           description = "Sets a sample current location status with the given identifier.",
           tags = "Sample Status")
-  @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
+  @ApiResponse(responseCode = "201", description = "Current location for sample set successfully")
   @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample not found")
+  @ApiResponse(responseCode = "404", description = "Sample for the provided identifier not found")
+  @ApiResponse(responseCode = "500", description = "Update of sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
   HttpResponse sampleStatus(@PathVariable('sampleId') String sampleId, @PathVariable('status') Status status) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.badRequest("Not a valid sample code!");
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
     }
-    boolean found = sampleService.searchSample(sampleId)!=null;
-    if(found) {
-      sampleService.updateSampleStatus(sampleId, status);
-      return HttpResponse.created("Sample status updated.");
-    } else {
-      return HttpResponse.notFound("Sample was not found in the system!");
+    try {
+      if (null != sampleService.searchSample(sampleId)) {
+        sampleService.updateSampleStatus(sampleId, status)
+        return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
+      } else {
+        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
+      }
+    }
+    catch(Exception e){
+      return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
 }
