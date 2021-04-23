@@ -508,7 +508,7 @@ class MariaDBManager implements IQueryService {
   private int getPersonIdFromEmail(String email, Sql sql) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     int res = -1;
-    final String query = "SELECT * from $PERSONS_TABLE WHERE UPPER(email) = UPPER('${email}')";
+    final String query = "SELECT * from $PERSONS_TABLE WHERE UPPER(email) = UPPER('${email}') OR UPPER(email) = UPPER('${user_id}')";
     try {
       List<GroovyRowResult> results = sql.rows(query)
       if( results.size() > 0 ) {
