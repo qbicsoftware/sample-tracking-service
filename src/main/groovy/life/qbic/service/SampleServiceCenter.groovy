@@ -27,7 +27,7 @@ class SampleServiceCenter implements ISampleService {
   }
 
   @Override
-  void updateLocation(String sampleId, Location location) {
+  void updateLocation(String sampleId, Location location) throws IllegalArgumentException {
     log.info "Updating location to "+location.name+" for sample "+sampleId
     database.updateLocation(sampleId, location)
   }

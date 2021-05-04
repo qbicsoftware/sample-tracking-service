@@ -41,7 +41,7 @@ class MariaDBManager implements IQueryService {
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
     Sql sql = new Sql(connection)
-    HttpResponse response = HttpResponse.ok(location);
+    HttpResponse response;
     try {
       sql.withTransaction {
         int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
@@ -60,6 +60,7 @@ class MariaDBManager implements IQueryService {
         log.info "Set new sample location ${location} for sample ${sampleId}."
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
         addOrUpdateSample(sampleId, locationId, sql)
+        response = HttpResponse.ok(location);
 
       }
     } catch (Exception ex) {
@@ -70,35 +71,47 @@ class MariaDBManager implements IQueryService {
     }
   }
 
-  void updateLocation(String sampleId, Location location) {
-    HttpResponse response = HttpResponse.ok(location)
+  void updateLocation(String sampleId, Location location) throws IllegalArgumentException{
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
     Sql sql = new Sql(connection)
+
+    // validate location
+    int locationId = getLocationIdFromName(location.getName(), sql)
+    if (locationId == -1) {
+      String msg = "Location " + location.getName() + " was not found."
+      throw new IllegalArgumentException(msg)
+    }
+    int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
+
+    if (personId == -1) {
+      String msg = "User with email " + location.getResponsibleEmail() + " was not found."
+      throw new IllegalArgumentException(msg)
+    }
+    // validate sampleId
     try {
       sql.withTransaction {
-        int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
-
-        if (personId == -1) {
-          String msg = "User with email " + location.getResponsibleEmail() + " was not found."
-          throw new NotFoundException(msg)
-        }
-        int locationId = getLocationIdFromName(location.getName(), sql)
-        if (locationId == -1) {
-           String msg = "Location " + location.getName() + " was not found."
-          throw new NotFoundException(msg)
-        }
-        // Always set new location as current
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
-
-        // update sample table current location id OR create new row
         addOrUpdateSample(sampleId, locationId, sql)
-
       }
-    } catch(Exception ex) {
-      String msg = ex.getMessage()
-      log.info msg+" Rolling back previous changes."
-      response = HttpResponse.badRequest(msg)
+    } catch(SQLException sqlException) {
+      // will always be thrown instead of an exception when withClosure is used
+      String message = sqlException.getMessage()
+      log.error(message)
+      log.debug(sqlException)
+      log.info(sqlException.message+" Rolling back previous changes.")
+      // we have to make sure to close the connection even if the calling method does not handle
+      // the exception correctly
+      sql.close()
+      throw new IllegalArgumentException("Could not update $sampleId to $location")
+    } catch(Exception unexpected) {
+      String msg = unexpected.getMessage()
+      log.error("Unexpected exception $msg")
+      log.debug("Unexpected exception $msg.", unexpected)
+      // we have to make sure to close the connection even if the calling method does not handle
+      // the unexpected exception correctly
+      sql.close()
+      throw unexpected
     }
     finally {
       sql.close()

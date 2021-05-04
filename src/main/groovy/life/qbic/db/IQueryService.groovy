@@ -68,10 +68,10 @@ interface IQueryService {
    * The location object must exist in the database. The provided sample may or may not be at that location currently.
    * @param sampleId sample code
    * @param location Location object signifying the location of the sample
-   * @return HttpResponse signifying the success status of the performed action
    * @since 1.0.0
+   * @throws IllegalArgumentException when the sampleId or the location is not allowed
    */
-  void updateLocation(String sampleId, Location location)
+  void updateLocation(String sampleId, Location location) throws IllegalArgumentException
 
   /**
    * Returns sample location, status and history information given a sample identifier
