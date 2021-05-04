@@ -32,12 +32,12 @@ class SamplesControllerIntegrationTest {
 
   private static String existingLocation = "Existing Location"
   private static String existingPersonMail = "existing@mail.test"
-  private String validCode1 = "QABCD001A0";
-  private String validCode2 = "QABCD002A8";
-  private String validCode3 = "QABCD003A4";
-  private String validCode4 = "QABCD004AO";
-  private String validCode5 = "QABCD005AW";
-  private String validCode6 = "QABCD006A6";
+  private String validCode1 = "QSTTS024AX";
+  private String validCode2 = "QSTTS025A7";
+  private String validCode3 = "QSTTS016A8";
+  private String validCode4 = "QSTTS028AV";
+  private String validCode5 = "QSTTS029A5";
+  private String validCode6 = "QSTTS019AW";
   private String missingValidCode = "QABCD002ME";
   private String missingValidCode2 = "QAAAA001A8";
 
