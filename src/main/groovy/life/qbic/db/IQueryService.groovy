@@ -59,8 +59,9 @@ interface IQueryService {
    * @param location Location object signifying the location of the sample
    * @return HttpResponse signifying the success status of the performed action
    * @since 1.0.0
+   * @throws IllegalArgumentException when the sampleId or the location is not allowed
    */
-  void addNewLocation(String sampleId, Location location)
+  void addNewLocation(String sampleId, Location location) throws IllegalArgumentException
 
   /**
    * Updates or adds a new location for a provided sample code to the database, signifying an update to sample status or the

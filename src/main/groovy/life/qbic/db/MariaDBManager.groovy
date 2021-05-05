@@ -37,35 +37,47 @@ class MariaDBManager implements IQueryService {
     this.dataSource = dataSource.getSource()
   }
 
-  void addNewLocation(String sampleId, Location location) {
+  void addNewLocation(String sampleId, Location location) throws IllegalArgumentException{
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
     Sql sql = new Sql(connection)
-    HttpResponse response;
+
+    //validate location
+    int locationId = getLocationIdFromName(location.getName(), sql);
+    if (locationId == -1) {
+      String msg = "Location " + location.getName() + " was not found."
+      log.error(msg)
+      throw new IllegalArgumentException(msg)
+    }
+
+    int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
+    if (personId == -1) {
+      String msg = "User with email " + location.getResponsibleEmail() + " was not found."
+      log.error(msg)
+      throw new IllegalArgumentException(msg)
+    }
+
     try {
       sql.withTransaction {
-        int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
-        if (personId == -1) {
-          String msg = "User with email " + location.getResponsibleEmail() + " was not found."
-          log.error(msg)
-          throw new NotFoundException(msg)
-        }
-        int locationId = getLocationIdFromName(location.getName(), sql);
-        if (locationId == -1) {
-          String msg = "Location " + location.getName() + " was not found."
-          log.error(msg)
-          throw new NotFoundException(msg)
-        }
-
         log.info "Set new sample location ${location} for sample ${sampleId}."
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
         addOrUpdateSample(sampleId, locationId, sql)
-        response = HttpResponse.ok(location);
-
       }
-    } catch (Exception ex) {
-      String msg = ex.getMessage()
-      log.info msg+" Rolling back previous changes."
+    } catch(SQLException sqlException) {
+      // will always be thrown instead of an exception when withClosure is used
+      String message = sqlException.getMessage()
+      log.error(message)
+      log.debug(sqlException)
+      log.info(sqlException.message+" Rolling back previous changes.")
+      // we have to make sure to close the connection even if the calling method does not handle
+      // the exception correctly
+      sql.close()
+      throw new RuntimeException("Could not add $sampleId to $location")
+    } catch(Exception unexpected) {
+      // we have to make sure to close the connection even if the calling method does not handle
+      // the unexpected exception correctly
+      sql.close()
+      throw unexpected
     } finally {
       sql.close()
     }
@@ -103,11 +115,8 @@ class MariaDBManager implements IQueryService {
       // we have to make sure to close the connection even if the calling method does not handle
       // the exception correctly
       sql.close()
-      throw new IllegalArgumentException("Could not update $sampleId to $location")
+      throw new RuntimeException("Could not update $sampleId to $location")
     } catch(Exception unexpected) {
-      String msg = unexpected.getMessage()
-      log.error("Unexpected exception $msg")
-      log.debug("Unexpected exception $msg.", unexpected)
       // we have to make sure to close the connection even if the calling method does not handle
       // the unexpected exception correctly
       sql.close()
@@ -470,7 +479,7 @@ class MariaDBManager implements IQueryService {
   }
 
   //TODO JavaDoc
-  void updateSampleStatus(String sampleId, Status status) {
+  void updateSampleStatus(String sampleId, Status status) throws NotFoundException {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
@@ -479,14 +488,22 @@ class MariaDBManager implements IQueryService {
     final String query = "SELECT * from samples WHERE UPPER(id) = UPPER('${sampleId}');"
     try {
       List<GroovyRowResult> results = sql.rows(query)
-      if( results.size() > 0 ) {
+      if (results.size() > 0) {
         GroovyRowResult rs = results.get(0)
         int locationID = rs.get("current_location_ID")
         setStatus(sampleId, locationID, status, sql)
+      } else {
+        throw new NotFoundException("Sample $sampleId could not be found in the database.")
       }
+    } catch (NotFoundException notFoundException) {
+      sql.close()
+      throw notFoundException
     } catch (SQLException e) {
+      log.error("Could not update sample status for $sampleId: $e.message")
+      log.debug("Could not update sample status for $sampleId: $e.message", e)
+      sql.close()
+      throw e
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
-      e.printStackTrace();
     } finally {
       sql.close()
     }

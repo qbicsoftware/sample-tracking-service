@@ -4,6 +4,7 @@ import io.micronaut.http.HttpResponse
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
+import life.qbic.db.NotFoundException
 
 import javax.inject.Singleton
 
@@ -19,8 +20,9 @@ interface ISampleService {
    * @param sampleId sample code
    * @param location Location object signifying the location of the sample
    * @since 1.0.0
+   * @throws IllegalArgumentException when the location or sampleId is not allowed
    */
-  void addNewLocation(String sampleId, Location location)
+  void addNewLocation(String sampleId, Location location) throws IllegalArgumentException
 
   /**
    * Updates or adds a new location for a provided sample code, signifying an update to sample status or the
@@ -46,6 +48,7 @@ interface ISampleService {
    * @param sampleId the sample code of the sample in question
    * @param status a Status object denoting the status to be set for the provided sample
    * @since 1.0.0
+   * @throws NotFoundException in case the sampleId could not be found
    */
-   void updateSampleStatus(String sampleId, Status status)
+   void updateSampleStatus(String sampleId, Status status) throws NotFoundException
 }

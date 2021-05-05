@@ -81,6 +81,8 @@ class SamplesController {
     try{
         sampleService.addNewLocation(sampleId, location)
         return HttpResponse.ok(location)
+    } catch (IllegalArgumentException illegalArgumentException) {
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
     } catch(Exception e) {
         return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
