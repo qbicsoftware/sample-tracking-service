@@ -47,28 +47,30 @@ class MariaDBManager implements IQueryService {
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
     Sql sql = new Sql(connection)
+    int locationId
+    int personId
 
     try {
       //validate location
-      int locationId = getLocationIdFromName(location.getName(), sql);
-      if (locationId == -1) {
-        String msg = "Location " + location.getName() + " was not found."
-        log.error(msg)
-        throw new IllegalArgumentException(msg)
-      }
-
-      int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
-      if (personId == -1) {
-        String msg = "User with email " + location.getResponsibleEmail() + " was not found."
-        log.error(msg)
-        throw new IllegalArgumentException(msg)
-      }
-    } catch (IllegalArgumentException illegalArgumentException) {
-      sql.close()
-      throw illegalArgumentException
+      locationId = getLocationIdFromName(location.getName(), sql);
+      personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
     } catch (Exception e) {
       sql.close()
       throw e
+    }
+
+    if (personId < 0) {
+      String msg = "User with email " + location.getResponsibleEmail() + " was not found."
+      log.error(msg)
+      sql.close()
+      throw new IllegalArgumentException(msg)
+    }
+
+    if (locationId < 0) {
+      String msg = "Location " + location.getName() + " was not found."
+      log.error(msg)
+      sql.close()
+      throw new IllegalArgumentException(msg)
     }
 
     try {
