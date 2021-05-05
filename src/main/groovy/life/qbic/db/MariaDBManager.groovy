@@ -5,6 +5,7 @@ import groovy.sql.Sql
 import groovy.util.logging.Log4j2
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
+import life.qbic.datamodel.identifiers.SampleCodeFunctions
 import life.qbic.datamodel.people.Address
 import life.qbic.datamodel.people.Contact
 import life.qbic.datamodel.people.Person
@@ -38,23 +39,36 @@ class MariaDBManager implements IQueryService {
   }
 
   void addNewLocation(String sampleId, Location location) throws IllegalArgumentException{
+
+    if (!SampleCodeFunctions.isQbicBarcode(sampleId) && !SampleCodeFunctions.isQbicEntityCode(sampleId)) {
+      throw new IllegalArgumentException("$sampleId is not valid.")
+    }
+
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
     Sql sql = new Sql(connection)
 
-    //validate location
-    int locationId = getLocationIdFromName(location.getName(), sql);
-    if (locationId == -1) {
-      String msg = "Location " + location.getName() + " was not found."
-      log.error(msg)
-      throw new IllegalArgumentException(msg)
-    }
+    try {
+      //validate location
+      int locationId = getLocationIdFromName(location.getName(), sql);
+      if (locationId == -1) {
+        String msg = "Location " + location.getName() + " was not found."
+        log.error(msg)
+        throw new IllegalArgumentException(msg)
+      }
 
-    int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
-    if (personId == -1) {
-      String msg = "User with email " + location.getResponsibleEmail() + " was not found."
-      log.error(msg)
-      throw new IllegalArgumentException(msg)
+      int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
+      if (personId == -1) {
+        String msg = "User with email " + location.getResponsibleEmail() + " was not found."
+        log.error(msg)
+        throw new IllegalArgumentException(msg)
+      }
+    } catch (IllegalArgumentException illegalArgumentException) {
+      sql.close()
+      throw illegalArgumentException
+    } catch (Exception e) {
+      sql.close()
+      throw e
     }
 
     try {
@@ -84,23 +98,38 @@ class MariaDBManager implements IQueryService {
   }
 
   void updateLocation(String sampleId, Location location) throws IllegalArgumentException{
+    if (!SampleCodeFunctions.isQbicBarcode(sampleId) && !SampleCodeFunctions.isQbicEntityCode(sampleId)) {
+      throw new IllegalArgumentException("$sampleId is not valid.")
+    }
+
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
+
     Sql sql = new Sql(connection)
+    try {
+      // validate location
+      int locationId = getLocationIdFromName(location.getName(), sql)
+      if (locationId == -1) {
+        String msg = "Location " + location.getName() + " was not found."
+        throw new IllegalArgumentException(msg)
+      }
+      int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
 
-    // validate location
-    int locationId = getLocationIdFromName(location.getName(), sql)
-    if (locationId == -1) {
-      String msg = "Location " + location.getName() + " was not found."
-      throw new IllegalArgumentException(msg)
+      if (personId == -1) {
+        String msg = "User with email " + location.getResponsibleEmail() + " was not found."
+        throw new IllegalArgumentException(msg)
+      }
+    } catch (IllegalArgumentException illegalArgumentException) {
+      sql.close()
+      throw illegalArgumentException
+    } catch (Exception unexpected) {
+      String message = unexpected.getMessage()
+      log.error(message)
+      log.debug(unexpected)
+      sql.close()
+      throw new RuntimeException("Could not update $sampleId to $location")
     }
-    int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
 
-    if (personId == -1) {
-      String msg = "User with email " + location.getResponsibleEmail() + " was not found."
-      throw new IllegalArgumentException(msg)
-    }
-    // validate sampleId
     try {
       sql.withTransaction {
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
