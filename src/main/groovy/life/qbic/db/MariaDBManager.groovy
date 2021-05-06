@@ -55,6 +55,7 @@ class MariaDBManager implements IQueryService {
       locationId = getLocationIdFromName(location.getName(), sql);
       personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
     } catch (Exception e) {
+      // only close in case of an exception appearing we need it later on
       sql.close()
       throw e
     }
@@ -85,15 +86,7 @@ class MariaDBManager implements IQueryService {
       log.error(message)
       log.debug(sqlException)
       log.info(sqlException.message+" Rolling back previous changes.")
-      // we have to make sure to close the connection even if the calling method does not handle
-      // the exception correctly
-      sql.close()
       throw new RuntimeException("Could not add $sampleId to $location")
-    } catch(Exception unexpected) {
-      // we have to make sure to close the connection even if the calling method does not handle
-      // the unexpected exception correctly
-      sql.close()
-      throw unexpected
     } finally {
       sql.close()
     }
@@ -119,6 +112,7 @@ class MariaDBManager implements IQueryService {
       String message = unexpected.getMessage()
       log.error(message)
       log.debug(unexpected)
+      // only close the connection in case of an exception. We need it later on.
       sql.close()
       throw new RuntimeException("Could not update $sampleId to $location")
     }
@@ -147,17 +141,8 @@ class MariaDBManager implements IQueryService {
       log.error(message)
       log.debug(sqlException)
       log.info(sqlException.message+" Rolling back previous changes.")
-      // we have to make sure to close the connection even if the calling method does not handle
-      // the exception correctly
-      sql.close()
       throw new RuntimeException("Could not update $sampleId to $location")
-    } catch(Exception unexpected) {
-      // we have to make sure to close the connection even if the calling method does not handle
-      // the unexpected exception correctly
-      sql.close()
-      throw unexpected
-    }
-    finally {
+    } finally {
       sql.close()
     }
   }
