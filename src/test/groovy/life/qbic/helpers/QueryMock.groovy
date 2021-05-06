@@ -1,6 +1,6 @@
 package life.qbic.helpers
 
-import io.micronaut.context.annotation.Parameter
+
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
@@ -22,6 +22,11 @@ import javax.inject.Singleton
 import life.qbic.datamodel.people.*
 import life.qbic.datamodel.services.*
 import life.qbic.datamodel.samples.*
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+import life.qbic.datamodel.people.Address
+import life.qbic.datamodel.samples.Status
 import life.qbic.db.IQueryService
 
 @Requires(missingBeans=javax.sql.DataSource)

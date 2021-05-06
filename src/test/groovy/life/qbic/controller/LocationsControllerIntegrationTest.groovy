@@ -78,7 +78,7 @@ class LocationsControllerIntegrationTest {
 
     db.removeLocationAndPerson(personID, locationID)
   }
-  
+
   @Test
   void testLocationsForUnknownUser() throws Exception {
     HttpRequest request = HttpRequest.GET("/locations/justreadtheinstructions").basicAuth("servicewriter", "123456!")
@@ -86,12 +86,13 @@ class LocationsControllerIntegrationTest {
     HttpResponse response
     try {
       response = client.toBlocking().exchange(request)
+      exceptionStatus = response.getStatus()
     } catch (HttpClientResponseException responseException) {
       exceptionStatus = responseException.getStatus()
     }
     assertEquals(HttpStatus.BAD_REQUEST, exceptionStatus)
   }
-  
+
   @Test
   void testLocationsForUserWithoutLocations() throws Exception {
     String user_id = "lonely"
@@ -103,7 +104,7 @@ class LocationsControllerIntegrationTest {
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
     assertEquals(0, arr.size())
-    
+
     db.removePerson(personID)
   }
 
@@ -151,6 +152,8 @@ class LocationsControllerIntegrationTest {
     HttpRequest request = HttpRequest.GET("/locations/contacts/${emailAddress}").basicAuth("servicewriter", "123456!")
     try {
       HttpResponse response = client.toBlocking().exchange(request)
+      status = response.getStatus()
+      reason = response.getStatus().getReason()
     } catch (HttpClientResponseException responseException) {
       reason = responseException.getMessage()
       status = responseException.getStatus()
@@ -195,6 +198,8 @@ class LocationsControllerIntegrationTest {
     HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
+      status = response.getStatus()
+      reason = status.getReason()
     } catch (HttpClientResponseException e) {
       reason = e.getMessage()
       status = e.getStatus()

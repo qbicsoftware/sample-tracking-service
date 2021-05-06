@@ -14,9 +14,8 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import life.qbic.datamodel.people.*
-import life.qbic.datamodel.services.*
-import life.qbic.datamodel.samples.*
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.samples.Location
 import life.qbic.micronaututils.auth.Authentication
 import life.qbic.service.ILocationService
 
@@ -72,11 +71,10 @@ class LocationsController {
         HttpResponse<Contact> res = HttpResponse.status(HttpStatus.NOT_FOUND, reason);
         return res
       }
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
-    }
+  }
 
   @Get(uri = "/{user_id}", produces = MediaType.APPLICATION_JSON)
   @RolesAllowed(["READER"])
@@ -124,9 +122,8 @@ class LocationsController {
     try {
       List<Location> res = locService.listLocations()
       return HttpResponse.ok(res)
-    }
-    catch (Exception e) {
-      HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e)
+    } catch (Exception e) {
+      HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage())
     }
   }
 }

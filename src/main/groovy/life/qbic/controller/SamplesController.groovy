@@ -12,10 +12,9 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import life.qbic.datamodel.samples.Status
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
-
+import life.qbic.datamodel.samples.Status
 import life.qbic.micronaututils.auth.Authentication
 import life.qbic.service.ISampleService
 
@@ -51,10 +50,11 @@ class SamplesController {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
     }
+
     try {
-      Sample s = sampleService.searchSample(sampleId)
-      if(s!=null) {
-        return HttpResponse.ok(s)
+      Sample sample = sampleService.searchSample(sampleId)
+      if(sample) {
+        return HttpResponse.ok(sample)
       }
       else {
         return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
@@ -69,10 +69,9 @@ class SamplesController {
   @Operation(summary = "Sets a sample's current location",
           description = "Sets a sample current location with the given identifier.",
           tags = "Sample Location")
-  @ApiResponse(responseCode = "201", description = "Current location for sample set successfully")
+  @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
   @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample for the provided identifier not found")
   @ApiResponse(responseCode = "500", description = "Update of sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
@@ -80,15 +79,11 @@ class SamplesController {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
     }
     try{
-      if (null != sampleService.searchSample(sampleId)) {
         sampleService.addNewLocation(sampleId, location)
-        return HttpResponse.created(location)
-      }
-      else {
-        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
-      }
-    }
-    catch(Exception e) {
+        return HttpResponse.ok(location)
+    } catch (IllegalArgumentException illegalArgumentException) {
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
+    } catch(Exception e) {
         return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
@@ -114,15 +109,11 @@ class SamplesController {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
     }
     try {
-      if (null != sampleService.searchSample(sampleId)) {
-        sampleService.updateLocation(sampleId, location)
-        return HttpResponse.ok(location)
-      }
-      else {
-        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
-      }
-    }
-    catch(Exception e){
+      sampleService.updateLocation(sampleId, location)
+      return HttpResponse.ok(location)
+    } catch (IllegalArgumentException illegalArgumentException) {
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
+    } catch(Exception e){
       return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }

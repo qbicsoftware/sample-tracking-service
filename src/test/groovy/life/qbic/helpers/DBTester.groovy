@@ -1,25 +1,16 @@
 package life.qbic.helpers
 
-import java.sql.DriverManager
-import java.sql.Connection
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-import java.sql.ResultSetMetaData
-import java.sql.SQLException
-import java.sql.Timestamp
-import java.sql.Statement
+import groovy.util.logging.Log4j2
+import life.qbic.datamodel.people.Address
+import life.qbic.datamodel.people.Person
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+import life.qbic.datamodel.samples.Status
+
+import java.sql.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-
-import javax.inject.Inject
-import javax.inject.Singleton
-
-import groovy.sql.ResultSetMetaDataWrapper
-import groovy.util.logging.Log4j2
-import life.qbic.datamodel.people.*
-import life.qbic.datamodel.services.*
-import life.qbic.datamodel.samples.*
-import life.qbic.micronaututils.QBiCDataSource
+import java.util.Date
 
 @Log4j2
 class DBTester {
@@ -408,7 +399,7 @@ class DBTester {
       e.printStackTrace();
     }
   }
-  
+
   void removeLocationAndPerson(int personID, int locationID) {
     String sql1 = "DELETE FROM persons_locations WHERE person_id = ? AND location_id = ?"
     String sql2 = "DELETE FROM person WHERE id = ?"

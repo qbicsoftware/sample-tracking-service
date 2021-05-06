@@ -1,33 +1,16 @@
 package life.qbic.controller
 
-import io.micronaut.context.ApplicationContext
-import io.micronaut.context.BeanContext
-import io.micronaut.context.annotation.Parameter
-import io.micronaut.context.env.Environment
-import io.micronaut.context.env.PropertySource
-import io.micronaut.core.util.CollectionUtils
-import io.micronaut.http.HttpRequest
+
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Post
-import io.micronaut.http.annotation.Put
-import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.exceptions.HttpClientResponseException
-import io.micronaut.runtime.server.EmbeddedServer
-import life.qbic.controller.LocationsController
-import life.qbic.datamodel.people.*
-import life.qbic.datamodel.services.*
-import life.qbic.datamodel.samples.*
+import life.qbic.datamodel.people.Address
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.samples.Location
 import life.qbic.helpers.QueryMock
 import life.qbic.service.LocationServiceCenter
-
-import org.junit.AfterClass
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertNotNull
 
 class LocationsControllerTest {
 
@@ -55,7 +38,7 @@ class LocationsControllerTest {
     String country = "Chiark"
 
     HttpResponse response = locations.contacts(email)
-    assertEquals(response.getStatus().getCode(),200)
+    assertEquals(200, response.getStatus().getCode())
     Contact c = response.body.orElse(null)
 
     assertEquals(c.fullName, first+" "+last)
@@ -70,29 +53,23 @@ class LocationsControllerTest {
   @Test
   void testMalformedContact() throws Exception {
     HttpResponse response = locations.contacts("justreadtheinstructions")
-    assertEquals(response.getStatus().getCode(), 400)
+    assertEquals(400, response.getStatus().getCode())
   }
   
   @Test
-  void testLocationsMail() throws Exception {
+  void testAvailableLocations() throws Exception {
     HttpResponse response = locations.locations("right@right.de")
     assertEquals(200, response.getStatus().getCode())
     List<Location> loc = response.body.orElse(null)
     assertEquals(1, loc.size())
   }
   
-//  @Test
-//  void testMalformedLocationsMail() throws Exception {
-//    HttpResponse response = locations.locations("justreadtheinstructions")
-//    assertEquals(response.getStatus().getCode(), 400)
-//  }
-  
   @Test
   void testLocations() throws Exception {
     HttpResponse response = locations.listLocations()
-    assertEquals(response.getStatus().getCode(), 200)
+    assertEquals(200, response.getStatus().getCode())
     List<Location> loc = response.body.orElse(null)
-    assertEquals(loc.size(),2)
+    assertEquals(2, loc.size())
   }
 
 }

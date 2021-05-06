@@ -1,34 +1,19 @@
 package life.qbic.controller
 
-import io.micronaut.context.ApplicationContext
-import io.micronaut.context.BeanContext
-import io.micronaut.context.annotation.Parameter
-import io.micronaut.context.env.Environment
-import io.micronaut.context.env.PropertySource
-import io.micronaut.core.util.CollectionUtils
-import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.MediaType
-import io.micronaut.http.annotation.Get
-import io.micronaut.http.annotation.Post
-import io.micronaut.http.annotation.Put
-import io.micronaut.http.client.HttpClient
-import io.micronaut.http.client.exceptions.HttpClientResponseException
-import io.micronaut.runtime.server.EmbeddedServer
-import life.qbic.controller.SamplesController
+import life.qbic.datamodel.people.Address
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+import life.qbic.datamodel.samples.Status
 import life.qbic.db.IQueryService
 import life.qbic.helpers.QueryMock
 import life.qbic.service.ISampleService
 import life.qbic.service.SampleServiceCenter
-import org.junit.AfterClass
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Test
+
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
-import life.qbic.datamodel.people.*
-import life.qbic.datamodel.services.*
-import life.qbic.datamodel.samples.*
 
 class SamplesControllerTest {
 
@@ -76,6 +61,7 @@ class SamplesControllerTest {
   @Test
   void testStatus() throws Exception {
     HttpResponse response = samples.sampleStatus(existingCode, Status.PROCESSED)
+    //fixme is this expected to be 200 or 201 (created)?
     assertEquals(201, response.getStatus().getCode())
   }
 
@@ -100,21 +86,24 @@ class SamplesControllerTest {
     assertEquals(400, response.status.getCode())
   }
 
+  // sample is unknown, but valid and is added to first location
   @Test
   void testMissingSampleNewLocation() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     HttpResponse response = samples.newLocation(validMissingCode, location)
-    assertEquals(404, response.status.getCode())
+    assertEquals(200, response.status.getCode())
   }
+
+  // sample exists and gets new location
   @Test
   void testExistingSampleNewLocation() throws Exception {
     Date d = new java.sql.Date(new Date().getTime());
     Address adr = new Address(affiliation: "locname", country: "Germany", street: "somestreet", zipCode: 213)
     Location location = new Location(name: "locname", responsiblePerson: "some person", address: adr, status: Status.WAITING, arrivalDate: d, forwardDate: d);
     HttpResponse response = samples.newLocation(existingCode, location)
-    assertEquals(201, response.status.getCode())
+    assertEquals(200, response.status.getCode())
   }
 
   @Test

@@ -1,9 +1,12 @@
-package life.qbic.db;
+package life.qbic.db
+
+import io.micronaut.http.HttpResponse
+import life.qbic.datamodel.people.Contact
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Sample
+import life.qbic.datamodel.samples.Status
 
 import javax.inject.Singleton
-import io.micronaut.http.HttpResponse
-import life.qbic.datamodel.people.*
-import life.qbic.datamodel.samples.*
 
 /**
  * Interface for database queries
@@ -56,8 +59,9 @@ interface IQueryService {
    * @param location Location object signifying the location of the sample
    * @return HttpResponse signifying the success status of the performed action
    * @since 1.0.0
+   * @throws IllegalArgumentException when the sampleId or the location is not allowed
    */
-  void addNewLocation(String sampleId, Location location)
+  void addNewLocation(String sampleId, Location location) throws IllegalArgumentException
 
   /**
    * Updates or adds a new location for a provided sample code to the database, signifying an update to sample status or the
@@ -65,10 +69,10 @@ interface IQueryService {
    * The location object must exist in the database. The provided sample may or may not be at that location currently.
    * @param sampleId sample code
    * @param location Location object signifying the location of the sample
-   * @return HttpResponse signifying the success status of the performed action
    * @since 1.0.0
+   * @throws IllegalArgumentException when the sampleId or the location is not allowed
    */
-  void updateLocation(String sampleId, Location location)
+  void updateLocation(String sampleId, Location location) throws IllegalArgumentException
 
   /**
    * Returns sample location, status and history information given a sample identifier
