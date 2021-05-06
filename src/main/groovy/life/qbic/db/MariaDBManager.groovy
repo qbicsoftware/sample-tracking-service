@@ -5,6 +5,7 @@ import groovy.sql.Sql
 import groovy.util.logging.Log4j2
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
+import life.qbic.datamodel.identifiers.SampleCodeFunctions
 import life.qbic.datamodel.people.Address
 import life.qbic.datamodel.people.Contact
 import life.qbic.datamodel.people.Person
@@ -37,70 +38,111 @@ class MariaDBManager implements IQueryService {
     this.dataSource = dataSource.getSource()
   }
 
-  void addNewLocation(String sampleId, Location location) {
+  void addNewLocation(String sampleId, Location location) throws IllegalArgumentException{
+
+    if (!SampleCodeFunctions.isQbicBarcode(sampleId) && !SampleCodeFunctions.isQbicEntityCode(sampleId)) {
+      throw new IllegalArgumentException("$sampleId is not valid.")
+    }
+
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
     Sql sql = new Sql(connection)
-    HttpResponse response = HttpResponse.ok(location);
+    int locationId
+    int personId
+
+    try {
+      //validate location
+      locationId = getLocationIdFromName(location.getName(), sql);
+      personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
+    } catch (Exception e) {
+      // only close in case of an exception appearing we need it later on
+      sql.close()
+      throw e
+    }
+
+    if (personId < 0) {
+      String msg = "User with email " + location.getResponsibleEmail() + " was not found."
+      log.error(msg)
+      sql.close()
+      throw new IllegalArgumentException(msg)
+    }
+
+    if (locationId < 0) {
+      String msg = "Location " + location.getName() + " was not found."
+      log.error(msg)
+      sql.close()
+      throw new IllegalArgumentException(msg)
+    }
+
     try {
       sql.withTransaction {
-        int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
-        if (personId == -1) {
-          String msg = "User with email " + location.getResponsibleEmail() + " was not found."
-          log.error(msg)
-          throw new NotFoundException(msg)
-        }
-        int locationId = getLocationIdFromName(location.getName(), sql);
-        if (locationId == -1) {
-          String msg = "Location " + location.getName() + " was not found."
-          log.error(msg)
-          throw new NotFoundException(msg)
-        }
-
         log.info "Set new sample location ${location} for sample ${sampleId}."
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
         addOrUpdateSample(sampleId, locationId, sql)
-
       }
-    } catch (Exception ex) {
-      String msg = ex.getMessage()
-      log.info msg+" Rolling back previous changes."
+    } catch(SQLException sqlException) {
+      // will always be thrown instead of an exception when withClosure is used
+      String message = sqlException.getMessage()
+      log.error(message)
+      log.debug(sqlException)
+      log.info(sqlException.message+" Rolling back previous changes.")
+      throw new RuntimeException("Could not add $sampleId to $location")
     } finally {
       sql.close()
     }
   }
 
-  void updateLocation(String sampleId, Location location) {
-    HttpResponse response = HttpResponse.ok(location)
+  void updateLocation(String sampleId, Location location) throws IllegalArgumentException{
+    if (!SampleCodeFunctions.isQbicBarcode(sampleId) && !SampleCodeFunctions.isQbicEntityCode(sampleId)) {
+      throw new IllegalArgumentException("$sampleId is not valid.")
+    }
+
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
+
     Sql sql = new Sql(connection)
+    int personId
+    int locationId
+
+    try {
+      // validate location
+      locationId = getLocationIdFromName(location.getName(), sql)
+      personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
+    } catch (Exception unexpected) {
+      String message = unexpected.getMessage()
+      log.error(message)
+      log.debug(unexpected)
+      // only close the connection in case of an exception. We need it later on.
+      sql.close()
+      throw new RuntimeException("Could not update $sampleId to $location")
+    }
+
+    if (personId < 0) {
+      String msg = "User with email " + location.getResponsibleEmail() + " was not found."
+      log.error(msg)
+      sql.close()
+      throw new IllegalArgumentException(msg)
+    }
+    if (locationId < 0) {
+      String msg = "Location " + location.getName() + " was not found."
+      log.error(msg)
+      sql.close()
+      throw new IllegalArgumentException(msg)
+    }
+
     try {
       sql.withTransaction {
-        int personId = getPersonIdFromEmail(location.getResponsibleEmail(), sql)
-
-        if (personId == -1) {
-          String msg = "User with email " + location.getResponsibleEmail() + " was not found."
-          throw new NotFoundException(msg)
-        }
-        int locationId = getLocationIdFromName(location.getName(), sql)
-        if (locationId == -1) {
-           String msg = "Location " + location.getName() + " was not found."
-          throw new NotFoundException(msg)
-        }
-        // Always set new location as current
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
-
-        // update sample table current location id OR create new row
         addOrUpdateSample(sampleId, locationId, sql)
-
       }
-    } catch(Exception ex) {
-      String msg = ex.getMessage()
-      log.info msg+" Rolling back previous changes."
-      response = HttpResponse.badRequest(msg)
-    }
-    finally {
+    } catch(SQLException sqlException) {
+      // will always be thrown instead of an exception when withClosure is used
+      String message = sqlException.getMessage()
+      log.error(message)
+      log.debug(sqlException)
+      log.info(sqlException.message+" Rolling back previous changes.")
+      throw new RuntimeException("Could not update $sampleId to $location")
+    } finally {
       sql.close()
     }
   }
@@ -457,7 +499,7 @@ class MariaDBManager implements IQueryService {
   }
 
   //TODO JavaDoc
-  void updateSampleStatus(String sampleId, Status status) {
+  void updateSampleStatus(String sampleId, Status status) throws NotFoundException {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
@@ -466,14 +508,22 @@ class MariaDBManager implements IQueryService {
     final String query = "SELECT * from samples WHERE UPPER(id) = UPPER('${sampleId}');"
     try {
       List<GroovyRowResult> results = sql.rows(query)
-      if( results.size() > 0 ) {
+      if (results.size() > 0) {
         GroovyRowResult rs = results.get(0)
         int locationID = rs.get("current_location_ID")
         setStatus(sampleId, locationID, status, sql)
+      } else {
+        throw new NotFoundException("Sample $sampleId could not be found in the database.")
       }
+    } catch (NotFoundException notFoundException) {
+      sql.close()
+      throw notFoundException
     } catch (SQLException e) {
+      log.error("Could not update sample status for $sampleId: $e.message")
+      log.debug("Could not update sample status for $sampleId: $e.message", e)
+      sql.close()
+      throw e
       //      logger.error("SQL operation unsuccessful: " + e.getMessage());
-      e.printStackTrace();
     } finally {
       sql.close()
     }
@@ -508,7 +558,7 @@ class MariaDBManager implements IQueryService {
   private int getPersonIdFromEmail(String email, Sql sql) {
     //    logger.info("Looking for user with email " + email + " in the DB");
     int res = -1;
-    final String query = "SELECT * from $PERSONS_TABLE WHERE UPPER(email) = UPPER('${email}') OR UPPER(email) = UPPER('${user_id}')";
+    final String query = "SELECT * from $PERSONS_TABLE WHERE UPPER(email) = UPPER('${email}') OR UPPER(user_id) = UPPER('${email}')";
     try {
       List<GroovyRowResult> results = sql.rows(query)
       if( results.size() > 0 ) {

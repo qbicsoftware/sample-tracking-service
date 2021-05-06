@@ -81,6 +81,8 @@ class SamplesController {
     try{
         sampleService.addNewLocation(sampleId, location)
         return HttpResponse.ok(location)
+    } catch (IllegalArgumentException illegalArgumentException) {
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
     } catch(Exception e) {
         return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
@@ -107,13 +109,10 @@ class SamplesController {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
     }
     try {
-//      if (null != sampleService.searchSample(sampleId)) {
-        sampleService.updateLocation(sampleId, location)
-//        return HttpResponse.ok(location)
-//      }
-//      else {
-//        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
-//      }
+      sampleService.updateLocation(sampleId, location)
+      return HttpResponse.ok(location)
+    } catch (IllegalArgumentException illegalArgumentException) {
+      return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
     } catch(Exception e){
       return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
