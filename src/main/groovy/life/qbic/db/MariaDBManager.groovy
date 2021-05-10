@@ -244,7 +244,7 @@ class MariaDBManager implements IQueryService {
   private static Location parseLocationFromMap(Map input) {
     Collection<String> expectedKeys = ["name", "street", "zip_code", "country", "first_name", "last_name", "email"]
     for(String key: expectedKeys) {
-      if(!input.keySet().contains(key.toUpperCase())) {
+      if (!input.keySet().any {it.equalsIgnoreCase(key)}) {
         throw new IllegalArgumentException ("The provided input did not provide the expected key $key.")
       }
     }
