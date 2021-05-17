@@ -244,7 +244,9 @@ class MariaDBManager implements IQueryService {
   private static Location parseLocationFromMap(Map input) {
     Collection<String> expectedKeys = ["name", "street", "zip_code", "country", "first_name", "last_name", "email"]
     for(String key: expectedKeys) {
-      if (!input.keySet().any {it.equalsIgnoreCase(key)}) {
+      // the contains key uses the same groovy magic that the get uses later on to extract the fields
+      // even though the keys in the keySet of the map are all upper case
+      if (!input.containsKey(key)) {
         throw new IllegalArgumentException ("The provided input did not provide the expected key $key.")
       }
     }
