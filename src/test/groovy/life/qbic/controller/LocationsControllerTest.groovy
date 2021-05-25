@@ -24,7 +24,7 @@ class LocationsControllerTest {
   @Test
   void testNonExistingContact() throws Exception {
     HttpResponse<Contact> response = locations.contacts("ian.banks@limitingfactor.com")
-    assertEquals(response.getStatus().getCode(),404)
+    assertEquals(404, response.getStatus().getCode())
   }
 
   @Test
@@ -38,12 +38,12 @@ class LocationsControllerTest {
     String country = "Chiark"
 
     HttpResponse response = locations.contacts(email)
-    assertEquals(response.getStatus().getCode(),200)
+    assertEquals(200, response.getStatus().getCode())
     Contact c = response.body.orElse(null)
 
-    assertEquals(c.fullName,first+" "+last)
+    assertEquals(c.fullName, first+" "+last)
     assertEquals(c.email,email)
-    Address address = c.address
+    Address address = c.getAddress()
     assertEquals(address.affiliation,affName)
     assertEquals(address.street,street)
     assertEquals(address.zipCode,zip)
@@ -53,29 +53,23 @@ class LocationsControllerTest {
   @Test
   void testMalformedContact() throws Exception {
     HttpResponse response = locations.contacts("justreadtheinstructions")
-    assertEquals(response.getStatus().getCode(), 400)
+    assertEquals(400, response.getStatus().getCode())
   }
   
   @Test
-  void testLocationsMail() throws Exception {
+  void testAvailableLocations() throws Exception {
     HttpResponse response = locations.locations("right@right.de")
-    assertEquals(response.getStatus().getCode(), 200)
+    assertEquals(200, response.getStatus().getCode())
     List<Location> loc = response.body.orElse(null)
-    assertEquals(loc.size(),1)
-  }
-  
-  @Test
-  void testMalformedLocationsMail() throws Exception {
-    HttpResponse response = locations.locations("justreadtheinstructions")
-    assertEquals(response.getStatus().getCode(), 400)
+    assertEquals(1, loc.size())
   }
   
   @Test
   void testLocations() throws Exception {
     HttpResponse response = locations.listLocations()
-    assertEquals(response.getStatus().getCode(), 200)
+    assertEquals(200, response.getStatus().getCode())
     List<Location> loc = response.body.orElse(null)
-    assertEquals(loc.size(),2)
+    assertEquals(2, loc.size())
   }
 
 }

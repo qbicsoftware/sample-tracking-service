@@ -4,6 +4,7 @@ import io.micronaut.context.ApplicationContext
 import io.micronaut.context.env.Environment
 import io.micronaut.http.HttpRequest
 import io.micronaut.http.HttpResponse
+import io.micronaut.http.HttpStatus
 import io.micronaut.http.client.HttpClient
 import io.micronaut.http.client.exceptions.HttpClientResponseException
 import io.micronaut.runtime.server.EmbeddedServer
@@ -54,7 +55,8 @@ class LocationsControllerIntegrationTest {
   }
 
   @Test
-  void testLocationsMail() throws Exception {
+  void testLocationsUserID() throws Exception {
+    String user_id = "Morat"
     String email = "jernau@hassease.gv"
     String first = "Jernau"
     String last ="Gurgeh"
@@ -63,49 +65,66 @@ class LocationsControllerIntegrationTest {
     int zip = 0
     String country = "Chiark"
 
-    int personID = db.addPerson("Morat", first, last, email, "")
+    int personID = db.addPerson(user_id, first, last, email)
     int locationID = db.addLocationForPerson(affName, street, country, 0, personID)
 
-    HttpRequest request = HttpRequest.GET("/locations/"+email).basicAuth("servicewriter", "123456!")
+    HttpRequest request = HttpRequest.GET("/locations/"+user_id).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
-    assertEquals(arr.size(), 1)
+    assertEquals(1, arr.size())
     JSONObject json = arr.getJSONObject(0)
 
-    assertEquals(json.get("name"),affName)
+    assertEquals(affName, json.get("name"))
 
     db.removeLocationAndPerson(personID, locationID)
   }
 
   @Test
-  void testMalformedLocationsMail() throws Exception {
+  void testLocationsForUnknownUser() throws Exception {
     HttpRequest request = HttpRequest.GET("/locations/justreadtheinstructions").basicAuth("servicewriter", "123456!")
-    String error = ""
+    HttpStatus exceptionStatus
+    HttpResponse response
     try {
-      HttpResponse response = client.toBlocking().exchange(request)
-    } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      response = client.toBlocking().exchange(request)
+      exceptionStatus = response.getStatus()
+    } catch (HttpClientResponseException responseException) {
+      exceptionStatus = responseException.getStatus()
     }
-    assertEquals(error, "Bad Request")
+    assertEquals(HttpStatus.BAD_REQUEST, exceptionStatus)
+  }
+
+  @Test
+  void testLocationsForUserWithoutLocations() throws Exception {
+    String user_id = "lonely"
+    String first = "A"
+    String last = "Hermit"
+    String email = "hermit@bugmenot.no"
+    int personID = db.addPerson(user_id, first, last, email)
+    HttpRequest request = HttpRequest.GET("/locations/"+user_id).basicAuth("servicewriter", "123456!")
+    String body = client.toBlocking().retrieve(request)
+    JSONArray arr = new JSONArray(body)
+    assertEquals(0, arr.size())
+
+    db.removePerson(personID)
   }
 
   @Test
   void testLocations() throws Exception {
     List<String> locNames = Arrays.asList("loc1","loc2","loc3")
-    int personID = db.addPerson("u1", "Paul", "Panther", "abc1@bla.de", "")
+    int personID = db.addPerson("u1", "Paul", "Panther", "abc1@bla.de")
     int locationID = db.addLocationForPerson("loc1", "street 1", "germany", 0, personID)
 
-    int personID2 = db.addPerson("u2", "Peter", "Parker", "abc2@bla.de", "")
+    int personID2 = db.addPerson("u2", "Peter", "Parker", "abc2@bla.de")
     int locationID2 = db.addLocationForPerson("loc2", "street 2", "united kingdom", 0, personID2)
 
-    int personID3 = db.addPerson("u3", "Markus", "Meier", "abc3@bla.de", "")
+    int personID3 = db.addPerson("u3", "Markus", "Meier", "abc3@bla.de")
     int locationID3 = db.addLocationForPerson("loc3", "street 3", "france", 0, personID3)
 
     HttpRequest request = HttpRequest.GET("/locations/").basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONArray arr = new JSONArray(body)
     println arr
-    assertEquals(arr.size(), 3)
+    assertEquals(3, arr.size())
     for(int i = 0; i<arr.size();i++) {
       JSONObject json = arr.getJSONObject(i)
       assert(locNames.contains(json.get("name")))
@@ -126,14 +145,21 @@ class LocationsControllerIntegrationTest {
 
   @Test
   void testNonExistingContact() throws Exception {
-    HttpRequest request = HttpRequest.GET("/locations/contacts/ian.banks@limitingfactor.com").basicAuth("servicewriter", "123456!")
-    String error = "";
+    String emailAddress = "ian.banks@limitingfactor.com"
+    String expectedReason = "Email address ${emailAddress} was not found in the system!"
+    String reason
+    HttpStatus status
+    HttpRequest request = HttpRequest.GET("/locations/contacts/${emailAddress}").basicAuth("servicewriter", "123456!")
     try {
       HttpResponse response = client.toBlocking().exchange(request)
-    } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      status = response.getStatus()
+      reason = response.getStatus().getReason()
+    } catch (HttpClientResponseException responseException) {
+      reason = responseException.getMessage()
+      status = responseException.getStatus()
     }
-    assertEquals(error, "Not Found")
+    assertEquals(HttpStatus.NOT_FOUND, status)
+    assertEquals(expectedReason, reason)
   }
 
   @Test
@@ -146,33 +172,39 @@ class LocationsControllerIntegrationTest {
     int zip = 0
     String country = "Chiark"
 
-    int personID = db.addPerson("Morat", first, last, email, "")
+    int personID = db.addPerson("Morat", first, last, email)
     int locationID = db.addLocationForPerson(affName, street, country, 0, personID)
 
-    HttpRequest request = HttpRequest.GET("/locations/contacts/"+email).basicAuth("servicewriter", "123456!")
+    HttpRequest request = HttpRequest.GET("/locations/contacts/" + email).basicAuth("servicewriter", "123456!")
     String body = client.toBlocking().retrieve(request)
     JSONObject json = new JSONObject(body);
     assertNotNull(body)
-    assertEquals(json.get("full_name"),first+" "+last)
-    assertEquals(json.get("email"),email)
-    JSONObject address = json.get("address")
-    assertEquals(address.get("affiliation"),affName)
-    assertEquals(address.get("street"),street)
-    assertEquals(address.get("zip_code"),zip)
-    assertEquals(address.get("country"),country)
+    assertEquals(first + " " + last, json.get("full_name"))
+    assertEquals(email, json.get("email"))
+    JSONObject address = json.get("address") as JSONObject
+    assertEquals(affName, address.get("affiliation"))
+    assertEquals(street, address.get("street"))
+    assertEquals(zip, address.get("zip_code"))
+    assertEquals(country, address.get("country"))
 
     db.removeLocationAndPerson(personID, locationID)
   }
 
   @Test
   void testMalformedContact() throws Exception {
-    HttpRequest request = HttpRequest.GET("/locations/contacts/justreadtheinstructions").basicAuth("servicewriter", "123456!")
-    String error = ""
+    String invalidContact = "justreadtheinstructions"
+    HttpRequest request = HttpRequest.GET("/locations/contacts/${invalidContact}").basicAuth("servicewriter", "123456!")
+    String reason
+    HttpStatus status
     try {
       HttpResponse response = client.toBlocking().exchange(request)
+      status = response.getStatus()
+      reason = status.getReason()
     } catch (HttpClientResponseException e) {
-      error = e.getMessage()
+      reason = e.getMessage()
+      status = e.getStatus()
     }
-    assertEquals(error, "Bad Request")
+    assertEquals("${invalidContact} is not a valid email address!".toString(), reason)
+    assertEquals(HttpStatus.BAD_REQUEST, status)
   }
 }

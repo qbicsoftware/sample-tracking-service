@@ -6,6 +6,7 @@ import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
 import life.qbic.db.IQueryService
+import life.qbic.db.NotFoundException
 
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,15 +22,15 @@ class SampleServiceCenter implements ISampleService {
   }
 
   @Override
-  HttpResponse addNewLocation(String sampleId, Location location) {
+  void addNewLocation(String sampleId, Location location) throws IllegalArgumentException {
     log.info "Adding new location "+location.name+" for sample "+sampleId
-    return database.addNewLocation(sampleId, location)
+    database.addNewLocation(sampleId, location)
   }
 
   @Override
-  HttpResponse updateLocation(String sampleId, Location location) {
+  void updateLocation(String sampleId, Location location) throws IllegalArgumentException {
     log.info "Updating location to "+location.name+" for sample "+sampleId
-    return database.updateLocation(sampleId, location)
+    database.updateLocation(sampleId, location)
   }
 
   @Override
@@ -39,8 +40,8 @@ class SampleServiceCenter implements ISampleService {
   }
 
   @Override
-  boolean updateSampleStatus(String sampleId, Status status) {
+  void updateSampleStatus(String sampleId, Status status) throws NotFoundException{
     log.info "Updating sample status of "+sampleId+". The status will be changed to: "+status
-    return database.updateSampleStatus(sampleId, status)
+    database.updateSampleStatus(sampleId, status)
   }
 }

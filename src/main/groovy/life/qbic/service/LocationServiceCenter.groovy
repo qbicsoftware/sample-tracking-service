@@ -35,4 +35,10 @@ class LocationServiceCenter implements ILocationService {
     log.info "Listing all known locations for person with e-mail "+email
     return database.getLocationsForEmail(email);
   }
+
+  @Override
+  List<Location> getLocationsForPerson(String identifier) {
+    log.info "Listing all known locations for the person identified by $identifier"
+    return database.getLocationsForPerson(identifier)
+  }
 }
