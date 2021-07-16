@@ -1,6 +1,5 @@
 package life.qbic.db
 
-
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
@@ -522,9 +521,14 @@ class MariaDBManager implements IQueryService, INotificationService {
    * @see #sampleChanged
    */
   private static void logSampleChange(String sampleCode, Status sampleStatus, Sql sql) {
-    //TODO implement
-    log.warn("Method #logSampleChange not implemented yet.")
-    throw new RuntimeException("Method not implemented.")
+    String query = "INSERT INTO notification (`sample_code`, `arrival_time`, `sample_status`) " +
+            "VALUES(?, CURRENT_TIMESTAMP, ?);"
+    try {
+      sql.execute(query, sampleCode, sampleStatus)
+    } catch(SQLException sqlException) {
+      log.error("sample change logging unsuccessful: $sqlException.message")
+      log.debug("sample change logging unsuccessful: $sqlException.message", sqlException)
+    }
   }
 
   /**
