@@ -1,7 +1,7 @@
 # Changelog
 
 ## Release 1.2.0 (--)
-- ?
+- Log changes to the notification table (PR #41)
 
 ## Release 1.1.0 (2021-05-25)
 - Add missing JavaDoc (Issue #15)
