@@ -1,10 +1,9 @@
 package life.qbic.db
 
+
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
-import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
 import life.qbic.datamodel.identifiers.SampleCodeFunctions
 import life.qbic.datamodel.people.Address
 import life.qbic.datamodel.people.Contact
@@ -26,7 +25,7 @@ import java.time.OffsetDateTime
 
 @Log4j2
 @Singleton
-class MariaDBManager implements IQueryService {
+class MariaDBManager implements IQueryService, INotificationService {
 
   private DataSource dataSource
 
@@ -500,6 +499,34 @@ class MariaDBManager implements IQueryService {
     return res
   }
 
+  @Override
+  void sampleChanged(String sampleCode, Status sampleStatus) {
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(),
+            "Connection must not be null.")
+    Sql sql = new Sql(connection)
+    try {
+      logSampleChange(sampleCode, sampleStatus, sql)
+    } catch (Exception unexpected) {
+      log.error("An unexpected error occured: $unexpected.message")
+      log.debug("An unexpected error occured: $unexpected.message", unexpected)
+    } finally {
+      sql.close()
+    }
+  }
+
+  /**
+   * Writes a sample status change to the notification table.
+   * @param sampleCode the the sample code of the changed sample
+   * @param sampleStatus the new value of the sample status
+   * @param sql The sql connection facade to be used
+   * @see #sampleChanged
+   */
+  private static void logSampleChange(String sampleCode, Status sampleStatus, Sql sql) {
+    //TODO implement
+    log.warn("Method #logSampleChange not implemented yet.")
+    throw new RuntimeException("Method not implemented.")
+  }
+
   //TODO JavaDoc
   void updateSampleStatus(String sampleId, Status status) throws NotFoundException {
     //    logger.info("Looking for user with email " + email + " in the DB");
@@ -572,5 +599,6 @@ class MariaDBManager implements IQueryService {
     }
     return res
   }
+
 
 }
