@@ -527,7 +527,14 @@ class MariaDBManager implements IQueryService, INotificationService {
     throw new RuntimeException("Method not implemented.")
   }
 
-  //TODO JavaDoc
+  /**
+   * Updates a sample status. In case the sample is multiple times in the database, the first query row is modified.
+   * <p><b>Please Note:</b> This method can potentially overwrite existing data and is unsafe to use.
+   * @param sampleId the sample code for which the status changed
+   * @param status the new sample status
+   * @throws NotFoundException in case the sample was not found in the database or has no location assigned
+   * @since 1.0.0
+   */
   void updateSampleStatus(String sampleId, Status status) throws NotFoundException {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
