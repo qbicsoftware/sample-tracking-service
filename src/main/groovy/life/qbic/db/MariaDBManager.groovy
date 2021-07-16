@@ -524,7 +524,7 @@ class MariaDBManager implements IQueryService, INotificationService {
     String query = "INSERT INTO notification (`sample_code`, `arrival_time`, `sample_status`) " +
             "VALUES(?, CURRENT_TIMESTAMP, ?);"
     try {
-      sql.execute(query, sampleCode, sampleStatus)
+      sql.execute(query, sampleCode, sampleStatus.toString())
     } catch(SQLException sqlException) {
       log.error("sample change logging unsuccessful: $sqlException.message")
       log.debug("sample change logging unsuccessful: $sqlException.message", sqlException)
