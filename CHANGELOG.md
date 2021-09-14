@@ -1,6 +1,8 @@
 # Changelog
 
-## Release 1.2.0 (--)
+## Release 1.3.0-SNAPSHOT (2021-09-14)
+
+## Release 1.2.0 (2021-09-14)
 - Log changes to the notification table (PR #41)
 
 ## Release 1.1.0 (2021-05-25)
