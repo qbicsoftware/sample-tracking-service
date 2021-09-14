@@ -5,12 +5,15 @@ import life.qbic.datamodel.people.Address
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
+import life.qbic.db.INotificationService
 import life.qbic.db.IQueryService
+import life.qbic.helpers.NotificationMock
 import life.qbic.helpers.QueryMock
 import life.qbic.service.ISampleService
 import life.qbic.service.SampleServiceCenter
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mock
 
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
@@ -26,8 +29,9 @@ class SamplesControllerTest {
   void setupMock() {
     IQueryService mock = new QueryMock()
     ISampleService serviceCenter = new SampleServiceCenter(mock)
+    INotificationService notificationService = new NotificationMock()
     
-    samples = new SamplesController(serviceCenter);
+    samples = new SamplesController(serviceCenter, notificationService);
   }
 
   @Test

@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
+import life.qbic.db.INotificationService
 import life.qbic.micronaututils.auth.Authentication
 import life.qbic.service.ISampleService
 
@@ -27,10 +28,12 @@ import javax.inject.Inject
 class SamplesController {
 
   ISampleService sampleService
+  INotificationService notificationService
 
   @Inject
-  SamplesController(ISampleService sampleService) {
+  SamplesController(ISampleService sampleService, INotificationService notificationService) {
     this.sampleService = sampleService
+    this.notificationService = notificationService
   }
 
   @Operation(summary = "Request a sample's tracking information",
@@ -80,6 +83,7 @@ class SamplesController {
     }
     try{
         sampleService.addNewLocation(sampleId, location)
+        notificationService.sampleChanged(sampleId, location.getStatus())
         return HttpResponse.ok(location)
     } catch (IllegalArgumentException illegalArgumentException) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
@@ -110,6 +114,7 @@ class SamplesController {
     }
     try {
       sampleService.updateLocation(sampleId, location)
+      notificationService.sampleChanged(sampleId, location.getStatus())
       return HttpResponse.ok(location)
     } catch (IllegalArgumentException illegalArgumentException) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
@@ -135,6 +140,7 @@ class SamplesController {
     try {
       if (null != sampleService.searchSample(sampleId)) {
         sampleService.updateSampleStatus(sampleId, status)
+        notificationService.sampleChanged(sampleId, status)
         return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
       } else {
         return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")

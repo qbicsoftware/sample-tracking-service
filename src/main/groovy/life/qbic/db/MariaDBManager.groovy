@@ -3,8 +3,6 @@ package life.qbic.db
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
-import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
 import life.qbic.datamodel.identifiers.SampleCodeFunctions
 import life.qbic.datamodel.people.Address
 import life.qbic.datamodel.people.Contact
@@ -26,7 +24,7 @@ import java.time.OffsetDateTime
 
 @Log4j2
 @Singleton
-class MariaDBManager implements IQueryService {
+class MariaDBManager implements IQueryService, INotificationService {
 
   private DataSource dataSource
 
@@ -500,7 +498,47 @@ class MariaDBManager implements IQueryService {
     return res
   }
 
-  //TODO JavaDoc
+  @Override
+  void sampleChanged(String sampleCode, Status sampleStatus) {
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(),
+            "Connection must not be null.")
+    Sql sql = new Sql(connection)
+    try {
+      logSampleChange(sampleCode, sampleStatus, sql)
+    } catch (Exception unexpected) {
+      log.error("An unexpected error occured: $unexpected.message")
+      log.debug("An unexpected error occured: $unexpected.message", unexpected)
+    } finally {
+      sql.close()
+    }
+  }
+
+  /**
+   * Writes a sample status change to the notification table.
+   * @param sampleCode the the sample code of the changed sample
+   * @param sampleStatus the new value of the sample status
+   * @param sql The sql connection facade to be used
+   * @see #sampleChanged
+   */
+  private static void logSampleChange(String sampleCode, Status sampleStatus, Sql sql) {
+    String query = "INSERT INTO notification (`sample_code`, `arrival_time`, `sample_status`) " +
+            "VALUES(?, CURRENT_TIMESTAMP, ?);"
+    try {
+      sql.execute(query, sampleCode, sampleStatus.toString())
+    } catch(SQLException sqlException) {
+      log.error("sample change logging unsuccessful: $sqlException.message")
+      log.debug("sample change logging unsuccessful: $sqlException.message", sqlException)
+    }
+  }
+
+  /**
+   * Updates a sample status. In case the sample is multiple times in the database, the first query row is modified.
+   * <p><b>Please Note:</b> This method can potentially overwrite existing data and is unsafe to use.
+   * @param sampleId the sample code for which the status changed
+   * @param status the new sample status
+   * @throws NotFoundException in case the sample was not found in the database or has no location assigned
+   * @since 1.0.0
+   */
   void updateSampleStatus(String sampleId, Status status) throws NotFoundException {
     //    logger.info("Looking for user with email " + email + " in the DB");
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
@@ -572,5 +610,6 @@ class MariaDBManager implements IQueryService {
     }
     return res
   }
+
 
 }

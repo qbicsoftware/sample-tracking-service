@@ -1,6 +1,9 @@
 # Changelog
 
-## 1.1.0
+## Release 1.2.0 (2021-09-14)
+- Log changes to the notification table (PR #41)
+
+## Release 1.1.0 (2021-05-25)
 - Add missing JavaDoc (Issue #15)
 - the `/{email}` endpoint now searches by the newly introduced `user_id` instead.
   This is no change in the behaviour as of now since they are identical as of now.
