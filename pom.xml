@@ -54,6 +54,23 @@
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
+			<dependency>
+				<groupId>io.micronaut</groupId>
+				<artifactId>micronaut-security</artifactId>
+				<version>1.1.1</version>
+			</dependency>
+			<dependency>
+				<groupId>io.micronaut.test</groupId>
+				<artifactId>micronaut-test-spock</artifactId>
+				<version>1.0.2</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.micronaut.test</groupId>
+				<artifactId>micronaut-test-junit5</artifactId>
+				<version>1.0.2</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 	<dependencies>
