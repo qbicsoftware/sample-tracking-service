@@ -13,7 +13,6 @@ import life.qbic.service.ISampleService
 import life.qbic.service.SampleServiceCenter
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mock
 
 import static org.junit.Assert.assertEquals
 import static org.junit.Assert.assertNotNull
