@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.qbic</groupId>
 	<artifactId>sampletracking</artifactId>
-	<version>1.1.0</version>
+	<version>1.2.0</version>
 	<properties>
 		<swagger.version>2.1.0</swagger.version>
 		<jdk.version>1.8</jdk.version>
@@ -219,4 +219,22 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+  <distributionManagement>
+    <repository>
+      <uniqueVersion>true</uniqueVersion>
+      <id>nexus-releases</id>
+      <name>QBiC Releases</name>
+      <url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-releases</url>
+    </repository>
+    <snapshotRepository>
+      <uniqueVersion>false</uniqueVersion>
+      <id>nexus-snapshots</id>
+      <name>QBiC Snapshots</name>
+      <url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-snapshots</url>
+    </snapshotRepository>
+    <site>
+      <id>dummytest</id>
+      <url>localhost:8080</url>
+    </site>
+  </distributionManagement>
 </project>
