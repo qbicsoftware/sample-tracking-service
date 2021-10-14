@@ -5,7 +5,7 @@ Changelog
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
 
-1.3.0 (2021-10-14)
+1.2.0 (2021-10-14)
 ------------------
 
 **Added**
@@ -13,18 +13,6 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 * Use Github actions
 
 * Use new changelog style
-
-**Fixed**
-
-**Dependencies**
-
-**Deprecated**
-
-
-1.2.0 (2021-09-14)
-------------------
-
-**Added**
 
 * Log changes to the notification table (PR #41)
 
