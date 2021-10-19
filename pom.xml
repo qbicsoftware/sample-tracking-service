@@ -6,7 +6,6 @@
 	<artifactId>sampletracking</artifactId>
 	<version>1.2.0</version>
 	<properties>
-		<exec.mainClass>analyzer.Application</exec.mainClass>
 		<swagger.version>2.1.0</swagger.version>
 		<jdk.version>1.8</jdk.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
