@@ -210,7 +210,7 @@
 						<configuration>
 							<archive>
 								<manifest>
-									<mainClass>life.qbic.cli.{{ cookiecutter.main_class_prefix }}EntryPoint</mainClass>
+									<mainClass>life.qbic.SampleTracking</mainClass>
 								</manifest>
 							</archive>
 							<descriptorRefs>
