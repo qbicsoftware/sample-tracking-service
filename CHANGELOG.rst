@@ -4,8 +4,19 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
+1.3.0-SNAPSHOT (2021-10-21)
+------------------
 
-1.2.0 (2021-10-14)
+**Added**
+
+**Fixed**
+
+**Dependencies**
+
+**Deprecated**
+
+
+1.2.0 (2021-10-21)
 ------------------
 
 **Added**
@@ -19,6 +30,20 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 **Fixed**
 
 **Dependencies**
+
+* Increase `data-model-lib:2.4.0` -> `2.13.0`
+
+* Increase `mariadb-java-client:2.0.2` -> `2.7.3`
+
+* Increase `logback-classic:1.2.3` -> `1.2.6`
+
+* Increase `gmavenplus-plugin:1.6.3` -> `1.12.1`
+
+* Introduce `groovy-bom:2.5.7`
+
+* Introduce `micronaut-bom:1.2.7`
+
+* Introduce `maven-shade-plugin:3.2.1`
 
 **Deprecated**
 
