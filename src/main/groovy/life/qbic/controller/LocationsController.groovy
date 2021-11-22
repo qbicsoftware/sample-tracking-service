@@ -77,7 +77,7 @@ class LocationsController {
   }
 
   @Get(uri = "/{user_id}", produces = MediaType.APPLICATION_JSON)
-  @RolesAllowed(["READER"])
+  @RolesAllowed(["READER", "WRITER"])
   @Operation(summary = "Provides the locations information linked to a user identifier",
           description = "Provides detailed locations information that is linked to a user",
           tags = "Location")
