@@ -12,11 +12,11 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import life.qbic.auth.Authentication
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
 import life.qbic.db.INotificationService
-import life.qbic.micronaututils.auth.Authentication
 import life.qbic.service.ISampleService
 
 import javax.annotation.security.RolesAllowed

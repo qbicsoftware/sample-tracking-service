@@ -3,6 +3,7 @@ package life.qbic.db
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
+import life.qbic.QBiCDataSource
 import life.qbic.datamodel.identifiers.SampleCodeFunctions
 import life.qbic.datamodel.people.Address
 import life.qbic.datamodel.people.Contact
@@ -10,7 +11,6 @@ import life.qbic.datamodel.people.Person
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
-import life.qbic.micronaututils.QBiCDataSource
 
 import javax.inject.Inject
 import javax.inject.Singleton

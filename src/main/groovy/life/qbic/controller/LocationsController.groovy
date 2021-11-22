@@ -14,9 +14,9 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import life.qbic.auth.Authentication
 import life.qbic.datamodel.people.Contact
 import life.qbic.datamodel.samples.Location
-import life.qbic.micronaututils.auth.Authentication
 import life.qbic.service.ILocationService
 
 import javax.annotation.security.RolesAllowed
@@ -90,6 +90,7 @@ class LocationsController {
   @ApiResponse(responseCode = "404", description = "Location information for the provided user identifier not found")
   @ApiResponse(responseCode = "500", description = "Retrieval of location information for the provided user failed for an unknown reason")
   HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId) {
+    println "here"
     HttpResponse<List<Location>> response
     List<Location> searchResult
     try {
