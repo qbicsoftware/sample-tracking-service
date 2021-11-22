@@ -10,7 +10,6 @@ class QBiCDataSource implements DataSource {
     javax.sql.DataSource source
 
     @Inject QBiCDataSource (javax.sql.DataSource source) {
-        println "init datasource"
         this.source = source
     }
 

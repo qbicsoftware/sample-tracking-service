@@ -90,7 +90,6 @@ class LocationsController {
   @ApiResponse(responseCode = "404", description = "Location information for the provided user identifier not found")
   @ApiResponse(responseCode = "500", description = "Retrieval of location information for the provided user failed for an unknown reason")
   HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId) {
-    println "here"
     HttpResponse<List<Location>> response
     List<Location> searchResult
     try {
