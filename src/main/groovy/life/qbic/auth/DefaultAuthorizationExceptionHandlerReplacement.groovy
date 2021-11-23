@@ -15,8 +15,8 @@ import static io.micronaut.http.HttpStatus.UNAUTHORIZED;
  *
  * <p>Following the HTTP 1.1 specification, we MUST provide a
  * WWW-Authenticate header information  in case we generate a http response
- * with status code 401:
- * https://datatracker.ietf.org/doc/html/rfc7235#section-4.1
+ * with status code 401:</p>
+ * <a href="https://datatracker.ietf.org/doc/html/rfc7235#section-4.1">https://datatracker.ietf.org/doc/html/rfc7235#section-4.1</a>
  *
  * @since 1.2.1
  */
