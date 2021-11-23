@@ -14,9 +14,9 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import life.qbic.auth.Authentication
 import life.qbic.datamodel.people.Contact
 import life.qbic.datamodel.samples.Location
-import life.qbic.micronaututils.auth.Authentication
 import life.qbic.service.ILocationService
 
 import javax.annotation.security.RolesAllowed
@@ -77,7 +77,7 @@ class LocationsController {
   }
 
   @Get(uri = "/{user_id}", produces = MediaType.APPLICATION_JSON)
-  @RolesAllowed(["READER"])
+  @RolesAllowed(["READER", "WRITER"])
   @Operation(summary = "Provides the locations information linked to a user identifier",
           description = "Provides detailed locations information that is linked to a user",
           tags = "Location")
