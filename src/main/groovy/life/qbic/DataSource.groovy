@@ -11,14 +11,14 @@ import java.sql.Connection
 interface DataSource {
 
     /**
-     * Provides a new {@link Connection} object instance to be able to to submit
-     * queries to the underlying datasource.
+     * <p>Provides a new {@link Connection} object instance to be able to to submit
+     * queries to the underlying datasource.</p>
      *
-     * The caller MUST handle the closing of the connection, after the connection is not used anymore.
+     * <p>The caller <b>MUST</b> handle the closing of the connection, after the connection is not used anymore.</p>
      *
-     * Since the {@link Connection} class implements the {@link AutoCloseable} interface, you wrap the
+     * <p>Since the {@link Connection} class implements the {@link AutoCloseable} interface, you wrap the
      * execution of the connection object with a try-with-resource statement or call the
-     * {@link AutoCloseable#close()} method explicitly.
+     * {@link AutoCloseable#close()} method explicitly.</p>
      * @return a connection to the datasource
      */
     Connection getConnection()
