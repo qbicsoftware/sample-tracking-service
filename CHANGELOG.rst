@@ -4,6 +4,23 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
+1.2.1 (2021-11-22)
+------------------
+
+**Added**
+
+**Fixed**
+
+* Introduces proper HTTP response formatting for unauthorized requests (401) by providing the
+WWW-Authentication header entry. This will enable clients that implement the HTTP specification strictly
+to be able to make a successful request to this REST server
+
+**Dependencies**
+
+* Micronaut 1.2.5 -> 2.5.13
+* Groovy 2.5.x -> 3.0.5
+
+**Deprecated**
 
 1.2.0 (2021-10-14)
 ------------------
