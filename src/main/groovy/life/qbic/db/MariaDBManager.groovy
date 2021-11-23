@@ -440,7 +440,7 @@ class MariaDBManager implements IQueryService, INotificationService {
         try {
           pers = getPersonByDbId(personID)
         } catch (NotFoundException personNotFoundException) {
-          log.error("Could not retrieve responsible person for sample ${code}.", personNotFoundException)
+          log.error("Could not retrieve responsible person for change {sample: ${code}; time of change: ${arrivalDate.toString()}}.", personNotFoundException)
           throw new RuntimeException("The request for sample ${code} failed.")
         }
 
