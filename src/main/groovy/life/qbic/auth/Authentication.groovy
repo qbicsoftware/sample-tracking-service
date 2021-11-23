@@ -4,19 +4,38 @@ import groovy.util.logging.Log4j2
 import io.micronaut.context.annotation.Value
 import io.micronaut.core.annotation.Nullable
 import io.micronaut.http.HttpRequest
-import io.micronaut.security.authentication.AuthenticationException
-import io.micronaut.security.authentication.AuthenticationFailed
-import io.micronaut.security.authentication.AuthenticationProvider
-import io.micronaut.security.authentication.AuthenticationRequest
-import io.micronaut.security.authentication.AuthenticationResponse
-import io.micronaut.security.authentication.UserDetails
+import io.micronaut.security.authentication.*
 import io.reactivex.Flowable
+import life.qbic.auth.Authentication
 import org.reactivestreams.Publisher
 import org.yaml.snakeyaml.Yaml
 
 import javax.annotation.PostConstruct
 import javax.inject.Singleton
 
+/**
+ * <b>Class Authentication</b>
+ *
+ * <p>Authenticates a user and authorizes the user role in this sample-tracking service context.</p>
+ *
+ * <p>The roles and user tokens must be provided in a file following the YAML format specification.</p> An examplary
+ * entry looks like this:
+ *
+ * <pre>
+ *     ---
+ *        servicereader:
+ *          token: 123!
+ *          roles:
+ *           - READER
+ *        servicewriter:
+ *          token: 123456!
+ *          roles:
+ *            - READER
+ *            - WRITER
+ *    ...
+ * </pre>
+ * @since 1.2.1
+ */
 @Log4j2
 @Singleton
 class Authentication implements AuthenticationProvider{
@@ -26,6 +45,11 @@ class Authentication implements AuthenticationProvider{
 
     private Map config
 
+    /**
+     * <p>Executed after the bean has been instantiated by Micronaut.</p>
+     *
+     * <p>Loads the user token and roles from the YAML file specified in the {@link Authentication#configPath} field.</p>
+     */
     @PostConstruct
     void initialize() {
         if (configPath.isEmpty()) {
