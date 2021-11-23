@@ -17,6 +17,29 @@ import org.yaml.snakeyaml.Yaml
 import javax.annotation.PostConstruct
 import javax.inject.Singleton
 
+/**
+ * <b>Class Authentication</b>
+ *
+ * <p>Authenticates a user and authorizes the user role in this sample-tracking service context.</p>
+ *
+ * <p>The roles and user tokens must be provided in a file following the YAML format specification.</p> An examplary
+ * entry looks like this:
+ *
+ * <pre>
+ *     ---
+ *        servicereader:
+ *          token: 123!
+ *          roles:
+ *           - READER
+ *        servicewriter:
+ *          token: 123456!
+ *          roles:
+ *            - READER
+ *            - WRITER
+ *    ...
+ * </pre>
+ * @since 1.2.1
+ */
 @Log4j2
 @Singleton
 class Authentication implements AuthenticationProvider{
@@ -26,6 +49,11 @@ class Authentication implements AuthenticationProvider{
 
     private Map config
 
+    /**
+     * <p>Executed after the bean has been instantiated by Micronaut.</p>
+     *
+     * <p>Loads the user token and roles from the YAML file specified in the {@link Authentication#configPath} field.</p>
+     */
     @PostConstruct
     void initialize() {
         if (configPath.isEmpty()) {
