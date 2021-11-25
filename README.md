@@ -10,9 +10,32 @@ mn create-app life.qbic.sampletracking --features=groovy --build maven
 
 ### Run locally
 
+For the application to use the database the following information is read from environment variables:
+
+| environment variable | description |
+|---|---|
+`TR_DB_HOST` | The sample tracking database host address
+`TR_DB_USER` | The sample tracking database user
+`TR_DB_PWD` | The sample tracking database user
+`TR_DB_NAME` | The sample tracking database name
+
+Furthermorethe a userrole definition is needed. By default a file is expected at `/etc/micronaut.d/userroles.yml`.
 ```
-./mvnw compile
-./mvnw exec:exec
+---
+servicereader:
+  token: 123!    // replace with your token
+  roles:
+    - READER
+servicewriter:
+  token: 123456! // replace with your token
+  roles:
+    - READER
+    - WRITER
+...
+```
+Once these configurations were made, you can run the sample-tracking-service locally by executing 
+```
+mvn 
 ```
 
 ### Execute tests
