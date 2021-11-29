@@ -22,8 +22,8 @@ import javax.inject.Singleton
  *
  * <p>Authenticates a user and authorizes the user role in this sample-tracking service context.</p>
  *
- * <p>The roles and user tokens must be provided in a file following the YAML format specification.</p> An examplary
- * entry looks like this:
+ * <p>The roles and user tokens must be provided in a file following the YAML format specification.</p>
+ * An exemplary entry looks like this:
  *
  * <pre>
  *     ---
