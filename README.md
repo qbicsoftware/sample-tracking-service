@@ -45,8 +45,7 @@ The Response codes in the sample-tracking API follow the [REST API status code](
 
 
 ### For samples
-Providing a sampleId to the samples API 
-By providing a sampleId the sample-tracking service returns the tracking information in the JSON Format: 
+By providing a sampleId the sample-tracking service returns the tracking information in JSON Format: 
 
 #### Response 
 ```
@@ -88,7 +87,9 @@ By providing a sampleId the sample-tracking service returns the tracking informa
 ```
 
 ### For locations
-//ToDo Add GET Methods from LocationsController
+By providing an email address the sample-tracking service can provide the linked affiliation and person information in JSON Format:
+
+#### Response
 ```
 {
   "full_name": "Max Mustermann",
@@ -103,3 +104,14 @@ By providing a sampleId the sample-tracking service returns the tracking informa
 }
 ```
 
+By providing an userID the sample-tracking service can provide the linked location information in JSON Format:
+
+#### Response
+```
+```
+
+The sample-tracking service can list all available locations stored in the system
+
+#### Response
+```
+```
