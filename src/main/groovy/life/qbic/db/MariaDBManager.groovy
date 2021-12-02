@@ -489,7 +489,7 @@ class MariaDBManager implements IQueryService, INotificationService {
     return new Person(firstName, lastName, email)
   }
 
-  private Person getPersonByDbId(int id) {
+  private Person getPersonByDbId(int id) throws NotFoundException {
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
     String query = "SELECT * from ${PERSONS_TABLE} WHERE id = ${id}"
