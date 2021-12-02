@@ -414,11 +414,10 @@ class MariaDBManager implements IQueryService, INotificationService {
     Sample res = null;
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
-    Sql sql = new Sql(connection)
     final String query = "SELECT * FROM samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
         "INNER JOIN locations ON samples_locations.location_id = locations.id "+
         "WHERE UPPER(samples.id) = UPPER('${code}');"
-    try {
+    try (Sql sql = new Sql(connection)) {
       List<GroovyRowResult> results = sql.rows(query)
       List<Location> pastLocs = new ArrayList<>()
       Location currLoc = null;
@@ -472,8 +471,6 @@ class MariaDBManager implements IQueryService, INotificationService {
 
     } catch (SQLException e) {
       e.printStackTrace()
-    } finally {
-      sql.close()
     }
     return res
   }
