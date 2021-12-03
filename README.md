@@ -31,11 +31,8 @@ The remote [RESTful API](https://app.swaggerhub.com/apis-docs/qbic/sample-tracki
 
 ## Output Formats
 
-### Endpoint Format
-The endpoints formatting follows the [OpenAPI Specifications](https://swagger.io/specification/)
-
-### Common Response Codes 
-The Response codes in the sample-tracking API follow the [REST API status code](https://restfulapi.net/http-status-codes/) terminology: 
+### Common Response Codes
+The Response codes in the sample-tracking API follow the [REST API status code](https://restfulapi.net/http-status-codes/) terminology:
 
 | RESPONSE CODE | TEXT                  | Purpose   | 
 | -----------   | -----------           | --------- |
@@ -46,6 +43,10 @@ The Response codes in the sample-tracking API follow the [REST API status code](
 | 404           | Not Found             | The accessed resource doesn't exist or couldn't be found.| 
 | 500           | Internal Server Error | When an error has occurred within the API.| 
 
+
+
+### Endpoint Format
+The endpoints formatting follows the [OpenAPI Specifications](https://swagger.io/specification/)
 
 ### Retrieve sample information from sampleID
 
