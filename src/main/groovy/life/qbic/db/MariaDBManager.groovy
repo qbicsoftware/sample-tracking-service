@@ -11,6 +11,7 @@ import life.qbic.datamodel.people.Person
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
+import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -413,29 +414,34 @@ class MariaDBManager implements IQueryService, INotificationService {
     Sample res = null;
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
-    Sql sql = new Sql(connection)
     final String query = "SELECT * FROM samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
         "INNER JOIN locations ON samples_locations.location_id = locations.id "+
         "WHERE UPPER(samples.id) = UPPER('${code}');"
-    try {
+    try (Sql sql = new Sql(connection)) {
       List<GroovyRowResult> results = sql.rows(query)
       List<Location> pastLocs = new ArrayList<>()
       Location currLoc = null;
       java.util.Date currDate = null
       for(GroovyRowResult rs: results) {
-        int currID = rs.get("current_location_id")
-        int locID = rs.get("location_id")
+        int currID = rs.get("current_location_id") as int
+        int locID = rs.get("location_id") as int
         java.util.Date arrivalDate = toDate(rs.get("arrival_time"))
         java.util.Date forwardedDate = toDate(rs.get("forwarded_time"))
-        Status status = rs.get("sample_status")
+        Status status = rs.get("sample_status") as Status
         String name = rs.get("name")
         String street = rs.get("street")
         String country = rs.get("country")
-        int zip = rs.get("zip_code")
+        int zip = rs.get("zip_code") as int
 
         Address address = new Address(affiliation: name, street: street, zipCode: zip, country: country)
-        int personID = rs.get("responsible_person_id");
-        Person pers = getPersonNameByID(personID)
+        int personID = rs.get("responsible_person_id") as int
+        Person pers
+        try {
+          pers = getPersonByDbId(personID)
+        } catch (NotFoundException personNotFoundException) {
+          log.error("Could not retrieve responsible person for change {sample: ${code}; time of change: ${arrivalDate.toString()}}.", personNotFoundException)
+          throw new RuntimeException("The request for sample ${code} failed.")
+        }
 
         if(currID == locID ) {
            // Compare if current location is the newest entry
@@ -465,37 +471,34 @@ class MariaDBManager implements IQueryService, INotificationService {
 
     } catch (SQLException e) {
       e.printStackTrace()
-    } finally {
-      sql.close()
     }
     return res
   }
 
-  private Person getPersonNameByID(int id) {
-    //    logger.info("Looking for user with email " + email + " in the DB");
-    Person res = null;
+  private static Person rowResultToPerson(GroovyRowResult rowResult) {
+    String firstName = rowResult.get("first_name")
+    String lastName = rowResult.get("last_name")
+    String email = rowResult.get("email")
+    if (firstName == null || lastName == null || email == null) {
+      log.error("Incomplete person dataset. ${rowResult.get("id")}")
+      throw new RuntimeException("Incomplete person dataset.")
+    }
+    return new Person(firstName, lastName, email)
+  }
+
+  private Person getPersonByDbId(int id) throws NotFoundException {
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
-    Sql sql = new Sql(connection)
-
-    final String query = "SELECT * from $PERSONS_TABLE WHERE id = ${id};"
-    try {
-      List<GroovyRowResult> results = sql.rows(query)
-      if( results.size() > 0 ) {
-        GroovyRowResult rs = results.get(0)
-        //        logger.info("email found!");
-        String firstName = rs.get("first_name")
-        String lastName = rs.get("last_name")
-        String email = rs.get("email")
-        res = new Person(firstName, lastName, email)
-      }
-    } catch (SQLException e) {
-      //      logger.error("SQL operation unsuccessful: " + e.getMessage());
-      e.printStackTrace();
-    } finally {
-      sql.close()
+    String query = "SELECT * from ${PERSONS_TABLE} WHERE id = ${id}"
+    try (Sql sql = new Sql(connection)) {
+      def results = sql.rows(query)
+      Person foundPerson = Optional.ofNullable(results)
+              .filter({ return !(it == null || it.isEmpty()) })
+              .map(DefaultGroovyMethods::first)
+              .map(this::rowResultToPerson)
+              .orElseThrow({ new NotFoundException("No person with id ${id} exists.")})
+      return foundPerson
     }
-    return res
   }
 
   @Override
