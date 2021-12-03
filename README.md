@@ -31,6 +31,9 @@ The remote [RESTful API](https://app.swaggerhub.com/apis-docs/qbic/sample-tracki
 
 ## Output Formats
 
+### Endpoint Format
+The endpoints formatting follows the [OpenAPI Specifications](https://swagger.io/specification/)
+
 ### Common Response Codes 
 The Response codes in the sample-tracking API follow the [REST API status code](https://restfulapi.net/http-status-codes/) terminology: 
 
@@ -44,74 +47,219 @@ The Response codes in the sample-tracking API follow the [REST API status code](
 | 500           | Internal Server Error | When an error has occurred within the API.| 
 
 
-### For samples
-By providing a sampleId the sample-tracking service returns the tracking information in JSON Format: 
+### Retrieve sample information from sampleID
 
-#### Response 
+Gets the sample information including current and past locations for a specific sample ID in JSON format
+
+#### Endpoint
+```
+  /samples/{sampleId}:
+    get:
+      summary: "GET samples/{sampleId}"
+      parameters:
+      - name: "sampleId"
+        in: "path"
+      responses:
+        "200":
+          description: "OK"
+```
+
+#### Example Request
+
+```
+/sample/QMUJW064AW
+```
+
+#### Example Response 
 ```
 {
-  "id": "QTEST123AE",
+  "code": "QMUJW064AW",
   "current_location": {
     "name": "QBiC",
-    "responsible_person": "Max Mustermann",
+    "responsible_person": "John Doe",
+    "responsible_person_email": "John.Doe@Templa.te",
     "address": {
-      "affiliation": "Quantitative Biology Center",
-      "street": "Auf der Morgenstelle",
-      "number": 10,
+      "affiliation": "QBiC",
+      "street": "Auf der Morgenstelle 10",
       "zip_code": 72076,
       "country": "Germany"
     },
-    "sample_status": "processed",
-    "date_of_receipt": "2019-01-31T10:00:00Z",
-    "delivered_to": "Department for Human Genetics",
-    "date_of_delivery": "2019-02-01T09:00:00Z"
-  },
-  "passed_locations": [
-    {
-      "name": "QBiC",
-      "responsible_person": "Max Mustermann",
-      "address": {
-        "affiliation": "Quantitative Biology Center",
-        "street": "Auf der Morgenstelle",
-        "number": 10,
-        "zip_code": 72076,
-        "country": "Germany"
-      },
-      "sample_status": "processed",
-      "date_of_receipt": "2019-01-31T10:00:00Z",
-      "delivered_to": "Department for Human Genetics",
-      "date_of_delivery": "2019-02-01T09:00:00Z"
-    }
-  ]
+    "sample_status": "METADATA_REGISTERED",
+    "arrival_date": "2019-12-03T10:32Z"
+  }
 }
 ```
 
-### For locations
-By providing an email address the sample-tracking service can provide the linked affiliation and person information in JSON Format:
+### Retrieve location information from userId
 
-#### Response
+Gets the linked location information of a provided {user_id} in JSON Format:
+
+#### Endpoint 
+
+```
+  /locations/{user_id}:
+    get:
+      summary: "GET locations/{user_id}"
+      parameters:
+      - name: "user_id"
+        in: "path"
+      responses:
+        "200":
+          description: "OK"
+```
+
+#### Example Request
+
+```
+/locations/John.Doe@Templa.te
+```
+
+#### Example Response
+```
+[
+  {
+    "name": "QBiC",
+    "responsible_person": "John Doe",
+    "responsible_person_email": "John.Doe@Templa.te",
+    "address": {
+      "affiliation": "QBiC",
+      "street": "Auf der Morgenstelle 10",
+      "zip_code": 72076,
+      "country": "Germany"
+    }
+  },
+  {
+    "name": "Awesome Partner Lab",
+    "responsible_person": "John Doe",
+    "responsible_person_email": "John.Doe@Templa.te",
+    "address": {
+      "affiliation": "Partner Labs",
+      "street": "Example Street 5",
+      "zip_code": 12345,
+      "country": "ImaginationLand"
+    }
+  },
+  {
+    "name": "Splendid Facility",
+    "responsible_person": "John Doe",
+    "responsible_person_email": "John.Doe@Templa.te",
+    "address": {
+      "affiliation": "Partner Facilities",
+      "street": "Example Lane 10",
+      "zip_code": 12345,
+      "country": "ImaginationLand"
+    }
+  }
+]
+```
+
+### Retrieve complete location to user linked information 
+
+Gets all the location to users linked information in JSON format
+
+#### Endpoint
+
+```
+  /locations/:
+    get:
+      summary: "GET locations/"
+      responses:
+        "200":
+          description: "OK"
+```
+
+#### Example Request
+
+```
+/locations/
+```
+
+#### Example Response
+```
+[
+  {
+    "name": "QBiC",
+    "responsible_person": "John Doe",
+    "responsible_person_email": "John.Doe@Templa.te",
+    "address": {
+      "affiliation": "QBiC",
+      "street": "Auf der Morgenstelle 10",
+      "zip_code": 72076,
+      "country": "Germany"
+    }
+  },
+  {
+    "name": "Awesome Partner Lab",
+    "responsible_person": "John Doe",
+    "responsible_person_email": "John.Doe@Templa.te",
+    "address": {
+      "affiliation": "Partner Labs",
+      "street": "Example Street 5",
+      "zip_code": 12345,
+      "country": "ImaginationLand"
+    }
+  },
+  {
+    "name": "QBiC",
+    "responsible_person": "Erika Musterfrau",
+    "responsible_person_email": "Erika@MusterFr.au",
+    "address": {
+      "affiliation": "QBiC",
+      "street": "Auf der Morgenstelle 10",
+      "zip_code": 72076,
+      "country": "Germany"
+    }
+  },
+  {
+    "name": "Splendid Facility",
+    "responsible_person": "Erika Musterfrau",
+    "responsible_person_email": "Erika@MusterFr.au",
+    "address": {
+      "affiliation": "Partner Facilities",
+      "street": "Example Lane 10",
+      "zip_code": 12345,
+      "country": "ImaginationLand"
+    }
+  },
+  }]
+```
+
+### Retrieve contact Information from email address
+
+**NOTE: This method is deprecated and will be removed in future versions** 
+
+Gets the linked affiliation and person information for an email address in JSON Format:
+
+#### Endpoint
+```
+  /locations/contacts/{email}:
+    get:
+      summary: "GET locations/contacts/{email}"
+      deprecated: true
+      parameters:
+      - name: "email"
+        in: "path"
+      responses:
+        "200":
+          description: "OK"
+```
+
+#### Example Request
+
+```
+/locations/contacts/John.Doe@Templa.te
+```
+
+#### Example Response
 ```
 {
-  "full_name": "Max Mustermann",
+  "full_name": "John Doe",
   "address": {
-    "affiliation": "Quantitative Biology Center",
-    "street": "Auf der Morgenstelle",
-    "number": 10,
+    "affiliation": "QBiC",
+    "street": "Auf der Morgenstelle 10",
     "zip_code": 72076,
     "country": "Germany"
   },
-  "email": "max.mustermann@example.com"
+  "email": "John.Doe@Templa.te"
 }
-```
-
-By providing an userID the sample-tracking service can provide the linked location information in JSON Format:
-
-#### Response
-```
-```
-
-The sample-tracking service can list all available locations stored in the system
-
-#### Response
-```
 ```
