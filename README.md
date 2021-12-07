@@ -1,6 +1,23 @@
 # Sample-Tracking Service
 Service that implements a sample tracking interface.
 
+Overview:
+
+- [Micronaut app](#micronaut-app)
+  * [Run locally](#run-locally)
+  * [Execute tests](#execute-tests)
+- [Data model](#data-model)
+- [Authentication](#authentication)
+- [Api design](#api-design)
+  * [Common response codes](#common-response-codes)
+  * [Endpoint format](#endpoint-format)
+  * [Retrieve sample information from sampleID](#retrieve-sample-information-from-sampleid)
+  * [Update Sample Status of current location from sampleId and sample status](#update-sample-status-of-current-location-from-sampleid-and-sample-status)
+  * [Retrieve location information for an userId](#retrieve-location-information-for-an-userid)
+  * [Update current location of sampleId](#update-current-location-of-sampleid)
+  * [Retrieve complete location to user linked information](#retrieve-complete-location-to-user-linked-information)
+  * [Retrieve contact Information from email address](#retrieve-contact-information-from-email-address)
+
 ## Micronaut app
 This service is build with [micronaut](https://micronaut.io):
 
@@ -45,7 +62,7 @@ servicereader:
 
 ## API design
 
-### Common Response Codes
+### Common response codes
 The Response codes in the sample-tracking API follow the [REST API status code](https://restfulapi.net/http-status-codes/) terminology:
 
 | RESPONSE CODE | TEXT                  | Purpose   | 
@@ -58,9 +75,8 @@ The Response codes in the sample-tracking API follow the [REST API status code](
 | 500           | Internal Server Error | When an error has occurred within the API.| 
 
 
-### Endpoint Format
+### Endpoint format
 The endpoints formatting follows the [OpenAPI Specifications](https://swagger.io/specification/)
-
 
 ### Retrieve sample information from sampleID
 Gets the sample information including current and past locations for a specific sample ID in JSON format
