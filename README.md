@@ -82,6 +82,8 @@ To retrieve contact information based on a given email address
 ```
 "email": "max.mustermann@uni-tubingen.de"
 ```
+### Retrieve location information for an userId
+
 To retrieve location information for a given user id
 ```
 "user_id": "qabcd04"
