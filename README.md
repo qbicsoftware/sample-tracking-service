@@ -58,35 +58,21 @@ To obtain tracking information for a given sample id
 To set the current location for a sample with the given identifier
 ```
 {
-    "sampleId":"QABCD12AE",
-    "location":{
-        "name": "Max Mustermann",
-        "responsiblePerson": "Max Mustermann",
-        "responsibleEmail": "max.mustermann@uni-tubingen.de",
-        "address"{
-            "affiliation": "QBiC",
-            "street": "Auf der Morgenstelle 6",
-            "zipCode": 72076,
-            "country": "Germany"
-        },
-        "status":["SAMPLE_QC_FAIL", "SAMPLE_QC_PASS", "SAMPLE_RECEIVED", "LIBRARY_PREP_FINISHED", "SEQUENCING",
-                    "SEQUENCING_COMPLETE", "METADATA_REGISTERED", "WAITING", "PROCESSING", "FAILED_QC", "PROCESSED",
-                    "DATA_AVAILABLE",],
-        arrivalDate:{
-            "year": 2021,
-            "month": 10, 
-            "date": 5, 
-            "hrs": 15, 
-            "min": 00
-        },
-        forwardDate:{
-            "year": 2021,
-            "month": 10, 
-            "date": 5, 
-            "hrs": 15, 
-            "min": 00
-        }
-    }
+  "name":"Example Location Name",
+  "responsible_person":"Max Mustermann",
+  "responsible_person_email":"max.mustermann@uni-tubingen.de",
+  "address":{
+    "affiliation":"QBiC",
+    "street":"Auf der Morgenstelle 6",
+    "zip_code":72076,
+    "country":"Germany"
+  },
+  "sample_status":"WAITING",
+  "arrival_date":"2021-12-07T09:38Z",
+  "forward_date":"2021-12-07T09:38Z"
+}
+
+NOTE: The provided location information should be stripped of all newlines("\n") even between the attributes, otherwise it can't be interpreted by the sample-tracking-service
 }
 ```
 ### Retrieve contact Information from email address
