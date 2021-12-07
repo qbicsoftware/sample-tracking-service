@@ -46,14 +46,14 @@ servicereader:
             - WRITER
 ```
 
-## Input Formats
+### Retrieve sample information from sampleID
 The accepted input formats are listed in the following
-### For samples
 To obtain tracking information for a given sample id
 ```
 {
 "sampleId":"QABCD12AE"
 }
+### Set current location for a sample from sampleID
 ```
 To set the current location for a sample with the given identifier
 ```
@@ -89,7 +89,9 @@ To set the current location for a sample with the given identifier
     }
 }
 ```
-### For locations
+### Retrieve contact Information from email address
+
+**NOTE: This method is deprecated and will be removed in future versions** 
 To retrieve contact information based on a given email address
 ```
 "email": "max.mustermann@uni-tubingen.de"
@@ -99,7 +101,6 @@ To retrieve location information for a given user id
 "user_id": "qabcd04"
 ```
 
-## Output Formats
 
 
 
