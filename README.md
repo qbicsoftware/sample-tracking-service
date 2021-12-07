@@ -22,14 +22,28 @@ mn create-app life.qbic.sampletracking --features=groovy --build maven
 ```
 
 ## Data model
-The data model that holds sample tracking information is denfined by attributes and relations shown in the following ER diagram.
+The data model that holds sample tracking information is defined by attributes and relations shown in the following ER diagram.
 
 ![er-diagram](models/sample-tracking-er.svg)
 
-## API design
-The remote [RESTful API](https://app.swaggerhub.com/apis-docs/qbic/sample-tracking) is created with [swagger.io](https://swagger.io/).
+## Authentication
 
-## Output Formats
+The roles and user tokens must be provided in a file following the YAML format specification.
+An exemplary entry looks like this:
+
+```
+servicereader:
+    token: 123!
+    roles:
+        - READER
+    servicewriter:
+        token: 123456!
+        roles:
+            - READER
+            - WRITER
+```
+
+## API design
 
 ### Common Response Codes
 The Response codes in the sample-tracking API follow the [REST API status code](https://restfulapi.net/http-status-codes/) terminology:
@@ -44,12 +58,11 @@ The Response codes in the sample-tracking API follow the [REST API status code](
 | 500           | Internal Server Error | When an error has occurred within the API.| 
 
 
-
 ### Endpoint Format
 The endpoints formatting follows the [OpenAPI Specifications](https://swagger.io/specification/)
 
-### Retrieve sample information from sampleID
 
+### Retrieve sample information from sampleID
 Gets the sample information including current and past locations for a specific sample ID in JSON format
 
 #### Endpoint
@@ -71,7 +84,7 @@ Gets the sample information including current and past locations for a specific 
 /sample/QMUJW064AW
 ```
 
-#### Example Response 
+#### Example Response
 ```
 {
   "code": "QMUJW064AW",
@@ -91,11 +104,41 @@ Gets the sample information including current and past locations for a specific 
 }
 ```
 
-### Retrieve location information from userId
+### Update Sample Status of current location from sampleId and sample status
 
-Gets the linked location information of a provided {user_id} in JSON Format:
+Updates the status set in the current location of the provided sampleId with the provided sample status.
 
-#### Endpoint 
+#### Endpoint
+```
+  /samples/{sampleId}/currentLocation/{status}:
+    put:
+      summary: "PUT samples/{sampleId}/currentLocation/{status}"
+      parameters:
+      - name: "sampleId"
+        in: "path"
+      - name: "status"
+        in: "path"
+      responses:
+        "201":
+          description: "OK"
+```
+#### Example Request
+
+```
+/samples/QMUJW064AW/currentLocation/data_available/
+``` 
+
+#### Example Response
+
+``` 
+Response code: 201 (Sample status updated to DATA_AVAILABLE.)
+``` 
+
+### Retrieve location information for an userId
+
+Gets the location information for a given user id in JSON Format:
+
+#### Endpoint
 
 ```
   /locations/{user_id}:
@@ -154,7 +197,72 @@ Gets the linked location information of a provided {user_id} in JSON Format:
 ]
 ```
 
-### Retrieve complete location to user linked information 
+### Update current location of sampleId
+
+Updates the current location of a provided sampleId with the provided location information. 
+
+#### Endpoint
+```
+  /samples/{sampleId}/currentLocation/:
+    post:
+      summary: "POST samples/{sampleId}/currentLocation/"
+      parameters:
+      - name: "sampleId"
+        in: "path"
+      responses:
+        "200":
+          description: "OK"
+```
+
+#### Example Request
+
+```
+/samples/QMUJW064AW/currentLocation/
+```
+
+Additionally, the location information has to be provided in the JSON Format: 
+
+```
+{
+  "name":"Example Location Name",
+  "responsible_person":"Max Mustermann",
+  "responsible_person_email":"max.mustermann@uni-tubingen.de",
+  "address":{
+    "affiliation":"QBiC",
+    "street":"Auf der Morgenstelle 6",
+    "zip_code":72076,
+    "country":"Germany"
+  },
+  "sample_status":"WAITING",
+  "arrival_date":"2021-12-07T09:38Z",
+  "forward_date":"2021-12-07T09:38Z"
+}
+```
+
+**NOTE: The provided location information should be stripped of all newlines("\n"), otherwise it can't be interpreted by the sample-tracking-service**
+
+#### Example Response
+
+The sample-tracking-service will return the set location information: 
+
+```
+{
+  "name":"Example Location Name",
+  "responsible_person":"Max Mustermann",
+  "responsible_person_email":"max.mustermann@uni-tubingen.de",
+  "address":{
+    "affiliation":"QBiC",
+    "street":"Auf der Morgenstelle 6",
+    "zip_code":72076,
+    "country":"Germany"
+  },
+  "sample_status":"WAITING",
+  "arrival_date":"2021-12-07T09:38Z",
+  "forward_date":"2021-12-07T09:38Z"
+}
+```
+
+### Retrieve complete location to user linked information
 
 Gets all the location to users linked information in JSON format
 
@@ -227,7 +335,7 @@ Gets all the location to users linked information in JSON format
 
 ### Retrieve contact Information from email address
 
-**NOTE: This method is deprecated and will be removed in future versions** 
+**NOTE: This method is deprecated and will be removed in future versions**
 
 Gets the linked affiliation and person information for an email address in JSON Format:
 
@@ -264,3 +372,4 @@ Gets the linked affiliation and person information for an email address in JSON 
   "email": "John.Doe@Templa.te"
 }
 ```
+
