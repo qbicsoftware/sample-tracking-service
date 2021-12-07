@@ -4,13 +4,9 @@ import groovy.util.logging.Log4j2
 import io.micronaut.context.annotation.Value
 import io.micronaut.core.annotation.Nullable
 import io.micronaut.http.HttpRequest
-import io.micronaut.security.authentication.AuthenticationException
-import io.micronaut.security.authentication.AuthenticationFailed
-import io.micronaut.security.authentication.AuthenticationProvider
-import io.micronaut.security.authentication.AuthenticationRequest
-import io.micronaut.security.authentication.AuthenticationResponse
-import io.micronaut.security.authentication.UserDetails
+import io.micronaut.security.authentication.*
 import io.reactivex.Flowable
+import life.qbic.auth.Authentication
 import org.reactivestreams.Publisher
 import org.yaml.snakeyaml.Yaml
 
