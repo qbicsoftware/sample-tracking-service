@@ -89,6 +89,36 @@ To retrieve location information for a given user id
 "user_id": "qabcd04"
 ```
 
+### Update Sample Status information of current location from sample Id and sample status
+
+Updates the status set in the current location of the provided sample Id with the provided sample status.
+
+#### Endpoint
+```
+  /samples/{sampleId}/currentLocation/{status}:
+    put:
+      summary: "PUT samples/{sampleId}/currentLocation/{status}"
+      parameters:
+      - name: "sampleId"
+        in: "path"
+      - name: "status"
+        in: "path"
+      responses:
+        "201":
+          description: "OK"
+```
+#### Example Request
+
+```
+/samples/QMUJW064AW/currentLocation/data_available/
+``` 
+
+#### Example Response
+
+``` 
+Response code: 201 (Sample status updated to DATA_AVAILABLE.)
+``` 
+
 
 
 
