@@ -1,7 +1,6 @@
 package life.qbic.service
 
 import groovy.util.logging.Log4j2
-import io.micronaut.http.HttpResponse
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
