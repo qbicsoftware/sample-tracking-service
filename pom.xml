@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>life.qbic</groupId>
 	<artifactId>sampletracking</artifactId>
-	<version>1.2.1</version>
+	<version>1.2.2</version>
 	<parent>
 		<groupId>io.micronaut</groupId>
 		<artifactId>micronaut-parent</artifactId>
@@ -19,6 +19,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<swagger.version>2.1.0</swagger.version>
+		<log4j.version>2.15.0</log4j.version>
 	</properties>
 	<distributionManagement>
 		<repository>
@@ -197,7 +198,12 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.14.1</version>
+			<version>${log4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
