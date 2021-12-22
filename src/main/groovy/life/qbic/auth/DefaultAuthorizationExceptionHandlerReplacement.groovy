@@ -7,9 +7,10 @@ import io.micronaut.http.MutableHttpResponse
 import io.micronaut.security.authentication.AuthorizationException
 import io.micronaut.security.authentication.DefaultAuthorizationExceptionHandler
 
-import static io.micronaut.http.HttpHeaders.WWW_AUTHENTICATE;
-import static io.micronaut.http.HttpStatus.FORBIDDEN;
-import static io.micronaut.http.HttpStatus.UNAUTHORIZED;
+import static io.micronaut.http.HttpHeaders.WWW_AUTHENTICATE
+import static io.micronaut.http.HttpStatus.FORBIDDEN
+import static io.micronaut.http.HttpStatus.UNAUTHORIZED
+
 /**
  * <b>Introduces proper authentication header</b>
  *
