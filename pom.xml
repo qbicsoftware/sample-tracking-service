@@ -311,32 +311,40 @@
 					<includes>**/*Test.*</includes>
 				</configuration>
 			</plugin>
+			<!--Instructs maven to create a fat jar containing the manifest.xml file during packaging phase -->
 			<plugin>
-				<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.2.1</version>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.3.0</version>
 				<executions>
 					<execution>
+						<id>create-executable-jar</id>
 						<phase>package</phase>
 						<goals>
-							<goal>shade</goal>
+							<goal>single</goal>
 						</goals>
 						<configuration>
-							<outputFile>./target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</outputFile>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>${exec.mainClass}</mainClass>
-								</transformer>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.GroovyResourceTransformer">
-									<extModuleName>the-aggregated-module</extModuleName>
-									<extModuleVersion>1.0.0</extModuleVersion>
-								</transformer>
-							</transformers>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+							<archive>
+								<manifest>
+									<mainClass>life.qbic.SampleTracking</mainClass>
+								</manifest>
+							</archive>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!--This disables the building of the default jar without dependencies-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+				<executions>
+					<execution>
+						<id>default-jar</id>
+						<phase>none</phase>
 					</execution>
 				</executions>
 			</plugin>
