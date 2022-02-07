@@ -36,6 +36,10 @@
 		</snapshotRepository>
 	</distributionManagement>
 	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
 		<!-- maven repository -->
 		<repository>
 			<releases>
