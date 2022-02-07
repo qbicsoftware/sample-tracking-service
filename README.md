@@ -1,6 +1,15 @@
 # Sample-Tracking Service
 Service that implements a sample tracking interface.
 
+[//]: # (TODO include badges)
+
+[//]: # (TODO write about system integration)
+## System Integration
+
+[//]: # (TODO show data model in the database)
+
+[//]: # (TODO draft data model obtained from data-model-lib)
+
 Overview:
 
 - [Micronaut app](#micronaut-app)
@@ -18,30 +27,75 @@ Overview:
   * [Retrieve complete location to user linked information](#retrieve-complete-location-to-user-linked-information)
   * [Retrieve contact Information from email address](#retrieve-contact-information-from-email-address)
 
-## Micronaut app
-This service is build with [micronaut](https://micronaut.io):
+[//]: # ()
 
-```
-mn create-app life.qbic.sampletracking --features=groovy --build maven
-```
 
-### Run locally
+[//]: # (## Micronaut app)
 
-```
-./mvnw compile
-./mvnw exec:exec
-```
+[//]: # (This service is build with [micronaut]&#40;https://micronaut.io&#41;:)
 
-### Execute tests
+[//]: # ()
+[//]: # (```)
 
+[//]: # (mn create-app life.qbic.sampletracking --features=groovy --build maven)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (### Run locally)
+
+[//]: # ()
+[//]: # (```)
+
+[//]: # (./mvnw compile)
+
+[//]: # (./mvnw exec:exec)
+
+[//]: # (```)
+
+[//]: # ()
+[//]: # (### Execute tests)
+
+[//]: # ()
+[//]: # (```)
+
+[//]: # (./mvnw test )
+
+[//]: # (```)
+
+## Configuration
+
+For the application to use the database the following information is read from environment variables:
+
+| environment variable | description                               |
+|----------------------|-------------------------------------------|
+| `TR_DB_HOST`         | The sample tracking database host address |
+| `TR_DB_USER`         | The sample tracking database user         |
+| `TR_DB_PWD`          | The sample tracking database user         |
+| `TR_DB_NAME`         | The sample tracking database name         |
+
+Furthermore,  a user-role definition is needed. By default, a file is expected at `/etc/micronaut.d/userroles.yml`.
 ```
-./mvnw test 
+---
+servicereader:
+  token: 123!    // replace with your token
+  roles:
+    - READER
+servicewriter:
+  token: 123456! // replace with your token
+  roles:
+    - READER
+    - WRITER
+...
 ```
 
 ## Data model
 The data model that holds sample tracking information is defined by attributes and relations shown in the following ER diagram.
 
-![er-diagram](models/sample-tracking-er.svg)
+![](models/API-classes.svg)
+API-classes.svg
+
+<img src="models/table-structure.svg"/>
 
 ## Authentication
 

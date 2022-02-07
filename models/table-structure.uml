@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>DATABASE</ID>
+  <OriginalElement>514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.samples_locations</OriginalElement>
+  <nodes>
+    <node x="662.375" y="22.0">514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.locations</node>
+    <node x="344.19832402234636" y="44.0">514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.persons_locations</node>
+    <node x="0.0" y="0.0">514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.person</node>
+    <node x="0.0" y="-117.02905027932957">514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.notification</node>
+    <node x="907.5" y="55.0">514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.samples</node>
+    <node x="0.0" y="213.0">514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.samples_locations</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.samples_locations" target="514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.locations" relationship="REFERENCES">
+      <point x="5.375" y="-81.5" />
+      <point x="15.0" y="59.5" />
+    </edge>
+    <edge source="514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.persons_locations" target="514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.locations" relationship="REFERENCES">
+      <point x="52.5" y="-37.5" />
+      <point x="501.69832402234636" y="188.0" />
+      <point x="757.875" y="188.0" />
+      <point x="0.0" y="59.5" />
+    </edge>
+    <edge source="514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.persons_locations" target="514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.person" relationship="REFERENCES">
+      <point x="-52.5" y="-37.5" />
+      <point x="396.69832402234636" y="188.0" />
+      <point x="138.5" y="188.0" />
+      <point x="0.0" y="81.5" />
+    </edge>
+    <edge source="514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.samples_locations" target="514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.samples" relationship="REFERENCES">
+      <point x="273.5" y="-81.5" />
+      <point x="0.0" y="26.5" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic" zoom="0.5755627009646302" showDependencies="false" x="768.0" y="129.0" />
+  <SelectedNodes>
+    <node>514a3d51-de97-4272-a5fe-4f5d5f06691f.TABLE:qbic_usermanagement_db.samples_locations</node>
+  </SelectedNodes>
+  <Categories>
+    <Category>Columns</Category>
+    <Category>Virtual foreign keys</Category>
+  </Categories>
+</Diagram>
+
