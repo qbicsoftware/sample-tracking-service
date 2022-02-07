@@ -80,24 +80,12 @@
 			<name>QBiC Releases</name>
 			<url>https://qbic-repo.qbic.uni-tuebingen.de/repository/maven-releases</url>
 		</repository>
+		<!-- Host the everit json schema dependency -->
 		<repository>
-			<id>jcenter.bintray.com</id>
-			<url>https://jcenter.bintray.com</url>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>bintray</id>
-			<name>Groovy Bintray</name>
-			<url>https://dl.bintray.com/groovy/maven</url>
-			<releases>
-				<updatePolicy>never</updatePolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-		</pluginRepository>
-	</pluginRepositories>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
