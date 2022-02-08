@@ -16,78 +16,88 @@
 
 </div>
 
+- [System Integration](#system-integration)
+  - [Data Model](#data-model)
+- [How to run](#how-to-run)
+  - [Configuration](#configuration)
+    - [Properties](#properties)
+    - [Environment variables](#environment-variables)
+- [How to use](#how-to-use)
+  - [Authentication](#authentication)
+  - [Api design](#api-design)
+    - [Common response codes](#common-response-codes)
+    - [Endpoint format](#endpoint-format)
+    - [Retrieve sample information from sampleID](#retrieve-sample-information-from-sampleid)
+    - [Update Sample Status of current location from sampleId and sample status](#update-sample-status-of-current-location-from-sampleid-and-sample-status)
+    - [Retrieve location information for an userId](#retrieve-location-information-for-an-userid)
+    - [Update current location of sampleId](#update-current-location-of-sampleid)
+    - [Retrieve complete location to user linked information](#retrieve-complete-location-to-user-linked-information)
+    - [Retrieve contact Information from email address](#retrieve-contact-information-from-email-address)
 
 
-
-
-# Sample-Tracking Service
-Service that implements a sample tracking interface.
-
-[//]: # (TODO include badges)
-
-[//]: # (TODO write about system integration)
 ## System Integration
 
-[//]: # (TODO show data model in the database)
+This application requires a database configured to reflect this [data model](#data-model).
+### Data model
 
-[//]: # (TODO draft data model obtained from data-model-lib)
+The data model that holds sample tracking information is defined by attributes and relations shown
+in the following ER diagram.
+![](models/table-structure.svg)
 
-Overview:
-
-- [Micronaut app](#micronaut-app)
-  * [Run locally](#run-locally)
-  * [Execute tests](#execute-tests)
-- [Data model](#data-model)
-- [Authentication](#authentication)
-- [Api design](#api-design)
-  * [Common response codes](#common-response-codes)
-  * [Endpoint format](#endpoint-format)
-  * [Retrieve sample information from sampleID](#retrieve-sample-information-from-sampleid)
-  * [Update Sample Status of current location from sampleId and sample status](#update-sample-status-of-current-location-from-sampleid-and-sample-status)
-  * [Retrieve location information for an userId](#retrieve-location-information-for-an-userid)
-  * [Update current location of sampleId](#update-current-location-of-sampleid)
-  * [Retrieve complete location to user linked information](#retrieve-complete-location-to-user-linked-information)
-  * [Retrieve contact Information from email address](#retrieve-contact-information-from-email-address)
-
-[//]: # ()
+In the service application however, those attributes are mapped to API classes:
+![](models/API-classes.svg)
 
 
-[//]: # (## Micronaut app)
 
-[//]: # (This service is build with [micronaut]&#40;https://micronaut.io&#41;:)
+## How to run
 
-[//]: # ()
-[//]: # (```)
+To build, package and run the sample-tracking service, the service needs configuration. For more
+details on configuration, see the [configuration section](#configuration).
 
-[//]: # (mn create-app life.qbic.sampletracking --features=groovy --build maven)
+Checkout the latest code from `master` and run the maven goal `mvn clean jetty:run` starting the application on your machine.
 
-[//]: # (```)
+Alternatively you can package the application and run it as `.jar`. First compile the project and
+build an executable java archive:
 
-[//]: # ()
-[//]: # (### Run locally)
+```shell
+mvn clean package
+```
 
-[//]: # ()
-[//]: # (```)
+The JAR file will be created in the ``/target`` folder:
 
-[//]: # (./mvnw compile)
+```
+|-target
+|---sampletracking-1.0.0-jar-with-dependencies.jar
+|---...
+```
 
-[//]: # (./mvnw exec:exec)
+Now change into the folder and run the sample tracking service with:
 
-[//]: # (```)
+```shell
+java -jar sampletracking-1.0.0-jar-with-dependencies.jar
+```
 
-[//]: # ()
-[//]: # (### Execute tests)
+### Configuration
 
-[//]: # ()
-[//]: # (```)
+#### Properties
 
-[//]: # (./mvnw test )
+The default configuration of the app binds to the local port 8080 to the systems localhost:
 
-[//]: # (```)
+```
+http://localhost:8080
+```
 
-## Configuration
+If you want to change the server port, let's say `8085`, you can configure it by setting the
+`server.port` property explicitly:
 
-For the application to use the database the following information is read from environment variables:
+```
+java -jar -Dserver.port=8085 sampletracking-1.0.0-jar-with-dependencies.jar
+```
+
+#### Environment Variables
+
+For the application to use the database the following information is read from environment
+variables:
 
 | environment variable | description                               |
 |----------------------|-------------------------------------------|
@@ -96,7 +106,11 @@ For the application to use the database the following information is read from e
 | `TR_DB_PWD`          | The sample tracking database user         |
 | `TR_DB_NAME`         | The sample tracking database name         |
 
-Furthermore,  a user-role definition is needed. By default, a file is expected at `/etc/micronaut.d/userroles.yml`.
+### Authentication
+
+A user-role definition is needed. By default, a file is expected at `/etc/micronaut.d/userroles.yml`
+. The file follows YAML format specification and can look like this:
+
 ```
 ---
 servicereader:
@@ -111,35 +125,14 @@ servicewriter:
 ...
 ```
 
-## Data model
-The data model that holds sample tracking information is defined by attributes and relations shown in the following ER diagram.
+## How to use
 
-![](models/API-classes.svg)
-API-classes.svg
+### API design
 
-<img src="models/table-structure.svg"/>
+#### Common response codes
 
-## Authentication
-
-The roles and user tokens must be provided in a file following the YAML format specification.
-An exemplary entry looks like this:
-
-```
-servicereader:
-    token: 123!
-    roles:
-        - READER
-    servicewriter:
-        token: 123456!
-        roles:
-            - READER
-            - WRITER
-```
-
-## API design
-
-### Common response codes
-The Response codes in the sample-tracking API follow the [REST API status code](https://restfulapi.net/http-status-codes/) terminology:
+The Response codes in the sample-tracking API follow
+the [REST API status code](https://restfulapi.net/http-status-codes/) terminology:
 
 | RESPONSE CODE | TEXT                  | Purpose   | 
 | -----------   | -----------           | --------- |
@@ -150,14 +143,13 @@ The Response codes in the sample-tracking API follow the [REST API status code](
 | 404           | Not Found             | The accessed resource doesn't exist or couldn't be found.| 
 | 500           | Internal Server Error | When an error has occurred within the API.| 
 
-
-### Endpoint format
+#### Endpoint format
 The endpoints formatting follows the [OpenAPI Specifications](https://swagger.io/specification/)
 
-### Retrieve sample information from sampleID
+#### Retrieve sample information from sampleID
 Gets the sample information including current and past locations for a specific sample ID in JSON format
 
-#### Endpoint
+##### Endpoint
 ```
   /samples/{sampleId}:
     get:
@@ -170,13 +162,13 @@ Gets the sample information including current and past locations for a specific 
           description: "OK"
 ```
 
-#### Example Request
+##### Example Request
 
 ```
 /sample/QMUJW064AW
 ```
 
-#### Example Response
+##### Example Response
 ```
 {
   "code": "QMUJW064AW",
@@ -196,11 +188,11 @@ Gets the sample information including current and past locations for a specific 
 }
 ```
 
-### Update Sample Status of current location from sampleId and sample status
+#### Update Sample Status of current location from sampleId and sample status
 
 Updates the status set in the current location of the provided sampleId with the provided sample status.
 
-#### Endpoint
+##### Endpoint
 ```
   /samples/{sampleId}/currentLocation/{status}:
     put:
@@ -214,23 +206,24 @@ Updates the status set in the current location of the provided sampleId with the
         "201":
           description: "OK"
 ```
-#### Example Request
+
+##### Example Request
 
 ```
 /samples/QMUJW064AW/currentLocation/data_available/
 ``` 
 
-#### Example Response
+##### Example Response
 
 ``` 
 Response code: 201 (Sample status updated to DATA_AVAILABLE.)
 ``` 
 
-### Retrieve location information for an userId
+#### Retrieve location information for an userId
 
 Gets the location information for a given user id in JSON Format:
 
-#### Endpoint
+##### Endpoint
 
 ```
   /locations/{user_id}:
@@ -244,13 +237,13 @@ Gets the location information for a given user id in JSON Format:
           description: "OK"
 ```
 
-#### Example Request
+##### Example Request
 
 ```
 /locations/John.Doe@Templa.te
 ```
 
-#### Example Response
+##### Example Response
 ```
 [
   {
@@ -289,11 +282,11 @@ Gets the location information for a given user id in JSON Format:
 ]
 ```
 
-### Update current location of sampleId
+#### Update current location of sampleId
 
 Updates the current location of a provided sampleId with the provided location information. 
 
-#### Endpoint
+##### Endpoint
 ```
   /samples/{sampleId}/currentLocation/:
     post:
@@ -306,7 +299,7 @@ Updates the current location of a provided sampleId with the provided location i
           description: "OK"
 ```
 
-#### Example Request
+##### Example Request
 
 ```
 /samples/QMUJW064AW/currentLocation/
@@ -333,7 +326,7 @@ Additionally, the location information has to be provided in the JSON Format:
 
 **NOTE: The provided location information should be stripped of all newlines("\n"), otherwise it can't be interpreted by the sample-tracking-service**
 
-#### Example Response
+##### Example Response
 
 The sample-tracking-service will return the set location information: 
 
@@ -354,11 +347,11 @@ The sample-tracking-service will return the set location information:
 }
 ```
 
-### Retrieve complete location to user linked information
+#### Retrieve complete location to user linked information
 
 Gets all the location to users linked information in JSON format
 
-#### Endpoint
+##### Endpoint
 
 ```
   /locations/:
@@ -369,13 +362,13 @@ Gets all the location to users linked information in JSON format
           description: "OK"
 ```
 
-#### Example Request
+##### Example Request
 
 ```
 /locations/
 ```
 
-#### Example Response
+##### Example Response
 ```
 [
   {
@@ -425,13 +418,13 @@ Gets all the location to users linked information in JSON format
   }]
 ```
 
-### Retrieve contact Information from email address
+#### Retrieve contact Information from email address
 
 **NOTE: This method is deprecated and will be removed in future versions**
 
 Gets the linked affiliation and person information for an email address in JSON Format:
 
-#### Endpoint
+##### Endpoint
 ```
   /locations/contacts/{email}:
     get:
@@ -445,13 +438,13 @@ Gets the linked affiliation and person information for an email address in JSON 
           description: "OK"
 ```
 
-#### Example Request
+##### Example Request
 
 ```
 /locations/contacts/John.Doe@Templa.te
 ```
 
-#### Example Response
+##### Example Response
 ```
 {
   "full_name": "John Doe",
