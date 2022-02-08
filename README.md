@@ -1,3 +1,25 @@
+<div align="center">
+
+# Sample-Tracking Service
+<i>A service implementing a sample-tracking interface</i>.
+
+
+
+[![Build Maven Package](https://github.com/qbicsoftware/sample-tracking-service/actions/workflows/build_package.yml/badge.svg)](https://github.com/qbicsoftware/sample-tracking-service/actions/workflows/build_package.yml)
+[![Run Maven Tests](https://github.com/qbicsoftware/sample-tracking-service/actions/workflows/run_tests.yml/badge.svg)](https://github.com/qbicsoftware/sample-tracking-service/actions/workflows/run_tests.yml)
+[![CodeQL](https://github.com/qbicsoftware/sample-tracking-service/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/qbicsoftware/sample-tracking-service/actions/workflows/codeql-analysis.yml)
+[![release](https://img.shields.io/github/v/release/qbicsoftware/sample-tracking-service?include_prereleases)](https://github.com/qbicsoftware/sample-tracking-service/releases)
+
+[![license](https://img.shields.io/github/license/qbicsoftware/sample-tracking-service)](https://github.com/qbicsoftware/sample-tracking-service/blob/main/LICENSE)
+![language](https://img.shields.io/badge/language-groovy,%20java-blue.svg)
+![framework](https://img.shields.io/badge/framework-micronaut-blue.svg)
+
+</div>
+
+
+
+
+
 # Sample-Tracking Service
 Service that implements a sample tracking interface.
 
