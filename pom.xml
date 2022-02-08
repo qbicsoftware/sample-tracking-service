@@ -36,6 +36,7 @@
 		</snapshotRepository>
 	</distributionManagement>
 	<repositories>
+		<!-- needed for transitive dependencies from data-model-lib -->
 		<repository>
 			<id>jitpack.io</id>
 			<url>https://jitpack.io</url>
