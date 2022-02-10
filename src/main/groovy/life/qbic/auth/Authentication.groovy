@@ -4,13 +4,9 @@ import groovy.util.logging.Log4j2
 import io.micronaut.context.annotation.Value
 import io.micronaut.core.annotation.Nullable
 import io.micronaut.http.HttpRequest
-import io.micronaut.security.authentication.AuthenticationException
-import io.micronaut.security.authentication.AuthenticationFailed
-import io.micronaut.security.authentication.AuthenticationProvider
-import io.micronaut.security.authentication.AuthenticationRequest
-import io.micronaut.security.authentication.AuthenticationResponse
-import io.micronaut.security.authentication.UserDetails
+import io.micronaut.security.authentication.*
 import io.reactivex.Flowable
+import life.qbic.auth.Authentication
 import org.reactivestreams.Publisher
 import org.yaml.snakeyaml.Yaml
 
@@ -22,8 +18,8 @@ import javax.inject.Singleton
  *
  * <p>Authenticates a user and authorizes the user role in this sample-tracking service context.</p>
  *
- * <p>The roles and user tokens must be provided in a file following the YAML format specification.</p> An examplary
- * entry looks like this:
+ * <p>The roles and user tokens must be provided in a file following the YAML format specification.</p>
+ * An exemplary entry looks like this:
  *
  * <pre>
  *     ---

@@ -4,6 +4,12 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
+newer releases
+--------------
+
+Please see the changelog of the respective release.
+Releases can be found at `our GitHub repository <https://github.com/qbicsoftware/sample-tracking-service/releases>`_.
+
 1.2.5 (2022-01-04)
 ------------------
 
@@ -34,7 +40,6 @@ This project adheres to `Semantic Versioning <https://semver.org/>`_.
 * org.apache.logging.log4j 2.16.0 -> 2.17.0
 
 **Deprecated**
-
 
 1.2.3 (2021-12-15)
 ------------------
