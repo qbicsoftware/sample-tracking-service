@@ -4,16 +4,11 @@ Changelog
 
 This project adheres to `Semantic Versioning <https://semver.org/>`_.
 
-1.3.0-SNAPSHOT (2021-12-21)
-------------------
+newer releases
+--------------
 
-**Added**
-
-**Fixed**
-
-**Dependencies**
-
-**Deprecated**
+Please see the changelog of the respective release.
+Releases can be found at `our GitHub repository <https://github.com/qbicsoftware/sample-tracking-service/releases>`_.
 
 1.2.5 (2022-01-04)
 ------------------
