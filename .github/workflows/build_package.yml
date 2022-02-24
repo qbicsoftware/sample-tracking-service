@@ -1,4 +1,4 @@
-name: "Build Maven Package"
+name: "Build_Maven_Package"
 
 on: [ push ]
 
