@@ -1,9 +1,9 @@
-name: Build Maven Package
+name: "Build Maven Package"
 
 on: [ push ]
 
 jobs:
-  build:
+  package:
     runs-on: ubuntu-latest
 
     steps:
