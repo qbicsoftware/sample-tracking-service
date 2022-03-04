@@ -3,6 +3,7 @@ changelog:
     labels:
       - ignore-for-release
     authors:
+      - JohnnyQ5
       - github-actions
   categories:
     - title: New Features 🚀
