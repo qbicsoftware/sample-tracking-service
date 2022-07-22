@@ -1,10 +1,10 @@
 package life.qbic.controller
 
 import groovy.util.logging.Log4j2
+import life.qbic.datamodel.identifiers.SampleCodeFunctions
+
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-
-import life.qbic.datamodel.identifiers.SampleCodeFunctions
 
 @Log4j2
 class RegExValidator {
@@ -18,7 +18,7 @@ class RegExValidator {
     return res
   }
 
-  public static isValidSampleCode(String code) {
+  public static boolean isValidSampleCode(String code) {
     boolean res = SampleCodeFunctions.isQbicBarcode(code) || SampleCodeFunctions.isQbicEntityCode(code)
     log.info "checking validity of sample code "+code+": "+res
     return res

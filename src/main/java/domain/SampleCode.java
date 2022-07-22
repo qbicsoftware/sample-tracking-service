@@ -1,8 +1,9 @@
 package domain;
 
+import life.qbic.controller.RegExValidator;
+
 /**
  * <p>The sample code of a sample.</p>
- * <p>TODO: mode detailed information.</p>
  *
  * @since 2.0.0
  */
@@ -10,6 +11,9 @@ public class SampleCode {
   private final String text;
 
   private SampleCode(String text) {
+    if(!RegExValidator.isValidSampleCode(text)) {
+      throw new IllegalArgumentException(String.format("Sample code '%s' is invalid.", text));
+    }
     this.text = text;
   }
 
