@@ -11,28 +11,13 @@ import java.time.Instant;
  *
  * @since <version tag>
  */
-public class PassedQualityControl implements SampleEvent {
-
-  private final SampleCode sampleCode;
-  private final Instant occurredOn;
+public class PassedQualityControl extends SampleEvent {
 
   public static PassedQualityControl create(SampleCode sampleCode, Instant occurredOn) {
     return new PassedQualityControl(sampleCode, occurredOn);
   }
 
-  public PassedQualityControl(SampleCode sampleCode, Instant occurredOn) {
-    this.sampleCode = sampleCode;
-    this.occurredOn = occurredOn;
+  private PassedQualityControl(SampleCode sampleCode, Instant occurredOn) {
+    super(sampleCode, occurredOn);
   }
-
-  @Override
-  public Instant occurredOn() {
-    return occurredOn;
-  }
-
-  @Override
-  public SampleCode sampleCode() {
-    return sampleCode;
-  }
-
 }

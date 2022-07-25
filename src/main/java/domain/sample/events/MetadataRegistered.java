@@ -11,28 +11,15 @@ import java.time.Instant;
  *
  * @since <version tag>
  */
-public class MetadataRegistered implements SampleEvent {
+public class MetadataRegistered extends SampleEvent {
 
-  private final SampleCode sampleCode;
-  private final Instant occurredOn;
 
   public static MetadataRegistered create(SampleCode samplecode, Instant occurredOn) {
     return new MetadataRegistered(samplecode, occurredOn);
   }
 
-  public MetadataRegistered(SampleCode sampleCode, Instant occurredOn) {
-    this.sampleCode = sampleCode;
-    this.occurredOn = occurredOn;
-  }
-
-  @Override
-  public Instant occurredOn() {
-    return occurredOn;
-  }
-
-  @Override
-  public SampleCode sampleCode() {
-    return sampleCode;
+  private MetadataRegistered(SampleCode sampleCode, Instant occurredOn) {
+    super(sampleCode, occurredOn);
   }
 
 }

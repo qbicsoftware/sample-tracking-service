@@ -11,29 +11,14 @@ import java.time.Instant;
  *
  * @since <version tag>
  */
-public class LibraryPrepared implements SampleEvent {
-
-  private final SampleCode sampleCode;
-
-  private final Instant occurredOn;
+public class LibraryPrepared extends SampleEvent {
 
   public static LibraryPrepared create(SampleCode sampleCode, Instant occurredOn) {
     return new LibraryPrepared(sampleCode, occurredOn);
   }
 
-  public LibraryPrepared(SampleCode sampleCode, Instant occurredOn) {
-    this.sampleCode = sampleCode;
-    this.occurredOn = occurredOn;
-  }
-
-  @Override
-  public SampleCode sampleCode() {
-    return sampleCode;
-  }
-
-  @Override
-  public Instant occurredOn() {
-    return occurredOn;
+  private LibraryPrepared(SampleCode sampleCode, Instant occurredOn) {
+    super(sampleCode, occurredOn);
   }
 
 }

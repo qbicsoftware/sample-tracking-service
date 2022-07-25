@@ -11,28 +11,14 @@ import java.time.Instant;
  *
  * @since <version tag>
  */
-public class SampleSequenced implements SampleEvent {
-
-  private final SampleCode sampleCode;
-  private final Instant occurredOn;
+public class SampleSequenced extends SampleEvent {
 
   public static SampleSequenced create(SampleCode sampleCode, Instant occurredOn) {
     return new SampleSequenced(sampleCode, occurredOn);
   }
 
-  public SampleSequenced(SampleCode sampleCode, Instant occurredOn) {
-    this.sampleCode = sampleCode;
-    this.occurredOn = occurredOn;
-  }
-
-  @Override
-  public Instant occurredOn() {
-    return occurredOn;
-  }
-
-  @Override
-  public SampleCode sampleCode() {
-    return sampleCode;
+  private SampleSequenced(SampleCode sampleCode, Instant occurredOn) {
+    super(sampleCode, occurredOn);
   }
 
 }

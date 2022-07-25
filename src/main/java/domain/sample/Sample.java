@@ -108,7 +108,7 @@ public class Sample {
     addEvent(event);
   }
 
-  public void prepareForSequencing(Instant occurredOn) {
+  public void prepareLibrary(Instant occurredOn) {
     if (notAfterLastModification(occurredOn)) {
       throw new InvalidDomainException(
           String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
