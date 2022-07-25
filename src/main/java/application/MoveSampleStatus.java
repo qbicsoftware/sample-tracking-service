@@ -1,15 +1,12 @@
 package application;
 
-import static org.slf4j.LoggerFactory.getLogger;
-
 import domain.EventStore;
-import domain.Sample;
-import domain.SampleCode;
-import domain.SampleEvent;
-import domain.Status;
+import domain.sample.Sample;
+import domain.sample.SampleCode;
+import domain.sample.SampleEvent;
 import java.time.Instant;
 import java.util.SortedSet;
-import org.slf4j.Logger;
+import java.util.function.Consumer;
 
 /**
  * <b>short description</b>
@@ -20,20 +17,43 @@ import org.slf4j.Logger;
  */
 public class MoveSampleStatus {
 
-  private EventStore eventStore;
-  private static final Logger log = getLogger(MoveSampleStatus.class);
+  private final EventStore eventStore;
+
+  public MoveSampleStatus(EventStore eventStore) {
+    this.eventStore = eventStore;
+  }
 
   public void moveSample(String sampleCode, String sampleStatus, String instant) {
     SampleCode code = SampleCode.fromString(sampleCode);
-    Status status = Status.fromLabel(sampleStatus)
-        .orElseThrow(
-            () -> new ApplicationException(String.format("Unknown status: %s", sampleStatus)));
-    Instant occurredOn = Instant.parse(instant);
-    SortedSet<SampleEvent> sampleEvents = eventStore.findAllForSample(code);
-    Sample sample = new Sample(code, null); //FIXME add sample event publisher
-    sample.handleEvents(sampleEvents);
+    Instant performAt = Instant.parse(instant);
+    // restore the status
+    SortedSet<SampleEvent> sampleEvents = eventStore.findForSample(code);
+    Sample sample = Sample.create(code);
+    sampleEvents.forEach(sample::addEvent);
+    // run the command
+    determineCommand(performAt, sampleStatus).accept(sample);
+    // store events
+    sample.events().forEach(eventStore::store);
+  }
 
-    sample.moveToStatus(status, occurredOn);
+  private Consumer<Sample> determineCommand(Instant performAt, String sampleStatus) {
+    switch (sampleStatus) {
+      case "METADATA_REGISTERED":
+        return sample -> sample.registerMetadata(performAt);
+      case "SAMPLE_RECEIVED":
+        return sample -> sample.receive(performAt);
+      case "SAMPLE_QC_FAIL":
+        return sample -> sample.failQualityControl(performAt);
+      case "SAMPLE_QC_PASS":
+        return sample -> sample.passQualityControl(performAt);
+      case "LIBRARY_PREP_FINISHED":
+        return sample -> sample.prepareForSequencing(performAt);
+      case "SEQUENCING_COMPLETE":
+        return sample -> sample.sequence(performAt);
+      case "DATA_AVAILABLE":
+        return sample -> sample.provideData(performAt);
+    }
+    throw new ApplicationException(String.format("Unknown action on status %s", sampleStatus));
   }
 
 }

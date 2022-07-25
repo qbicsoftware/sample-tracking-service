@@ -1,4 +1,4 @@
-package domain;
+package domain.sample;
 
 import life.qbic.controller.RegExValidator;
 
