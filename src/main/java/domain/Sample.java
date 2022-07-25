@@ -11,6 +11,7 @@ import static domain.Status.SEQUENCING_COMPLETED;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedSet;
 
 /**
  * <p>A sample in the context of sample-tracking.</p>
@@ -32,7 +33,7 @@ public class Sample {
   }
 
 
-  public void handleEvents(SampleEvent... sampleEvents) {
+  public void handleEvents(SortedSet<SampleEvent> sampleEvents) {
     for (SampleEvent sampleEvent : sampleEvents) {
       handleEvent(sampleEvent);
     }
