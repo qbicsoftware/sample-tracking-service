@@ -11,6 +11,11 @@ import life.qbic.datamodel.people.Person
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
+import life.qbic.domain.SampleCode
+import life.qbic.domain.SampleStatusChanged
+import life.qbic.events.DomainEventSerializer
+import life.qbic.events.SampleEvent
+import life.qbic.events.SampleEventRepository
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.inject.Inject
@@ -25,13 +30,16 @@ import java.time.OffsetDateTime
 
 @Log4j2
 @Singleton
-class MariaDBManager implements IQueryService, INotificationService {
+class MariaDBManager implements IQueryService, INotificationService, SampleEventRepository {
 
   private DataSource dataSource
 
   private Sql sql
 
   private static final PERSONS_TABLE = "person"
+
+  //TODO as a parameter?
+  private DomainEventSerializer eventSerializer = new DomainEventSerializer();
 
   @Inject MariaDBManager(QBiCDataSource dataSource) {
     this.dataSource = dataSource.getSource()
@@ -614,5 +622,39 @@ class MariaDBManager implements IQueryService, INotificationService {
     return res
   }
 
+  @Override
+  void store(SampleEvent sampleEvent) {
+    String eventBlob = eventSerializer.serialize(sampleEvent);
 
+    String query = "INSERT INTO sample_events (`sample_code`, `event_time`, `sample_status`, `event_type`, `event_serialized`) " +
+            "VALUES(?, ?, ?, ?, ?);"
+    try {
+      //TODO if we use SampleEvent here, how do we get the sample status and the event type? (Only event type in the db is SAMPLE_STATUS_CHANGED for now)
+      String status = ""
+      if(sampleEvent instanceof SampleStatusChanged) {
+        status = ((SampleStatusChanged) sampleEvent).status().toString()
+      }
+      sql.execute(query, sampleEvent.sampleCode(), sampleEvent.occurredOn(), status, 'SAMPLE_STATUS_CHANGED', eventBlob)
+    } catch(SQLException sqlException) {
+      log.error("sample event storage logging unsuccessful: $sqlException.message")
+      log.debug("sample event storage logging unsuccessful: $sqlException.message", sqlException)
+    }
+  }
+
+  @Override
+  SortedSet<SampleEvent> findAllForSample(SampleCode sampleCode) {
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    Sql sql = new Sql(connection)
+    List<SampleEvent> events = new ArrayList<>()
+    final String query = "SELECT * FROM sample_events WHERE sample_code = '${sampleCode.getSampleCode()}' ORDER BY event_time;"
+    List<GroovyRowResult> results = sql.rows(query)
+
+    for(GroovyRowResult rs: results) {
+      SampleEvent event = eventSerializer.deserialize(rs.get("event_serialized"))
+      events.add(event)
+    }
+    sql.close()
+    return events
+  }
 }
