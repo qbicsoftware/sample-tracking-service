@@ -21,8 +21,26 @@ public class SampleCode {
   public static SampleCode fromString(String sampleCode) {
     return new SampleCode(sampleCode);
   }
-
   public String toString() {
     return text;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SampleCode)) {
+      return false;
+    }
+
+    SampleCode that = (SampleCode) o;
+
+    return text.equals(that.text);
+  }
+
+  @Override
+  public int hashCode() {
+    return text.hashCode();
   }
 }
