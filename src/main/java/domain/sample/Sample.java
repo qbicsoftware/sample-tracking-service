@@ -120,6 +120,9 @@ public class Sample {
   }
 
   private boolean notAfterLastModification(Instant occurredOn) {
+    if (events.isEmpty()) {
+      return false;
+    }
     SampleEvent lastEvent = events.get(events.size() - 1);
     return lastEvent.occurredOn().isAfter(occurredOn);
   }

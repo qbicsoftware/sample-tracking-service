@@ -624,12 +624,14 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
 
   @Override
    <T extends SampleEvent> void store(T sampleEvent) {
-    String eventSerialized = eventSerializer.serialize(sampleEvent);
+    Blob eventSerialized = eventSerializer.serialize(sampleEvent);
 
     String query = "INSERT INTO sample_events (`sample_code`, `event_time`, `event_type`, `event_serialized`) " +
             "VALUES(?, ?, ?, ?);"
-    try {
-      sql.execute(query, sampleEvent.sampleCode(), sampleEvent.occurredOn(), sampleEvent.getClass().getName(), eventSerialized)
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    try(Sql sql = new Sql(connection)) {
+      sql.execute(query, sampleEvent.sampleCode().toString(), sampleEvent.occurredOn(), sampleEvent.getClass().getSimpleName(), eventSerialized)
     } catch(SQLException sqlException) {
       log.error("sample event storage logging unsuccessful: $sqlException.message", sqlException)
     }
@@ -646,8 +648,8 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
       List<GroovyRowResult> results = sql.rows(query)
 
       for (GroovyRowResult rs : results) {
-        def resultValue = rs.get("event_serialized") as Blob
-        SampleEvent event = eventSerializer.deserialize(resultValue.getBytes(1, resultValue.length() as int))
+        byte[] resultValue = rs.get("event_serialized") as byte[]
+        SampleEvent event = eventSerializer.deserialize(resultValue)
         events.add(event)
       }
       sql.close()

@@ -6,6 +6,7 @@ import domain.sample.SampleRepository;
 import domain.sample.Status;
 import java.time.Instant;
 import java.util.function.Consumer;
+import javax.inject.Inject;
 
 /**
  * <b>short description</b>
@@ -18,6 +19,7 @@ public class SampleService {
 
   private final SampleRepository sampleRepository;
 
+  @Inject
   public SampleService(SampleRepository sampleRepository) {
     this.sampleRepository = sampleRepository;
   }
@@ -26,7 +28,7 @@ public class SampleService {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(instant);
     // restore the status
-    Sample sample = sampleRepository.get(code);
+    Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
     // run the command
     determineCommand(performAt, sampleStatus).accept(sample);
     // store events
@@ -35,7 +37,8 @@ public class SampleService {
 
   public Status getSampleStatus(String sampleCode) {
     SampleCode code = SampleCode.fromString(sampleCode);
-    Sample sample = sampleRepository.get(code);
+    Sample sample = sampleRepository.get(code).orElseThrow(() -> new ApplicationException(
+        String.format("Sample %s was not found.", sampleCode)));
     return sample.currentState().status();
   }
 

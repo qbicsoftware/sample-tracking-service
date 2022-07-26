@@ -1,5 +1,8 @@
 package domain.sample;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
  * <b>short description</b>
  *
@@ -15,8 +18,13 @@ public class SampleRepository {
     this.sampleEventStore = sampleEventStore;
   }
 
-  public Sample get(SampleCode sampleCode) {
-    return Sample.fromEvents(sampleEventStore.findForSample(sampleCode));
+  public Optional<Sample> get(SampleCode sampleCode) {
+
+    List<SampleEvent> sampleEvents = sampleEventStore.findForSample(sampleCode);
+    if (sampleEvents.isEmpty()) {
+      return Optional.empty();
+    }
+    return Optional.of(Sample.fromEvents(sampleEvents));
   }
 
   public void store(Sample sample) {
