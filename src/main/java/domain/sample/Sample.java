@@ -10,7 +10,6 @@ import domain.sample.events.SampleReceived;
 import domain.sample.events.SampleSequenced;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,6 +38,10 @@ public class Sample {
     return sampleCode;
   }
 
+  public CurrentState currentState() {
+    return currentState;
+  }
+
   public static Sample create(SampleCode sampleCode) {
     return new Sample(sampleCode);
   }
@@ -56,15 +59,6 @@ public class Sample {
         .sorted(Comparator.comparing(SampleEvent::occurredOn))
         .forEachOrdered(sample::addEvent);
     return sample;
-  }
-
-  private static SampleCode sampleCodeFromEvents(SampleEvent[] events) {
-    SampleCode sampleCode = events[0].sampleCode();
-    if (Arrays.stream(events).anyMatch(it -> !it.sampleCode().equals(sampleCode))) {
-      throw new InvalidDomainException(
-          "All events need to be of one stream. Found events not matching stream id " + sampleCode);
-    }
-    return sampleCode;
   }
 
   public void registerMetadata(Instant occurredOn) {
@@ -175,6 +169,9 @@ public class Sample {
   }
 
   private <T extends SampleEvent> void apply(T event) {
+    if (events.contains(event)) {
+      return;
+    }
     if (event instanceof MetadataRegistered) {
       apply((MetadataRegistered) event);
     } else if (event instanceof SampleReceived) {
@@ -228,19 +225,11 @@ public class Sample {
 
   private static class CurrentState {
 
-    Status status;
+    private Status status;
+
+    public Status status() {
+      return status;
+    }
   }
 
-  /**
-   * <p>A status a sample can have. It denotes a distinct state of the sample life-cycle.</p>
-   */
-  private enum Status {
-    METADATA_REGISTERED,
-    SAMPLE_RECEIVED,
-    SAMPLE_QC_PASSED,
-    SAMPLE_QC_FAILED,
-    LIBRARY_PREP_FINISHED,
-    SEQUENCING_COMPLETED,
-    DATA_AVAILABLE
-  }
 }
