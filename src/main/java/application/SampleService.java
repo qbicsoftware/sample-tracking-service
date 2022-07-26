@@ -3,6 +3,7 @@ package application;
 import domain.sample.Sample;
 import domain.sample.SampleCode;
 import domain.sample.SampleRepository;
+import domain.sample.Status;
 import java.time.Instant;
 import java.util.function.Consumer;
 
@@ -13,11 +14,11 @@ import java.util.function.Consumer;
  *
  * @since <version tag>
  */
-public class MoveSampleStatus {
+public class SampleService {
 
   private final SampleRepository sampleRepository;
 
-  public MoveSampleStatus(SampleRepository sampleRepository) {
+  public SampleService(SampleRepository sampleRepository) {
     this.sampleRepository = sampleRepository;
   }
 
@@ -30,6 +31,12 @@ public class MoveSampleStatus {
     determineCommand(performAt, sampleStatus).accept(sample);
     // store events
     sampleRepository.store(sample);
+  }
+
+  public Status getSampleStatus(String sampleCode) {
+    SampleCode code = SampleCode.fromString(sampleCode);
+    Sample sample = sampleRepository.get(code);
+    return sample.currentState().status();
   }
 
   private Consumer<Sample> determineCommand(Instant performAt, String sampleStatus) {
