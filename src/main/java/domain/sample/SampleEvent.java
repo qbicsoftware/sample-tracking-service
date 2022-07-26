@@ -30,4 +30,28 @@ public abstract class SampleEvent implements Serializable {
         ", occurredOn=" + occurredOn +
         '}';
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SampleEvent)) {
+      return false;
+    }
+
+    SampleEvent that = (SampleEvent) o;
+
+    if (!sampleCode.equals(that.sampleCode)) {
+      return false;
+    }
+    return occurredOn.equals(that.occurredOn);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = sampleCode.hashCode();
+    result = 31 * result + occurredOn.hashCode();
+    return result;
+  }
 }
