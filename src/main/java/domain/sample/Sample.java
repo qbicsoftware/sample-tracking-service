@@ -11,8 +11,11 @@ import domain.sample.events.SampleSequenced;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <p>A sample in the context of sample-tracking.</p>
@@ -32,16 +35,26 @@ public class Sample {
     currentState = new CurrentState();
   }
 
+  public SampleCode sampleCode() {
+    return sampleCode;
+  }
+
   public static Sample create(SampleCode sampleCode) {
     return new Sample(sampleCode);
   }
 
-  public static Sample fromEvents(SampleEvent... events) {
-    SampleCode sampleCode = sampleCodeFromEvents(events);
-    Sample sample = new Sample(sampleCode);
-    for (SampleEvent event : events) {
-      sample.addEvent(event);
+  public static Sample fromEvents(Collection<SampleEvent> events) {
+    if (events.isEmpty()) {
+      throw new IllegalArgumentException(
+          "Sample creation from events not possible without provided events.");
     }
+    Optional<SampleCode> containedSampleCode =  events.stream().findAny().map(SampleEvent::sampleCode);
+    SampleCode sampleCode = containedSampleCode.orElseThrow(() ->
+        new InvalidDomainException("Could not identify sample code from events: " + events));
+    Sample sample = new Sample(sampleCode);
+    events.stream()
+        .sorted(Comparator.comparing(SampleEvent::occurredOn))
+        .forEachOrdered(sample::addEvent);
     return sample;
   }
 

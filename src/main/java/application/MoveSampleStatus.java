@@ -1,11 +1,9 @@
 package application;
 
-import domain.EventStore;
+import domain.SampleRepository;
 import domain.sample.Sample;
 import domain.sample.SampleCode;
-import domain.sample.SampleEvent;
 import java.time.Instant;
-import java.util.SortedSet;
 import java.util.function.Consumer;
 
 /**
@@ -17,23 +15,21 @@ import java.util.function.Consumer;
  */
 public class MoveSampleStatus {
 
-  private final EventStore eventStore;
+  private final SampleRepository sampleRepository;
 
-  public MoveSampleStatus(EventStore eventStore) {
-    this.eventStore = eventStore;
+  public MoveSampleStatus(SampleRepository sampleRepository) {
+    this.sampleRepository = sampleRepository;
   }
 
   public void moveSample(String sampleCode, String sampleStatus, String instant) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(instant);
     // restore the status
-    SortedSet<SampleEvent> sampleEvents = eventStore.findForSample(code);
-    Sample sample = Sample.create(code);
-    sampleEvents.forEach(sample::addEvent);
+    Sample sample = sampleRepository.get(code);
     // run the command
     determineCommand(performAt, sampleStatus).accept(sample);
     // store events
-    sample.events().forEach(eventStore::store);
+    sampleRepository.store(sample);
   }
 
   private Consumer<Sample> determineCommand(Instant performAt, String sampleStatus) {
