@@ -44,8 +44,6 @@ public class MoveSampleStatus {
         return sample -> sample.passQualityControl(performAt);
       case "LIBRARY_PREP_FINISHED":
         return sample -> sample.prepareLibrary(performAt);
-      case "SEQUENCING_COMPLETE":
-        return sample -> sample.sequence(performAt);
       case "DATA_AVAILABLE":
         return sample -> sample.provideData(performAt);
     }

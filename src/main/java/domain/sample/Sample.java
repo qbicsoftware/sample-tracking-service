@@ -7,7 +7,6 @@ import domain.sample.events.LibraryPrepared;
 import domain.sample.events.MetadataRegistered;
 import domain.sample.events.PassedQualityControl;
 import domain.sample.events.SampleReceived;
-import domain.sample.events.SampleSequenced;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,12 +74,6 @@ public class Sample {
       throw new InvalidDomainException(
           String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
     }
-    if (!currentState.status.equals(Status.METADATA_REGISTERED)) {
-      throw new InvalidDomainException(
-          String.format(
-              "Metadata must be registered before sample %s can be received in the lab.",
-              sampleCode));
-    }
     SampleReceived event = SampleReceived.create(sampleCode, occurredOn);
     addEvent(event);
   }
@@ -89,12 +82,6 @@ public class Sample {
     if (notAfterLastModification(occurredOn)) {
       throw new InvalidDomainException(
           String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
-    }
-    if (!currentState.status.equals(Status.SAMPLE_RECEIVED)) {
-      throw new InvalidDomainException(
-          String.format(
-              "Sample %s must be received at the lab before quality control can be performed.",
-              sampleCode));
     }
     PassedQualityControl event = PassedQualityControl.create(sampleCode, occurredOn);
     addEvent(event);
@@ -105,12 +92,6 @@ public class Sample {
       throw new InvalidDomainException(
           String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
     }
-    if (!currentState.status.equals(Status.SAMPLE_RECEIVED)) {
-      throw new InvalidDomainException(
-          String.format(
-              "Sample %s must be received at the lab before quality control can be performed.",
-              sampleCode));
-    }
     FailedQualityControl event = FailedQualityControl.create(sampleCode, occurredOn);
     addEvent(event);
   }
@@ -120,28 +101,7 @@ public class Sample {
       throw new InvalidDomainException(
           String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
     }
-    if (!currentState.status.equals(Status.SAMPLE_QC_PASSED)) {
-      throw new InvalidDomainException(
-          String.format("Sample %s must pass quality control before a library is prepared.",
-              sampleCode));
-    }
     LibraryPrepared event = LibraryPrepared.create(sampleCode, occurredOn);
-    addEvent(event);
-  }
-
-  public void sequence(Instant occurredOn) {
-    if (notAfterLastModification(occurredOn)) {
-      throw new InvalidDomainException(
-          String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
-    }
-    if (!currentState.status.equals(Status.LIBRARY_PREP_FINISHED) && !currentState.status.equals(
-        Status.SAMPLE_QC_FAILED)) {
-      throw new InvalidDomainException(
-          String.format(
-              "Sample %s did not pass quality control or had a library prepared to be sequenced.",
-              sampleCode));
-    }
-    SampleSequenced event = SampleSequenced.create(sampleCode, occurredOn);
     addEvent(event);
   }
 
@@ -149,10 +109,6 @@ public class Sample {
     if (notAfterLastModification(occurredOn)) {
       throw new InvalidDomainException(
           String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
-    }
-    if (!currentState.status.equals(Status.SEQUENCING_COMPLETED)) {
-      throw new InvalidDomainException(
-          String.format("Sample %s did not complete sequencing.", sampleCode));
     }
     DataMadeAvailable event = DataMadeAvailable.create(sampleCode, occurredOn);
     addEvent(event);
@@ -182,8 +138,6 @@ public class Sample {
       apply((FailedQualityControl) event);
     } else if (event instanceof LibraryPrepared) {
       apply((LibraryPrepared) event);
-    } else if (event instanceof SampleSequenced) {
-      apply((SampleSequenced) event);
     } else if (event instanceof DataMadeAvailable) {
       apply((DataMadeAvailable) event);
     } else {
@@ -219,11 +173,7 @@ public class Sample {
     currentState.status = Status.SAMPLE_RECEIVED;
   }
 
-  private void apply(SampleSequenced event) {
-    currentState.status = Status.SEQUENCING_COMPLETED;
-  }
-
-  private static class CurrentState {
+  public static class CurrentState {
 
     private Status status;
 
