@@ -21,4 +21,9 @@ public class FailedQualityControl extends SampleEvent {
   private FailedQualityControl(SampleCode sampleCode, Instant occurredOn) {
     super(sampleCode, occurredOn);
   }
+
+  @Override
+  public String toString() {
+    return "FailedQualityControl{} " + super.toString();
+  }
 }

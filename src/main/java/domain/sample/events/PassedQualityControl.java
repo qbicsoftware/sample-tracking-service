@@ -20,4 +20,9 @@ public class PassedQualityControl extends SampleEvent {
   private PassedQualityControl(SampleCode sampleCode, Instant occurredOn) {
     super(sampleCode, occurredOn);
   }
+
+  @Override
+  public String toString() {
+    return "PassedQualityControl{} " + super.toString();
+  }
 }

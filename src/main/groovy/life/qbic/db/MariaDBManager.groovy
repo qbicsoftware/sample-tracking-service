@@ -1,5 +1,9 @@
 package life.qbic.db
 
+import domain.sample.DomainEventSerializer
+import domain.sample.SampleCode
+import domain.sample.SampleEvent
+import domain.sample.SampleEventDatasource
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
@@ -16,6 +20,7 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.sql.DataSource
+import java.sql.Blob
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
@@ -25,13 +30,16 @@ import java.time.OffsetDateTime
 
 @Log4j2
 @Singleton
-class MariaDBManager implements IQueryService, INotificationService {
+class MariaDBManager implements IQueryService, INotificationService, SampleEventDatasource {
 
   private DataSource dataSource
 
   private Sql sql
 
   private static final PERSONS_TABLE = "person"
+
+  //TODO as a parameter?
+  private DomainEventSerializer eventSerializer = new DomainEventSerializer();
 
   @Inject MariaDBManager(QBiCDataSource dataSource) {
     this.dataSource = dataSource.getSource()
@@ -614,5 +622,36 @@ class MariaDBManager implements IQueryService, INotificationService {
     return res
   }
 
+  @Override
+   <T extends SampleEvent> void store(T sampleEvent) {
+    String eventSerialized = eventSerializer.serialize(sampleEvent);
 
+    String query = "INSERT INTO sample_events (`sample_code`, `event_time`, `event_type`, `event_serialized`) " +
+            "VALUES(?, ?, ?, ?);"
+    try {
+      sql.execute(query, sampleEvent.sampleCode(), sampleEvent.occurredOn(), sampleEvent.getClass().getName(), eventSerialized)
+    } catch(SQLException sqlException) {
+      log.error("sample event storage logging unsuccessful: $sqlException.message", sqlException)
+    }
+  }
+
+  @Override
+  List<SampleEvent> findAllForSample(SampleCode sampleCode) {
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    try(Sql sql = new Sql(connection)) {
+      List<SampleEvent> events = new ArrayList<>()
+      final String query = "SELECT * FROM sample_events WHERE sample_code = '${sampleCode.toString()}' ORDER BY event_time;"
+
+      List<GroovyRowResult> results = sql.rows(query)
+
+      for (GroovyRowResult rs : results) {
+        def resultValue = rs.get("event_serialized") as Blob
+        SampleEvent event = eventSerializer.deserialize(resultValue.getBytes(1, resultValue.length() as int))
+        events.add(event)
+      }
+      sql.close()
+      return events
+    }
+  }
 }

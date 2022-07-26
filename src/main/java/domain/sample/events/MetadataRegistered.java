@@ -22,4 +22,8 @@ public class MetadataRegistered extends SampleEvent {
     super(sampleCode, occurredOn);
   }
 
+  @Override
+  public String toString() {
+    return "MetadataRegistered{} " + super.toString();
+  }
 }

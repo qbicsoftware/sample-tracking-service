@@ -20,4 +20,9 @@ public class SampleReceived extends SampleEvent {
   private SampleReceived(SampleCode sampleCode, Instant occurredOn) {
     super(sampleCode, occurredOn);
   }
+
+  @Override
+  public String toString() {
+    return "SampleReceived{} " + super.toString();
+  }
 }

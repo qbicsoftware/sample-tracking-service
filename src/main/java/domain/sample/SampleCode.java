@@ -1,5 +1,6 @@
 package domain.sample;
 
+import java.io.Serializable;
 import life.qbic.controller.RegExValidator;
 
 /**
@@ -7,7 +8,7 @@ import life.qbic.controller.RegExValidator;
  *
  * @since 2.0.0
  */
-public class SampleCode {
+public class SampleCode implements Serializable {
   private final String text;
 
   private SampleCode(String text) {

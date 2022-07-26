@@ -1,11 +1,12 @@
 package domain.sample;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 /**
  * A domain event in the sample domain.
  */
-public abstract class SampleEvent {
+public abstract class SampleEvent implements Serializable {
   private final SampleCode sampleCode;
   private final Instant occurredOn;
 
@@ -20,5 +21,13 @@ public abstract class SampleEvent {
 
   public Instant occurredOn() {
     return occurredOn;
+  }
+
+  @Override
+  public String toString() {
+    return "SampleEvent{" +
+        "sampleCode=" + sampleCode +
+        ", occurredOn=" + occurredOn +
+        '}';
   }
 }

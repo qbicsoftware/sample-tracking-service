@@ -21,4 +21,8 @@ public class DataMadeAvailable extends SampleEvent {
     super(sampleCode, occurredOn);
   }
 
+  @Override
+  public String toString() {
+    return "DataMadeAvailable{} " + super.toString();
+  }
 }

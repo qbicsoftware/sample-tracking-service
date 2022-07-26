@@ -21,4 +21,8 @@ public class LibraryPrepared extends SampleEvent {
     super(sampleCode, occurredOn);
   }
 
+  @Override
+  public String toString() {
+    return "LibraryPrepared{} " + super.toString();
+  }
 }

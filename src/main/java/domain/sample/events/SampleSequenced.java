@@ -21,4 +21,8 @@ public class SampleSequenced extends SampleEvent {
     super(sampleCode, occurredOn);
   }
 
+  @Override
+  public String toString() {
+    return "SampleSequenced{} " + super.toString();
+  }
 }
