@@ -4,9 +4,11 @@ import java.io.Serializable;
 import java.time.Instant;
 
 /**
- * A domain event in the sample domain.
+ * A domain event in the sample domain. Contains information on the sample it refers to as well as
+ * the instant of occurrence.
  */
 public abstract class SampleEvent implements Serializable {
+
   private final SampleCode sampleCode;
   private final Instant occurredOn;
 

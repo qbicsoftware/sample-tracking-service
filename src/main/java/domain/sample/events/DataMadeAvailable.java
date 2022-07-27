@@ -5,11 +5,9 @@ import domain.sample.SampleEvent;
 import java.time.Instant;
 
 /**
- * <b>short description</b>
+ * Whenever data is made available for a sample this domain event is fired.
  *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * @since 2.0.0
  */
 public class DataMadeAvailable extends SampleEvent {
 

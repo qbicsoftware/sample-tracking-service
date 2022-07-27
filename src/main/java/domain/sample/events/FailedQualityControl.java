@@ -5,11 +5,9 @@ import domain.sample.SampleEvent;
 import java.time.Instant;
 
 /**
- * <b>short description</b>
+ * A sample failed quality control in the lab.
  *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * @since 2.0.0
  */
 public class FailedQualityControl extends SampleEvent {
 

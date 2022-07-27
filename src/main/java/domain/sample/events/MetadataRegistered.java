@@ -5,11 +5,9 @@ import domain.sample.SampleEvent;
 import java.time.Instant;
 
 /**
- * <b>short description</b>
+ * Metadata for a sample was registered in the system.
  *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * @since 2.0.0
  */
 public class MetadataRegistered extends SampleEvent {
 
