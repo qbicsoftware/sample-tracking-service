@@ -95,7 +95,7 @@ public class Sample {
       return;
     }
     if (!afterLastEvent(event)) {
-      throw new IllegalArgumentException(
+      throw new InvalidDomainException(
           String.format("The sample (%s) was modified after %s", sampleCode, event.occurredOn()));
     }
     apply(event);
