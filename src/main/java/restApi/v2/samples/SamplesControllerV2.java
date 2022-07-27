@@ -15,7 +15,6 @@ import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.Put;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
-import java.time.Instant;
 import javax.inject.Inject;
 import life.qbic.auth.Authentication;
 
@@ -33,36 +32,41 @@ public class SamplesControllerV2 {
   }
 
   @Put(uri = "/{sampleCode}/status")
-  public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode, @Body String status) {
-    sampleService.moveSample(sampleCode, status, Instant.now().toString());
+  public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode, @Body StatusChangeRequest statusChangeRequest) {
+    sampleService.moveSample(sampleCode, statusChangeRequest.status, statusChangeRequest.validFrom);
     return HttpResponse.ok();
   }
 
   @Get(uri = "/{sampleCode}/status")
   public HttpResponse<String> getSampleStatus(@PathVariable String sampleCode) {
     Status sampleStatus = sampleService.getSampleStatus(sampleCode);
-    String body = "";
+    SampleStatusDto statusDto;
     switch (sampleStatus) {
       case METADATA_REGISTERED:
-        body = StatusMapping.METADATA_REGISTERED.stringRepresentation();
+        statusDto = SampleStatusDto.METADATA_REGISTERED;
         break;
       case SAMPLE_RECEIVED:
-        body = StatusMapping.SAMPLE_RECEIVED.stringRepresentation();
+        statusDto = SampleStatusDto.SAMPLE_RECEIVED;
         break;
       case SAMPLE_QC_PASSED:
-        body = StatusMapping.SAMPLE_QC_PASSED.stringRepresentation();
+        statusDto = SampleStatusDto.SAMPLE_QC_PASS;
         break;
       case SAMPLE_QC_FAILED:
-        body = StatusMapping.SAMPLE_QC_FAILED.stringRepresentation();
+        statusDto = SampleStatusDto.SAMPLE_QC_FAIL;
         break;
       case LIBRARY_PREP_FINISHED:
-        body = StatusMapping.LIBRARY_PREP_FINISHED.stringRepresentation();
+        statusDto = SampleStatusDto.LIBRARY_PREP_FINISHED;
         break;
       case DATA_AVAILABLE:
-        body = StatusMapping.DATA_AVAILABLE.stringRepresentation();
+        statusDto = SampleStatusDto.DATA_AVAILABLE;
         break;
+      default:
+        throw new IllegalArgumentException(
+            "Provided sample status not recognized: "
+                + sampleStatus.name()); // this is unnecessary in Java 17 using enhanced switch methods
+                                        // should never be reached if all enum values are handled here.
     }
-    return HttpResponse.ok(body);
+    return HttpResponse.ok(statusDto.name());
   }
 
 

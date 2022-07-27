@@ -1,8 +1,9 @@
 package life.qbic.service
 
-import life.qbic.datamodel.people.*
-import life.qbic.datamodel.services.*
-import life.qbic.datamodel.samples.*
+
+import life.qbic.datamodel.people.Address
+import life.qbic.datamodel.samples.Location
+import life.qbic.datamodel.samples.Status
 import life.qbic.db.IQueryService
 import spock.lang.Specification
 
@@ -19,7 +20,7 @@ class LocationServiceCenterSpec extends Specification {
         String userId = "test@qbic.de"
 
         and: "a list of locations for the id"
-        Date date = new Date(new Date().getTime());
+        Date date = new Date(new Date().getTime())
         Address address1 = new Address(affiliation: "Gevantsa", country: "Chiark", street: "Hassease", zipCode: 0)
         Address address2 = new Address(affiliation: "QBiC", country: "Germany", street: "Morgenstelle 10", zipCode: 72076)
         Location location1 = new Location(name: "Test Location 1", responsiblePerson: userId, responsibleEmail: "example1", address: address1, status: Status.WAITING, arrivalDate: date, forwardDate: date)
