@@ -61,76 +61,56 @@ public class Sample {
   }
 
   public void registerMetadata(Instant occurredOn) {
-    if (notAfterLastModification(occurredOn)) {
-      throw new InvalidDomainException(
-          String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
-    }
     MetadataRegistered event = MetadataRegistered.create(sampleCode, occurredOn);
     addEvent(event);
   }
 
   public void receive(Instant occurredOn) {
-    if (notAfterLastModification(occurredOn)) {
-      throw new InvalidDomainException(
-          String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
-    }
     SampleReceived event = SampleReceived.create(sampleCode, occurredOn);
     addEvent(event);
   }
 
   public void passQualityControl(Instant occurredOn) {
-    if (notAfterLastModification(occurredOn)) {
-      throw new InvalidDomainException(
-          String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
-    }
     PassedQualityControl event = PassedQualityControl.create(sampleCode, occurredOn);
     addEvent(event);
   }
 
   public void failQualityControl(Instant occurredOn) {
-    if (notAfterLastModification(occurredOn)) {
-      throw new InvalidDomainException(
-          String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
-    }
     FailedQualityControl event = FailedQualityControl.create(sampleCode, occurredOn);
     addEvent(event);
   }
 
   public void prepareLibrary(Instant occurredOn) {
-    if (notAfterLastModification(occurredOn)) {
-      throw new InvalidDomainException(
-          String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
-    }
     LibraryPrepared event = LibraryPrepared.create(sampleCode, occurredOn);
     addEvent(event);
   }
 
   public void provideData(Instant occurredOn) {
-    if (notAfterLastModification(occurredOn)) {
-      throw new InvalidDomainException(
-          String.format("The sample (%s) was modified after %s", sampleCode, occurredOn));
-    }
     DataMadeAvailable event = DataMadeAvailable.create(sampleCode, occurredOn);
     addEvent(event);
   }
 
   public <T extends SampleEvent> void addEvent(T event) {
+    if (events.contains(event)) {
+      return;
+    }
+    if (!afterLastEvent(event)) {
+      throw new IllegalArgumentException(
+          String.format("The sample (%s) was modified after %s", sampleCode, event.occurredOn()));
+    }
     apply(event);
     events.add(event);
   }
 
-  private boolean notAfterLastModification(Instant occurredOn) {
+  private boolean afterLastEvent(SampleEvent event) {
     if (events.isEmpty()) {
-      return false;
+      return true;
     }
     SampleEvent lastEvent = events.get(events.size() - 1);
-    return lastEvent.occurredOn().isAfter(occurredOn);
+    return event.occurredOn().isAfter(lastEvent.occurredOn());
   }
 
   private <T extends SampleEvent> void apply(T event) {
-    if (events.contains(event)) {
-      return;
-    }
     if (event instanceof MetadataRegistered) {
       apply((MetadataRegistered) event);
     } else if (event instanceof SampleReceived) {
