@@ -7,13 +7,6 @@ import spock.lang.Specification
 
 import java.time.Instant
 
-/**
- * <b>short description</b>
- *
- * <p>detailed description</p>
- *
- * @since <version tag>
- */
 class SampleSpec extends Specification {
 
   def "expect a sample that was created from events is in the correct state"() {
@@ -35,6 +28,21 @@ class SampleSpec extends Specification {
     Status.DATA_AVAILABLE      | Instant.MIN                               | Instant.parse("2022-07-27T00:00:01.000Z") | Instant.MAX
   }
 
+  def "given A sample and an event processed by it: when the event is added to the sample, then the sample will ignore the request"() {
+    given: "A sample and an event processed by it"
+    def sampleCode = SampleCode.fromString("QABCD001A0")
+    Sample sample = Sample.create(sampleCode)
+    MetadataRegistered metadataRegistered = MetadataRegistered.create(sampleCode, Instant.now())
+    sample.addEvent(metadataRegistered)
+    when: "the event is added to the sample"
+    def stateBefore = sample.currentState()
+    sample.addEvent(metadataRegistered)
+    def stateAfter = sample.currentState()
+
+    then: "the sample will ignore the request"
+    stateAfter == stateBefore
+  }
+
   def "given a sample and an event predating the sample state, when the event is added to the sample, then an InvalidDomainException is thrown"() {
     given: "a Sample with at least one event"
     SampleCode sampleCode = SampleCode.fromString("QABCD001A0")
@@ -44,10 +52,10 @@ class SampleSpec extends Specification {
     SampleReceived sampleReceived = SampleReceived.create(sampleCode, Instant.MIN)
     when: "the event is added to the sample"
     sample.addEvent(sampleReceived)
-    then:
+    then: "the event was not added to the sample"
     !sample.events().contains(sampleReceived)
+    and: "an exception is thrown"
     thrown(InvalidDomainException)
-
   }
 
   def "expect sample creation from events not possible if no events are provided"() {

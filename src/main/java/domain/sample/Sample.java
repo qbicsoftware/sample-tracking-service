@@ -94,7 +94,7 @@ public class Sample {
     if (events.contains(event)) {
       return;
     }
-    if (!afterLastEvent(event)) {
+    if (!occurredAfterCurrentState(event)) {
       throw new InvalidDomainException(
           String.format("The sample (%s) was modified after %s", sampleCode, event.occurredOn()));
     }
@@ -102,7 +102,7 @@ public class Sample {
     events.add(event);
   }
 
-  private boolean afterLastEvent(SampleEvent event) {
+  private boolean occurredAfterCurrentState(SampleEvent event) {
     if (events.isEmpty()) {
       return true;
     }
