@@ -32,8 +32,34 @@ public class SamplesControllerV2 {
   }
 
   @Put(uri = "/{sampleCode}/status")
-  public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode, @Body StatusChangeRequest statusChangeRequest) {
-    sampleService.moveSample(sampleCode, statusChangeRequest.status, statusChangeRequest.validFrom);
+  public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode,
+      @Body StatusChangeRequest statusChangeRequest) {
+    String validFrom = statusChangeRequest.validFrom;
+    String requestedStatus = statusChangeRequest.status;
+    if (SampleStatusDto.METADATA_REGISTERED.name().equals(requestedStatus)) {
+      sampleService.registerMetadata(sampleCode, validFrom);
+
+    } else if (SampleStatusDto.SAMPLE_RECEIVED.name().equals(requestedStatus)) {
+      sampleService.receiveSample(sampleCode, validFrom);
+
+    } else if (SampleStatusDto.SAMPLE_QC_FAIL.name().equals(requestedStatus)) {
+      sampleService.failQualityControl(sampleCode, validFrom);
+
+    } else if (SampleStatusDto.SAMPLE_QC_PASS.name().equals(requestedStatus)) {
+      sampleService.passQualityControl(sampleCode, validFrom);
+
+    } else if (SampleStatusDto.LIBRARY_PREP_FINISHED.name().equals(requestedStatus)) {
+      sampleService.prepareLibrary(sampleCode, validFrom);
+
+    } else if (SampleStatusDto.DATA_AVAILABLE.name().equals(requestedStatus)) {
+      sampleService.provideData(sampleCode, validFrom);
+
+    } else {
+      /* this is unnecessary in Java 17 using enhanced switch methods should never be reached if all enum values are handled here.*/
+      throw new IllegalArgumentException(
+          "Provided sample status not recognized: "
+              + requestedStatus);
+    }
     return HttpResponse.ok();
   }
 
@@ -61,10 +87,10 @@ public class SamplesControllerV2 {
         statusDto = SampleStatusDto.DATA_AVAILABLE;
         break;
       default:
+        /* this is unnecessary in Java 17 using enhanced switch methods should never be reached if all enum values are handled here.*/
         throw new IllegalArgumentException(
             "Provided sample status not recognized: "
-                + sampleStatus.name()); // this is unnecessary in Java 17 using enhanced switch methods
-                                        // should never be reached if all enum values are handled here.
+                + sampleStatus.name());
     }
     return HttpResponse.ok(statusDto.name());
   }

@@ -24,17 +24,6 @@ public class SampleService {
     this.sampleRepository = sampleRepository;
   }
 
-  public void moveSample(String sampleCode, String sampleStatus, String instant) {
-    SampleCode code = SampleCode.fromString(sampleCode);
-    Instant performAt = Instant.parse(instant);
-    // restore the status
-    Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
-    // run the command
-    determineCommand(performAt, sampleStatus).accept(sample);
-    // store events
-    sampleRepository.store(sample);
-  }
-
   public Status getSampleStatus(String sampleCode) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Sample sample = sampleRepository.get(code).orElseThrow(() -> new ApplicationException(
@@ -42,22 +31,43 @@ public class SampleService {
     return sample.currentState().status();
   }
 
-  private Consumer<Sample> determineCommand(Instant performAt, String sampleStatus) {
-    switch (sampleStatus) {
-      case "METADATA_REGISTERED":
-        return sample -> sample.registerMetadata(performAt);
-      case "SAMPLE_RECEIVED":
-        return sample -> sample.receive(performAt);
-      case "SAMPLE_QC_FAIL":
-        return sample -> sample.failQualityControl(performAt);
-      case "SAMPLE_QC_PASS":
-        return sample -> sample.passQualityControl(performAt);
-      case "LIBRARY_PREP_FINISHED":
-        return sample -> sample.prepareLibrary(performAt);
-      case "DATA_AVAILABLE":
-        return sample -> sample.provideData(performAt);
-    }
-    throw new ApplicationException(String.format("Unknown action on status %s", sampleStatus));
+  public void registerMetadata(String sampleCode, String validFrom) {
+    SampleCode code = SampleCode.fromString(sampleCode);
+    Instant performAt = Instant.parse(validFrom);
+    runSampleCommand(code, it -> it.registerMetadata(performAt));
+  }
+  public void receiveSample(String sampleCode, String validFrom) {
+    SampleCode code = SampleCode.fromString(sampleCode);
+    Instant performAt = Instant.parse(validFrom);
+    runSampleCommand(code, it -> it.receive(performAt));
+  }
+  public void passQualityControl(String sampleCode, String validFrom) {
+    SampleCode code = SampleCode.fromString(sampleCode);
+    Instant performAt = Instant.parse(validFrom);
+    runSampleCommand(code, it -> it.passQualityControl(performAt));
+  }
+  public void failQualityControl(String sampleCode, String validFrom) {
+    SampleCode code = SampleCode.fromString(sampleCode);
+    Instant performAt = Instant.parse(validFrom);
+    runSampleCommand(code, it -> it.failQualityControl(performAt));
+  }
+  public void prepareLibrary(String sampleCode, String validFrom) {
+    SampleCode code = SampleCode.fromString(sampleCode);
+    Instant performAt = Instant.parse(validFrom);
+    runSampleCommand(code, it -> it.prepareLibrary(performAt));
+  }
+  public void provideData(String sampleCode, String validFrom) {
+    SampleCode code = SampleCode.fromString(sampleCode);
+    Instant performAt = Instant.parse(validFrom);
+    runSampleCommand(code, it -> it.provideData(performAt));
   }
 
+  private void runSampleCommand(SampleCode sampleCode, Consumer<Sample> command) {
+    // restore the status
+    Sample sample = sampleRepository.get(sampleCode).orElse(Sample.create(sampleCode));
+    // run the command
+    command.accept(sample);
+    // store events
+    sampleRepository.store(sample);
+  }
 }
