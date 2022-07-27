@@ -20,6 +20,7 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.sql.DataSource
+import javax.sql.rowset.serial.SerialBlob
 import java.sql.Blob
 import java.sql.Connection
 import java.sql.SQLException
@@ -41,11 +42,12 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
   //TODO as a parameter?
   private DomainEventSerializer eventSerializer = new DomainEventSerializer();
 
-  @Inject MariaDBManager(QBiCDataSource dataSource) {
+  @Inject
+  MariaDBManager(QBiCDataSource dataSource) {
     this.dataSource = dataSource.getSource()
   }
 
-  void addNewLocation(String sampleId, Location location) throws IllegalArgumentException{
+  void addNewLocation(String sampleId, Location location) throws IllegalArgumentException {
 
     if (!SampleCodeFunctions.isQbicBarcode(sampleId) && !SampleCodeFunctions.isQbicEntityCode(sampleId)) {
       throw new IllegalArgumentException("$sampleId is not valid.")
@@ -87,19 +89,19 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
         addOrUpdateSample(sampleId, locationId, sql)
       }
-    } catch(SQLException sqlException) {
+    } catch (SQLException sqlException) {
       // will always be thrown instead of an exception when withClosure is used
       String message = sqlException.getMessage()
       log.error(message)
       log.debug(sqlException)
-      log.info(sqlException.message+" Rolling back previous changes.")
+      log.info(sqlException.message + " Rolling back previous changes.")
       throw new RuntimeException("Could not add $sampleId to $location")
     } finally {
       sql.close()
     }
   }
 
-  void updateLocation(String sampleId, Location location) throws IllegalArgumentException{
+  void updateLocation(String sampleId, Location location) throws IllegalArgumentException {
     if (!SampleCodeFunctions.isQbicBarcode(sampleId) && !SampleCodeFunctions.isQbicEntityCode(sampleId)) {
       throw new IllegalArgumentException("$sampleId is not valid.")
     }
@@ -142,12 +144,12 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
         setNewLocationAsCurrent(sampleId, personId, locationId, location, sql)
         addOrUpdateSample(sampleId, locationId, sql)
       }
-    } catch(SQLException sqlException) {
+    } catch (SQLException sqlException) {
       // will always be thrown instead of an exception when withClosure is used
       String message = sqlException.getMessage()
       log.error(message)
       log.debug(sqlException)
-      log.info(sqlException.message+" Rolling back previous changes.")
+      log.info(sqlException.message + " Rolling back previous changes.")
       throw new RuntimeException("Could not update $sampleId to $location")
     } finally {
       sql.close()
@@ -162,7 +164,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     Contact contact = null;
     final String query = "SELECT * from $PERSONS_TABLE WHERE UPPER(email) = UPPER('${email}');"
     List<GroovyRowResult> results = sql.rows(query)
-    if( results.size() > 0 ) {
+    if (results.size() > 0) {
       GroovyRowResult res = results.get(0)
       int id = res.get("id")
       String first = res.get("first_name")
@@ -176,8 +178,8 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
 
   List<Location> getLocationsForEmail(String email) {
     List<Location> res = new ArrayList<>()
-    for(Location l : listLocations()) {
-      if(l.responsibleEmail.equals(email)) {
+    for (Location l : listLocations()) {
+      if (l.responsibleEmail.equals(email)) {
         res.add(l)
       }
     }
@@ -250,11 +252,11 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
    */
   private static Location parseLocationFromMap(Map input) {
     Collection<String> expectedKeys = ["name", "street", "zip_code", "country", "first_name", "last_name", "email"]
-    for(String key: expectedKeys) {
+    for (String key : expectedKeys) {
       // the contains key uses the same groovy magic that the get uses later on to extract the fields
       // even though the keys in the keySet of the map are all upper case
       if (!input.containsKey(key)) {
-        throw new IllegalArgumentException ("The provided input did not provide the expected key $key.")
+        throw new IllegalArgumentException("The provided input did not provide the expected key $key.")
       }
     }
 
@@ -268,7 +270,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     String first = input.get("first_name")
     String last = input.get("last_name")
     String mail = input.get("email")
-    return new Location(name: name, responsiblePerson: first+" "+last, responsibleEmail: mail, address: address);
+    return new Location(name: name, responsiblePerson: first + " " + last, responsibleEmail: mail, address: address);
   }
 
   List<Location> listLocations() {
@@ -279,7 +281,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     final String query = "SELECT * FROM locations INNER JOIN persons_locations ON locations.id = persons_locations.location_id INNER JOIN $PERSONS_TABLE ON persons_locations.person_id = ${PERSONS_TABLE}.id"
     List<GroovyRowResult> results = sql.rows(query)
 
-    for(GroovyRowResult rs: results) {
+    for (GroovyRowResult rs : results) {
       //Location
       String name = rs.get("name")
       String street = rs.get("street")
@@ -291,7 +293,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
       String first = rs.get("first_name")
       String last = rs.get("last_name")
       String mail = rs.get("email")
-      Location l = new Location(name: name, responsiblePerson: first+" "+last, responsibleEmail: mail, address: address);
+      Location l = new Location(name: name, responsiblePerson: first + " " + last, responsibleEmail: mail, address: address);
       locs.add(l)
     }
     sql.close()
@@ -303,7 +305,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     Address res = null;
     final String query = "SELECT * FROM locations INNER JOIN persons_locations ON locations.id = persons_locations.location_id WHERE person_id = '${personID}';"
     List<GroovyRowResult> results = sql.rows(query)
-    if( results.size() > 0 ) {
+    if (results.size() > 0) {
       GroovyRowResult rs = results.get(0)
       String affiliation = rs.get("name")
       String street = rs.get("street")
@@ -319,14 +321,14 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     final String locationIDQuery = "SELECT id FROM locations WHERE name = '${locName}';"
     List<GroovyRowResult> results = sql.rows(locationIDQuery)
     boolean res = false;
-    if( results.size() > 0 ) {
+    if (results.size() > 0) {
       GroovyRowResult rs = results.get(0)
       int id = rs.get("id")
 
       final String currentLocationQuery = "SELECT * FROM samples WHERE current_location_id = '${id}' AND id = '${sampleId}';"
 
       List<GroovyRowResult> currLocRes = sql.rows(currentLocationQuery)
-      if(currLocRes.size() > 0 ) {
+      if (currLocRes.size() > 0) {
         res = true;
       }
     }
@@ -341,14 +343,14 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     final String locationIDQuery = "SELECT id FROM locations WHERE name = '${locName}';"
     boolean res = true;
     List<GroovyRowResult> results = sql.rows(locationIDQuery)
-    if( results.size() > 0 ) {
+    if (results.size() > 0) {
       GroovyRowResult rs = results.get(0)
       int id = rs.get("id");
 
       final String currentLocationQuery = "SELECT * from samples_locations WHERE location_id = '${id}' AND sample_id = '${sampleId}';"
 
       List<GroovyRowResult> results2 = sql.rows(currentLocationQuery)
-      if( results2.size() > 0 ) {
+      if (results2.size() > 0) {
         res = false;
       }
     }
@@ -356,7 +358,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
   }
 
   private Timestamp toTimestamp(String date) {
-    if(date==null || date.isEmpty())
+    if (date == null || date.isEmpty())
       return null
     TimeZone tz = TimeZone.getTimeZone("MEZ");
     DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'");
@@ -371,12 +373,12 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
    * @return
    */
   private java.util.Date toDate(Object ts) {
-    if(ts==null)
+    if (ts == null)
       return null
-    if(ts instanceof Timestamp) {
+    if (ts instanceof Timestamp) {
       java.util.Date res = ts;
       return res;
-    } else if(ts instanceof OffsetDateTime){
+    } else if (ts instanceof OffsetDateTime) {
       // this is the data type returned for integration tests!
       log.info "Date object is an OffsetDateTime, this should only happen in testing!"
       return new java.util.Date(ts.toInstant().toEpochMilli());
@@ -409,7 +411,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
   private void addOrUpdateSample(String sampleId, int locationId, Sql sql) {
     final String search = "SELECT * FROM samples WHERE id = '${sampleId}';"
     List<GroovyRowResult> results = sql.rows(search)
-    if( results.size() == 0 ) {
+    if (results.size() == 0) {
       final String create = "INSERT INTO samples (id, current_location_id) VALUES(?,?)"
       sql.execute(create, sampleId, locationId)
     } else {
@@ -422,15 +424,15 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     Sample res = null;
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
-    final String query = "SELECT * FROM samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id "+
-        "INNER JOIN locations ON samples_locations.location_id = locations.id "+
-        "WHERE UPPER(samples.id) = UPPER('${code}');"
+    final String query = "SELECT * FROM samples INNER JOIN samples_locations ON samples.id = samples_locations.sample_id " +
+            "INNER JOIN locations ON samples_locations.location_id = locations.id " +
+            "WHERE UPPER(samples.id) = UPPER('${code}');"
     try (Sql sql = new Sql(connection)) {
       List<GroovyRowResult> results = sql.rows(query)
       List<Location> pastLocs = new ArrayList<>()
       Location currLoc = null;
       java.util.Date currDate = null
-      for(GroovyRowResult rs: results) {
+      for (GroovyRowResult rs : results) {
         int currID = rs.get("current_location_id") as int
         int locID = rs.get("location_id") as int
         java.util.Date arrivalDate = toDate(rs.get("arrival_time"))
@@ -451,29 +453,29 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
           throw new RuntimeException("The request for sample ${code} failed.")
         }
 
-        if(currID == locID ) {
-           // Compare if current location is the newest entry
-            if (currDate && currDate.before(arrivalDate)) {
-              // Set the current location to the newer one
-              log.info("Newer location entry found!")
-              pastLocs.add(new Location(name: currLoc.name, responsiblePerson: currLoc.responsiblePerson,
-                      responsibleEmail: currLoc.responsibleEmail, address: currLoc.address,
-                      status: currLoc.status, arrivalDate: currDate))
-              currDate = arrivalDate
-              currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
-            } else if(currDate && !currDate.before(arrivalDate)) {
-              // The location is the current one, but arrival date is older
-              pastLocs.add(new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate))
-            } else {
-              // Current location was not yet set, so we set it the first time
-              currLoc = new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
-              currDate = arrivalDate
+        if (currID == locID) {
+          // Compare if current location is the newest entry
+          if (currDate && currDate.before(arrivalDate)) {
+            // Set the current location to the newer one
+            log.info("Newer location entry found!")
+            pastLocs.add(new Location(name: currLoc.name, responsiblePerson: currLoc.responsiblePerson,
+                    responsibleEmail: currLoc.responsibleEmail, address: currLoc.address,
+                    status: currLoc.status, arrivalDate: currDate))
+            currDate = arrivalDate
+            currLoc = new Location(name: name, responsiblePerson: pers.getFirstName() + " " + pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
+          } else if (currDate && !currDate.before(arrivalDate)) {
+            // The location is the current one, but arrival date is older
+            pastLocs.add(new Location(name: name, responsiblePerson: pers.getFirstName() + " " + pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate))
+          } else {
+            // Current location was not yet set, so we set it the first time
+            currLoc = new Location(name: name, responsiblePerson: pers.getFirstName() + " " + pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate);
+            currDate = arrivalDate
           }
         } else {
-          pastLocs.add(new Location(name: name, responsiblePerson: pers.getFirstName()+" "+pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate));
+          pastLocs.add(new Location(name: name, responsiblePerson: pers.getFirstName() + " " + pers.getLastName(), responsibleEmail: pers.getEMail(), address: address, status: status, arrivalDate: arrivalDate, forwardDate: forwardedDate));
         }
       }
-      if(currLoc!=null) {
+      if (currLoc != null) {
         res = new Sample(code: code, currentLocation: currLoc, pastLocations: pastLocs)
       }
 
@@ -504,7 +506,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
               .filter({ return !(it == null || it.isEmpty()) })
               .map(DefaultGroovyMethods::first)
               .map(this::rowResultToPerson)
-              .orElseThrow({ new NotFoundException("No person with id ${id} exists.")})
+              .orElseThrow({ new NotFoundException("No person with id ${id} exists.") })
       return foundPerson
     }
   }
@@ -536,7 +538,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
             "VALUES(?, CURRENT_TIMESTAMP, ?);"
     try {
       sql.execute(query, sampleCode, sampleStatus.toString())
-    } catch(SQLException sqlException) {
+    } catch (SQLException sqlException) {
       log.error("sample change logging unsuccessful: $sqlException.message")
       log.debug("sample change logging unsuccessful: $sqlException.message", sqlException)
     }
@@ -596,7 +598,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     final String query = "SELECT * from locations WHERE UPPER(name) = UPPER('${locationName}')";
     try {
       List<GroovyRowResult> results = sql.rows(query)
-      if( results.size() > 0 ) {
+      if (results.size() > 0) {
         res = results.get(0).get("id")
       }
     } catch (SQLException e) {
@@ -612,7 +614,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     final String query = "SELECT * from $PERSONS_TABLE WHERE UPPER(email) = UPPER('${email}') OR UPPER(user_id) = UPPER('${email}')";
     try {
       List<GroovyRowResult> results = sql.rows(query)
-      if( results.size() > 0 ) {
+      if (results.size() > 0) {
         res = results.get(0).get("id")
       }
     } catch (SQLException e) {
@@ -623,16 +625,16 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
   }
 
   @Override
-   <T extends SampleEvent> void store(T sampleEvent) {
-    Blob eventSerialized = eventSerializer.serialize(sampleEvent);
+  <T extends SampleEvent> void store(T sampleEvent) {
+    Blob eventSerialized = new SerialBlob(eventSerializer.serialize(sampleEvent))
 
     String query = "INSERT INTO sample_events (`sample_code`, `event_time`, `event_type`, `event_serialized`) " +
             "VALUES(?, ?, ?, ?);"
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
-    try(Sql sql = new Sql(connection)) {
+    try (Sql sql = new Sql(connection)) {
       sql.execute(query, sampleEvent.sampleCode().toString(), sampleEvent.occurredOn(), sampleEvent.getClass().getSimpleName(), eventSerialized)
-    } catch(SQLException sqlException) {
+    } catch (SQLException sqlException) {
       log.error("sample event storage logging unsuccessful: $sqlException.message", sqlException)
     }
   }
@@ -641,7 +643,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
   List<SampleEvent> findAllForSample(SampleCode sampleCode) {
     Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.")
-    try(Sql sql = new Sql(connection)) {
+    try (Sql sql = new Sql(connection)) {
       List<SampleEvent> events = new ArrayList<>()
       final String query = "SELECT * FROM sample_events WHERE sample_code = '${sampleCode.toString()}' ORDER BY event_time;"
 

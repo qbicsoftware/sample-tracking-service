@@ -5,18 +5,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.sql.Blob;
-import java.sql.SQLException;
-import javax.sql.rowset.serial.SerialBlob;
 
 public class DomainEventSerializer {
 
-  public <T extends SampleEvent> Blob serialize(T event) {
+  public <T extends SampleEvent> byte[] serialize(T event) {
     try (ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         ObjectOutputStream objectStream = new ObjectOutputStream(byteOutputStream)) {
       objectStream.writeObject(event);
-      return new SerialBlob(byteOutputStream.toByteArray());
-    } catch (IOException | SQLException e) {
+      return byteOutputStream.toByteArray();
+    } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
