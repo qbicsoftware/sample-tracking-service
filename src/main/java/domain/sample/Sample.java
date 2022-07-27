@@ -128,12 +128,21 @@ public class Sample {
     }
   }
 
+  /**
+   * A history of events leading to the current state.
+   * @return all events leading to the current state of the sample
+   * @since 2.0.0
+   */
   public List<SampleEvent> events() {
     return Collections.unmodifiableList(events);
   }
 
-  private void apply(DataMadeAvailable event) {
-    currentState.status = Status.DATA_AVAILABLE;
+  private void apply(MetadataRegistered event) {
+    currentState.status = Status.METADATA_REGISTERED;
+  }
+
+  private void apply(SampleReceived event) {
+    currentState.status = Status.SAMPLE_RECEIVED;
   }
 
   private void apply(FailedQualityControl event) {
@@ -148,18 +157,21 @@ public class Sample {
     currentState.status = Status.LIBRARY_PREP_FINISHED;
   }
 
-  private void apply(MetadataRegistered event) {
-    currentState.status = Status.METADATA_REGISTERED;
+  private void apply(DataMadeAvailable event) {
+    currentState.status = Status.DATA_AVAILABLE;
   }
 
-  private void apply(SampleReceived event) {
-    currentState.status = Status.SAMPLE_RECEIVED;
-  }
-
+  /**
+   * Represents the current state of a sample.
+   */
   public static class CurrentState {
 
     private Status status;
 
+    /**
+     * The status the sample is in.
+     * @return the current status
+     */
     public Status status() {
       return status;
     }

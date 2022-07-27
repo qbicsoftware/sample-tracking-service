@@ -38,7 +38,7 @@ public abstract class SampleEvent implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof SampleEvent)) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
 
