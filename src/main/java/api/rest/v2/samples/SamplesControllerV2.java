@@ -95,5 +95,20 @@ public class SamplesControllerV2 {
     return HttpResponse.ok(statusDto.name());
   }
 
+  @Error(InvalidDomainException.class)
+  HttpResponse<String> onDomainError() {
+    return HttpResponse.serverError("We are sorry but your request could not be processed.");
+  }
+
+  @Error(ApplicationException.class)
+  HttpResponse<String> onApplicationError() {
+    return HttpResponse.serverError("We are sorry but your request could not be processed.");
+  }
+
+  @Error(Exception.class)
+  HttpResponse<String> onOtherError() {
+    return HttpResponse.serverError("We are sorry but your request could not be processed.");
+  }
+
 
 }
