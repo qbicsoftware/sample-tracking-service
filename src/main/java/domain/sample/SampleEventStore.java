@@ -5,11 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * <b>short description</b>
+ * An event store for sample events. The event store is responsible for de-duplication.
  *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * @since 2.0.0
  */
 public class SampleEventStore implements ISampleEventStore {
 

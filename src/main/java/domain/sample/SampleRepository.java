@@ -4,11 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * <b>short description</b>
+ * A repository for samples. Used to get samples and store samples in persistence.
  *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * @since 2.0.0
  */
 public class SampleRepository {
 

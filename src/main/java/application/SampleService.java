@@ -9,11 +9,9 @@ import java.util.function.Consumer;
 import javax.inject.Inject;
 
 /**
- * <b>short description</b>
+ * An application service to interact with samples.
  *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * @since 2.0.0
  */
 public class SampleService {
 
