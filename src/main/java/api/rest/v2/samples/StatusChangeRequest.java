@@ -1,4 +1,4 @@
-package restApi.v2.samples;
+package api.rest.v2.samples;
 
 /**
  * <b>Requests the sample status to be changed.</b>

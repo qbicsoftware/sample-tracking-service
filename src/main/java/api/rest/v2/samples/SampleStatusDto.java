@@ -1,4 +1,4 @@
-package restApi.v2.samples;
+package api.rest.v2.samples;
 
 /**
  * Statuses exposed to the outside. The enum names can be used in REST calls to represent a sample

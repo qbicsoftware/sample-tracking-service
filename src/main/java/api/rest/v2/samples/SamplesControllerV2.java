@@ -1,7 +1,9 @@
-package restApi.v2.samples;
+package api.rest.v2.samples;
 
 
+import application.ApplicationException;
 import application.SampleService;
+import domain.InvalidDomainException;
 import domain.sample.SampleEventDatasource;
 import domain.sample.SampleEventStore;
 import domain.sample.SampleRepository;
@@ -10,6 +12,7 @@ import io.micronaut.context.annotation.Requires;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
+import io.micronaut.http.annotation.Error;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.Put;
