@@ -62,31 +62,37 @@ public class Sample {
 
   public void registerMetadata(Instant occurredOn) {
     MetadataRegistered event = MetadataRegistered.create(sampleCode, occurredOn);
+    // put domain validation here e.g. if sample in state xyz can it change to abc?
     addEvent(event);
   }
 
   public void receive(Instant occurredOn) {
     SampleReceived event = SampleReceived.create(sampleCode, occurredOn);
+    // put domain validation here e.g. if sample in state xyz can it change to abc?
     addEvent(event);
   }
 
   public void passQualityControl(Instant occurredOn) {
     PassedQualityControl event = PassedQualityControl.create(sampleCode, occurredOn);
+    // put domain validation here e.g. if sample in state xyz can it change to abc?
     addEvent(event);
   }
 
   public void failQualityControl(Instant occurredOn) {
     FailedQualityControl event = FailedQualityControl.create(sampleCode, occurredOn);
+    // put domain validation here e.g. if sample in state xyz can it change to abc?
     addEvent(event);
   }
 
   public void prepareLibrary(Instant occurredOn) {
     LibraryPrepared event = LibraryPrepared.create(sampleCode, occurredOn);
+    // put domain validation here e.g. if sample in state xyz can it change to abc?
     addEvent(event);
   }
 
   public void provideData(Instant occurredOn) {
     DataMadeAvailable event = DataMadeAvailable.create(sampleCode, occurredOn);
+    // put domain validation here e.g. if sample in state xyz can it change to abc?
     addEvent(event);
   }
 
