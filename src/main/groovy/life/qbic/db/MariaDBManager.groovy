@@ -1,5 +1,6 @@
 package life.qbic.db
 
+import api.rest.v2.samples.SampleStatusDto
 import domain.notification.SampleStatusNotification
 import domain.notification.SampleStatusNotificationDatasource
 import domain.sample.DomainEventSerializer
@@ -663,17 +664,42 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
 
   @Override
   void store(SampleStatusNotification notification) {
-    String query = "INSERT INTO notification ('sample_code', 'sample_status', 'arrival_time') " +
+    String query = "INSERT INTO notification (`sample_code`, `sample_status`, `arrival_time`) " +
             "VALUES(?, ?, ?);"
-    try(Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+    try (Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.");
-        Sql sql = new Sql(connection)) {
+         Sql sql = new Sql(connection)) {
       sql.execute(query,
-              notification.sampleCode(),
-              notification.sampleStatus(),
+              notification.sampleCode().toString(),
+              toNotificationTableEnum(notification.sampleStatus()),
               notification.recodedAt())
     } catch (SQLException sqlException) {
       log.error("could not log $notification: $sqlException.message", sqlException)
     }
+  }
+
+  private static String toNotificationTableEnum(domain.sample.Status status) {
+    SampleStatusDto statusDto;
+    switch (status) {
+      case domain.sample.Status.METADATA_REGISTERED:
+        statusDto = SampleStatusDto.METADATA_REGISTERED;
+        break;
+      case domain.sample.Status.SAMPLE_RECEIVED:
+        statusDto = SampleStatusDto.SAMPLE_RECEIVED;
+        break;
+      case domain.sample.Status.SAMPLE_QC_PASSED:
+        statusDto = SampleStatusDto.SAMPLE_QC_PASS;
+        break;
+      case domain.sample.Status.SAMPLE_QC_FAILED:
+        statusDto = SampleStatusDto.SAMPLE_QC_FAIL;
+        break;
+      case domain.sample.Status.LIBRARY_PREP_FINISHED:
+        statusDto = SampleStatusDto.LIBRARY_PREP_FINISHED;
+        break;
+      case domain.sample.Status.DATA_AVAILABLE:
+        statusDto = SampleStatusDto.DATA_AVAILABLE;
+        break;
+    }
+    return statusDto.name();
   }
 }
