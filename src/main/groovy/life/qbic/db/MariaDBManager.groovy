@@ -1,5 +1,7 @@
 package life.qbic.db
 
+import domain.notification.SampleStatusNotification
+import domain.notification.SampleStatusNotificationDatasource
 import domain.sample.DomainEventSerializer
 import domain.sample.SampleCode
 import domain.sample.SampleEvent
@@ -31,7 +33,7 @@ import java.time.OffsetDateTime
 
 @Log4j2
 @Singleton
-class MariaDBManager implements IQueryService, INotificationService, SampleEventDatasource {
+class MariaDBManager implements IQueryService, INotificationService, SampleEventDatasource, SampleStatusNotificationDatasource {
 
   private DataSource dataSource
 
@@ -656,6 +658,22 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
       }
       sql.close()
       return events
+    }
+  }
+
+  @Override
+  void store(SampleStatusNotification notification) {
+    String query = "INSERT INTO notification ('sample_code', 'sample_status', 'arrival_time') " +
+            "VALUES(?, ?, ?);"
+    try(Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.");
+        Sql sql = new Sql(connection)) {
+      sql.execute(query,
+              notification.sampleCode(),
+              notification.sampleStatus(),
+              notification.recodedAt())
+    } catch (SQLException sqlException) {
+      log.error("could not log $notification: $sqlException.message", sqlException)
     }
   }
 }

@@ -1,7 +1,9 @@
 package application;
 
+import domain.notification.INotificationService2;
 import domain.sample.Sample;
 import domain.sample.SampleCode;
+import domain.sample.SampleEventPublisher;
 import domain.sample.SampleRepository;
 import domain.sample.Status;
 import java.time.Instant;
@@ -16,10 +18,12 @@ import javax.inject.Inject;
 public class SampleService {
 
   private final SampleRepository sampleRepository;
+  private final INotificationService2 notificationService;
 
   @Inject
-  public SampleService(SampleRepository sampleRepository) {
+  public SampleService(SampleRepository sampleRepository, INotificationService2 notificationService) {
     this.sampleRepository = sampleRepository;
+    this.notificationService = notificationService;
   }
 
   public Status getSampleStatus(String sampleCode) {
@@ -47,7 +51,15 @@ public class SampleService {
   public void failQualityControl(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
-    runSampleCommand(code, it -> it.failQualityControl(performAt));
+    SampleEventPublisher eventPublisher = new SampleEventPublisher();
+    // restore the status
+    Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
+    // run the command
+    sample.failQualityControl(performAt);
+    // store events
+    sampleRepository.store(sample);
+    // inform notification service
+    notificationService.sampleChanged(sample.sampleCode(), sample.currentState().status(), performAt);
   }
   public void prepareLibrary(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
@@ -57,7 +69,14 @@ public class SampleService {
   public void provideData(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
-    runSampleCommand(code, it -> it.provideData(performAt));
+    // restore the status
+    Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
+    // run the command
+    sample.provideData(performAt);
+    // store events
+    sampleRepository.store(sample);
+    // inform notification service
+    notificationService.sampleChanged(sample.sampleCode(), sample.currentState().status(), performAt);
   }
 
   private void runSampleCommand(SampleCode sampleCode, Consumer<Sample> command) {

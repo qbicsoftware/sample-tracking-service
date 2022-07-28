@@ -4,9 +4,6 @@ package api.rest.v2.samples;
 import application.ApplicationException;
 import application.SampleService;
 import domain.InvalidDomainException;
-import domain.sample.SampleEventDatasource;
-import domain.sample.SampleEventStore;
-import domain.sample.SampleRepository;
 import domain.sample.Status;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.http.HttpResponse;
@@ -30,9 +27,8 @@ public class SamplesControllerV2 {
   SampleService sampleService;
 
   @Inject
-  public SamplesControllerV2(SampleEventDatasource sampleEventDatasource) {
-    this.sampleService = new SampleService(
-        new SampleRepository(new SampleEventStore(sampleEventDatasource)));
+  public SamplesControllerV2(SampleService sampleService) {
+    this.sampleService = sampleService;
   }
 
   @Put(uri = "/{sampleCode}/status")
