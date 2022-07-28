@@ -53,6 +53,10 @@ public class Sample {
     Optional<SampleCode> containedSampleCode =  events.stream().findAny().map(SampleEvent::sampleCode);
     SampleCode sampleCode = containedSampleCode.orElseThrow(() ->
         new InvalidDomainException("Could not identify sample code from events: " + events));
+    if (events.stream().anyMatch(it -> !it.sampleCode().equals(sampleCode))) {
+      throw new InvalidDomainException(
+          String.format("Not all events are of the same stream. Expected %s", sampleCode));
+    }
     Sample sample = new Sample(sampleCode);
     events.stream()
         .sorted(Comparator.comparing(SampleEvent::occurredOn))
