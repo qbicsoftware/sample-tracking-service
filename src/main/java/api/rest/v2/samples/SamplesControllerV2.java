@@ -10,6 +10,7 @@ import domain.sample.SampleRepository;
 import domain.sample.Status;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Error;
@@ -100,17 +101,21 @@ public class SamplesControllerV2 {
 
   @Error(InvalidDomainException.class)
   HttpResponse<String> onDomainError() {
-    return HttpResponse.serverError("We are sorry but your request could not be processed.");
+    return HttpResponse.serverError("Apologies! Your request could not be processed.");
   }
 
   @Error(ApplicationException.class)
   HttpResponse<String> onApplicationError() {
-    return HttpResponse.serverError("We are sorry but your request could not be processed.");
+    return HttpResponse.serverError("Apologies! Your request could not be processed.");  }
+
+  @Error(IllegalArgumentException.class)
+  HttpResponse<String> onIllegalArguments() {
+    return HttpResponse.status(HttpStatus.BAD_REQUEST);
   }
 
   @Error(Exception.class)
   HttpResponse<String> onOtherError() {
-    return HttpResponse.serverError("We are sorry but your request could not be processed.");
+    return HttpResponse.serverError("Apologies! Your request could not be processed.");
   }
 
 
