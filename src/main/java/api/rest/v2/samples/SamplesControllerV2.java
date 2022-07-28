@@ -4,8 +4,7 @@ package api.rest.v2.samples;
 import application.ApplicationException;
 import application.SampleService;
 import domain.InvalidDomainException;
-import domain.notification.NotificationService;
-import domain.notification.SampleStatusNotificationDatasource;
+import domain.notification.INotificationRepository;
 import domain.sample.SampleEventDatasource;
 import domain.sample.SampleEventStore;
 import domain.sample.SampleRepository;
@@ -32,9 +31,9 @@ public class SamplesControllerV2 {
   SampleService sampleService;
 
   @Inject
-  public SamplesControllerV2(SampleEventDatasource sampleEventDatasource, SampleStatusNotificationDatasource sampleStatusNotificationDatasource) {
+  public SamplesControllerV2(SampleEventDatasource sampleEventDatasource, INotificationRepository notificationRepository) {
     this.sampleService = new SampleService(
-        new SampleRepository(new SampleEventStore(sampleEventDatasource)), new NotificationService(sampleStatusNotificationDatasource));
+        new SampleRepository(new SampleEventStore(sampleEventDatasource)), notificationRepository);
   }
 
   @Put(uri = "/{sampleCode}/status")

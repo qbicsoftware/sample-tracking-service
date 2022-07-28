@@ -1,8 +1,8 @@
 package life.qbic.db
 
 import api.rest.v2.samples.SampleStatusDto
+import domain.notification.INotificationRepository
 import domain.notification.SampleStatusNotification
-import domain.notification.SampleStatusNotificationDatasource
 import domain.sample.DomainEventSerializer
 import domain.sample.SampleCode
 import domain.sample.SampleEvent
@@ -34,7 +34,7 @@ import java.time.OffsetDateTime
 
 @Log4j2
 @Singleton
-class MariaDBManager implements IQueryService, INotificationService, SampleEventDatasource, SampleStatusNotificationDatasource {
+class MariaDBManager implements IQueryService, INotificationService, SampleEventDatasource, INotificationRepository {
 
   private DataSource dataSource
 

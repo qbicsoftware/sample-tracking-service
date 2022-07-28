@@ -1,6 +1,7 @@
 package application;
 
-import domain.notification.INotificationService2;
+import domain.notification.INotificationRepository;
+import domain.notification.SampleStatusNotification;
 import domain.sample.Sample;
 import domain.sample.SampleCode;
 import domain.sample.SampleEventPublisher;
@@ -18,12 +19,12 @@ import javax.inject.Inject;
 public class SampleService {
 
   private final SampleRepository sampleRepository;
-  private final INotificationService2 notificationService;
+  private final INotificationRepository notificationRepository;
 
   @Inject
-  public SampleService(SampleRepository sampleRepository, INotificationService2 notificationService) {
+  public SampleService(SampleRepository sampleRepository, INotificationRepository notificationRepository) {
     this.sampleRepository = sampleRepository;
-    this.notificationService = notificationService;
+    this.notificationRepository = notificationRepository;
   }
 
   public Status getSampleStatus(String sampleCode) {
@@ -59,7 +60,9 @@ public class SampleService {
     // store events
     sampleRepository.store(sample);
     // inform notification service
-    notificationService.sampleChanged(sample.sampleCode(), sample.currentState().status(), performAt);
+    SampleStatusNotification statusNotification = SampleStatusNotification.create(
+        sample.sampleCode(), performAt, sample.currentState().status());
+    notificationRepository.store(statusNotification);
   }
   public void prepareLibrary(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
@@ -76,7 +79,9 @@ public class SampleService {
     // store events
     sampleRepository.store(sample);
     // inform notification service
-    notificationService.sampleChanged(sample.sampleCode(), sample.currentState().status(), performAt);
+    SampleStatusNotification statusNotification = SampleStatusNotification.create(
+        sample.sampleCode(), performAt, sample.currentState().status());
+    notificationRepository.store(statusNotification);
   }
 
   private void runSampleCommand(SampleCode sampleCode, Consumer<Sample> command) {
