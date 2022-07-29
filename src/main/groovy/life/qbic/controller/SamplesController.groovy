@@ -1,6 +1,7 @@
 package life.qbic.controller
 
-
+import api.rest.v2.samples.SamplesControllerV2
+import api.rest.v2.samples.StatusChangeRequest
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
@@ -21,6 +22,7 @@ import life.qbic.service.ISampleService
 
 import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
+import java.time.Instant
 
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)
@@ -29,11 +31,14 @@ class SamplesController {
 
   ISampleService sampleService
   INotificationService notificationService
+  SamplesControllerV2 controllerV2
+
 
   @Inject
-  SamplesController(ISampleService sampleService, INotificationService notificationService) {
+  SamplesController(ISampleService sampleService, INotificationService notificationService, SamplesControllerV2 controllerV2) {
     this.sampleService = sampleService
     this.notificationService = notificationService
+    this.controllerV2 = controllerV2
   }
 
   @Operation(summary = "Request a sample's tracking information",
@@ -83,7 +88,10 @@ class SamplesController {
     }
     try{
         sampleService.addNewLocation(sampleId, location)
-        notificationService.sampleChanged(sampleId, location.getStatus())
+        controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+                StatusMapper.toStatusV2(location.getStatus()).toString(),
+                Instant.now().toString()))
+//        notificationService.sampleChanged(sampleId, location.getStatus())
         return HttpResponse.ok(location)
     } catch (IllegalArgumentException illegalArgumentException) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
@@ -114,7 +122,10 @@ class SamplesController {
     }
     try {
       sampleService.updateLocation(sampleId, location)
-      notificationService.sampleChanged(sampleId, location.getStatus())
+      controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+              StatusMapper.toStatusV2(location.getStatus()).toString(),
+              Instant.now().toString()))
+//      notificationService.sampleChanged(sampleId, location.getStatus())
       return HttpResponse.ok(location)
     } catch (IllegalArgumentException illegalArgumentException) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
@@ -140,7 +151,10 @@ class SamplesController {
     try {
       if (null != sampleService.searchSample(sampleId)) {
         sampleService.updateSampleStatus(sampleId, status)
-        notificationService.sampleChanged(sampleId, status)
+        controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+                StatusMapper.toStatusV2(status).toString(),
+                Instant.now().toString()))
+//        notificationService.sampleChanged(sampleId, status)
         return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
       } else {
         return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")

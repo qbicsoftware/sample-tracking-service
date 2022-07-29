@@ -10,6 +10,11 @@ package api.rest.v2.samples;
  */
 public class StatusChangeRequest {
 
+  public StatusChangeRequest(String status, String validSince) {
+    this.status = status;
+    this.validSince = validSince;
+  }
+
   /**
    * The sample status value.
    */
@@ -18,6 +23,6 @@ public class StatusChangeRequest {
   /**
    * The instant from which on this status is valid (e.g. 2022-07-27T00:00:01.352Z);
    */
-  public String validFrom;
+  public String validSince;
 
 }

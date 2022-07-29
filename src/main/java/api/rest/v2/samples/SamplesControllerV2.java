@@ -20,6 +20,7 @@ import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.Put;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import life.qbic.auth.Authentication;
 
@@ -37,9 +38,10 @@ public class SamplesControllerV2 {
   }
 
   @Put(uri = "/{sampleCode}/status")
+  @RolesAllowed("WRITER")
   public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode,
       @Body StatusChangeRequest statusChangeRequest) {
-    String validFrom = statusChangeRequest.validFrom;
+    String validFrom = statusChangeRequest.validSince;
     String requestedStatus = statusChangeRequest.status;
     if (SampleStatusDto.METADATA_REGISTERED.name().equals(requestedStatus)) {
       sampleService.registerMetadata(sampleCode, validFrom);
@@ -69,6 +71,7 @@ public class SamplesControllerV2 {
   }
 
   @Get(uri = "/{sampleCode}/status")
+  @RolesAllowed("READER")
   public HttpResponse<String> getSampleStatus(@PathVariable String sampleCode) {
     Status sampleStatus = sampleService.getSampleStatus(sampleCode);
     SampleStatusDto statusDto;

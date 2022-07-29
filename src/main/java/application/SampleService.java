@@ -4,7 +4,6 @@ import domain.notification.INotificationRepository;
 import domain.notification.SampleStatusNotification;
 import domain.sample.Sample;
 import domain.sample.SampleCode;
-import domain.sample.SampleEventPublisher;
 import domain.sample.SampleRepository;
 import domain.sample.Status;
 import java.time.Instant;
@@ -52,7 +51,6 @@ public class SampleService {
   public void failQualityControl(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
-    SampleEventPublisher eventPublisher = new SampleEventPublisher();
     // restore the status
     Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
     // run the command
