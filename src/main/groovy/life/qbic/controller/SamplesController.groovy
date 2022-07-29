@@ -1,7 +1,7 @@
 package life.qbic.controller
 
-import api.rest.v2.samples.SamplesControllerV2
-import api.rest.v2.samples.StatusChangeRequest
+import life.qbic.api.rest.v2.samples.SamplesControllerV2
+import life.qbic.api.rest.v2.samples.StatusChangeRequest
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus

@@ -1,12 +1,12 @@
 package life.qbic.db
 
-import api.rest.v2.samples.SampleStatusDto
-import domain.notification.INotificationRepository
-import domain.notification.SampleStatusNotification
-import domain.sample.DomainEventSerializer
-import domain.sample.SampleCode
-import domain.sample.SampleEvent
-import domain.sample.SampleEventDatasource
+import life.qbic.api.rest.v2.samples.SampleStatusDto
+import life.qbic.domain.notification.INotificationRepository
+import life.qbic.domain.notification.SampleStatusNotification
+import life.qbic.domain.sample.DomainEventSerializer
+import life.qbic.domain.sample.SampleCode
+import life.qbic.domain.sample.SampleEvent
+import life.qbic.domain.sample.SampleEventDatasource
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
@@ -678,25 +678,25 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     }
   }
 
-  private static String toNotificationTableEnum(domain.sample.Status status) {
+  private static String toNotificationTableEnum(life.qbic.domain.sample.Status status) {
     SampleStatusDto statusDto;
     switch (status) {
-      case domain.sample.Status.METADATA_REGISTERED:
+      case life.qbic.domain.sample.Status.METADATA_REGISTERED:
         statusDto = SampleStatusDto.METADATA_REGISTERED;
         break;
-      case domain.sample.Status.SAMPLE_RECEIVED:
+      case life.qbic.domain.sample.Status.SAMPLE_RECEIVED:
         statusDto = SampleStatusDto.SAMPLE_RECEIVED;
         break;
-      case domain.sample.Status.SAMPLE_QC_PASSED:
+      case life.qbic.domain.sample.Status.SAMPLE_QC_PASSED:
         statusDto = SampleStatusDto.SAMPLE_QC_PASS;
         break;
-      case domain.sample.Status.SAMPLE_QC_FAILED:
+      case life.qbic.domain.sample.Status.SAMPLE_QC_FAILED:
         statusDto = SampleStatusDto.SAMPLE_QC_FAIL;
         break;
-      case domain.sample.Status.LIBRARY_PREP_FINISHED:
+      case life.qbic.domain.sample.Status.LIBRARY_PREP_FINISHED:
         statusDto = SampleStatusDto.LIBRARY_PREP_FINISHED;
         break;
-      case domain.sample.Status.DATA_AVAILABLE:
+      case life.qbic.domain.sample.Status.DATA_AVAILABLE:
         statusDto = SampleStatusDto.DATA_AVAILABLE;
         break;
     }
