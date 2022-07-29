@@ -10,6 +10,9 @@ package api.rest.v2.samples;
  */
 public class StatusChangeRequest {
 
+  protected StatusChangeRequest() {
+  }
+
   public StatusChangeRequest(String status, String validSince) {
     this.status = status;
     this.validSince = validSince;
