@@ -7,7 +7,6 @@ import domain.sample.SampleCode;
 import domain.sample.SampleRepository;
 import domain.sample.Status;
 import java.time.Instant;
-import java.util.function.Consumer;
 import javax.inject.Inject;
 
 /**
@@ -36,17 +35,38 @@ public class SampleService {
   public void registerMetadata(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
-    runSampleCommand(code, it -> it.registerMetadata(performAt));
+    // restore the status
+    Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
+    // run the command
+    sample.registerMetadata(performAt);
+    // store events
+    sampleRepository.store(sample);
+    // inform notification service
+    updateNotificationTable(performAt, sample);
   }
   public void receiveSample(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
-    runSampleCommand(code, it -> it.receive(performAt));
+    // restore the status
+    Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
+    // run the command
+    sample.receive(performAt);
+    // store events
+    sampleRepository.store(sample);
+    // inform notification service
+    updateNotificationTable(performAt, sample);
   }
   public void passQualityControl(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
-    runSampleCommand(code, it -> it.passQualityControl(performAt));
+    // restore the status
+    Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
+    // run the command
+    sample.passQualityControl(performAt);
+    // store events
+    sampleRepository.store(sample);
+    // inform notification service
+    updateNotificationTable(performAt, sample);
   }
   public void failQualityControl(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
@@ -58,14 +78,19 @@ public class SampleService {
     // store events
     sampleRepository.store(sample);
     // inform notification service
-    SampleStatusNotification statusNotification = SampleStatusNotification.create(
-        sample.sampleCode(), performAt, sample.currentState().status());
-    notificationRepository.store(statusNotification);
+    updateNotificationTable(performAt, sample);
   }
   public void prepareLibrary(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
-    runSampleCommand(code, it -> it.prepareLibrary(performAt));
+    // restore the status
+    Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
+    // run the command
+    sample.prepareLibrary(performAt);
+    // store events
+    sampleRepository.store(sample);
+    // inform notification service
+    updateNotificationTable(performAt, sample);
   }
   public void provideData(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
@@ -77,17 +102,12 @@ public class SampleService {
     // store events
     sampleRepository.store(sample);
     // inform notification service
+    updateNotificationTable(performAt, sample);
+  }
+
+  private void updateNotificationTable(Instant performAt, Sample sample) {
     SampleStatusNotification statusNotification = SampleStatusNotification.create(
         sample.sampleCode(), performAt, sample.currentState().status());
     notificationRepository.store(statusNotification);
-  }
-
-  private void runSampleCommand(SampleCode sampleCode, Consumer<Sample> command) {
-    // restore the status
-    Sample sample = sampleRepository.get(sampleCode).orElse(Sample.create(sampleCode));
-    // run the command
-    command.accept(sample);
-    // store events
-    sampleRepository.store(sample);
   }
 }
