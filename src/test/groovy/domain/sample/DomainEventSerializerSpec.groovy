@@ -12,7 +12,7 @@ class DomainEventSerializerSpec extends Specification {
     given:
     def domainEventSerializer = new DomainEventSerializer()
     when: "serialization and successive deserialization returns the original object"
-    println domainEventSerializer.serialize(event)
+    domainEventSerializer.serialize(event)
     then:
     noExceptionThrown()
     where: "the event is as follows"

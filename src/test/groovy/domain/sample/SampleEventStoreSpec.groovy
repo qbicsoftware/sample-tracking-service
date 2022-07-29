@@ -1,5 +1,6 @@
 package domain.sample
 
+
 import domain.sample.events.MetadataRegistered
 import spock.lang.Specification
 

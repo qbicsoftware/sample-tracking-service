@@ -23,7 +23,7 @@ class SampleSpec extends Specification {
     sample.sampleCode() == sampleCode
     where:
     expectedStatus             | metadataRegisteredOccurredOn              | sampleReceivedOccurredOn                  | dataAvailableOccurredOn
-    Status.METADATA_REGISTERED | Instant.MAX                               | Instant.parse("2022-07-27T00:00:01.000Z") | Instant.MIN
+    Status.METADATA_REGISTERED | Instant.MAX | Instant.parse("2022-07-27T00:00:01.000Z") | Instant.MIN
     Status.SAMPLE_RECEIVED     | Instant.parse("2022-07-27T00:00:01.000Z") | Instant.MAX                               | Instant.MIN
     Status.DATA_AVAILABLE      | Instant.MIN                               | Instant.parse("2022-07-27T00:00:01.000Z") | Instant.MAX
   }
