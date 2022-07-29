@@ -41,25 +41,25 @@ public class SamplesControllerV2 {
   @RolesAllowed("WRITER")
   public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode,
       @Body StatusChangeRequest statusChangeRequest) {
-    String validFrom = statusChangeRequest.validSince;
+    String validSince = statusChangeRequest.validSince;
     String requestedStatus = statusChangeRequest.status;
     if (SampleStatusDto.METADATA_REGISTERED.name().equals(requestedStatus)) {
-      sampleService.registerMetadata(sampleCode, validFrom);
+      sampleService.registerMetadata(sampleCode, validSince);
 
     } else if (SampleStatusDto.SAMPLE_RECEIVED.name().equals(requestedStatus)) {
-      sampleService.receiveSample(sampleCode, validFrom);
+      sampleService.receiveSample(sampleCode, validSince);
 
     } else if (SampleStatusDto.SAMPLE_QC_FAIL.name().equals(requestedStatus)) {
-      sampleService.failQualityControl(sampleCode, validFrom);
+      sampleService.failQualityControl(sampleCode, validSince);
 
     } else if (SampleStatusDto.SAMPLE_QC_PASS.name().equals(requestedStatus)) {
-      sampleService.passQualityControl(sampleCode, validFrom);
+      sampleService.passQualityControl(sampleCode, validSince);
 
     } else if (SampleStatusDto.LIBRARY_PREP_FINISHED.name().equals(requestedStatus)) {
-      sampleService.prepareLibrary(sampleCode, validFrom);
+      sampleService.prepareLibrary(sampleCode, validSince);
 
     } else if (SampleStatusDto.DATA_AVAILABLE.name().equals(requestedStatus)) {
-      sampleService.provideData(sampleCode, validFrom);
+      sampleService.provideData(sampleCode, validSince);
 
     } else {
       /* this is unnecessary in Java 17 using enhanced switch methods should never be reached if all enum values are handled here.*/
