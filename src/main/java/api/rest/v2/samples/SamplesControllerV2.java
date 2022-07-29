@@ -1,6 +1,8 @@
 package api.rest.v2.samples;
 
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import application.ApplicationException;
 import application.SampleService;
 import domain.InvalidDomainException;
@@ -20,14 +22,19 @@ import io.micronaut.http.annotation.PathVariable;
 import io.micronaut.http.annotation.Put;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import life.qbic.auth.Authentication;
+import org.slf4j.Logger;
 
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Controller("/v2/samples")
 public class SamplesControllerV2 {
+
+  private static final Logger log = getLogger(SamplesControllerV2.class);
 
   SampleService sampleService;
 
@@ -37,10 +44,15 @@ public class SamplesControllerV2 {
         new SampleRepository(new SampleEventStore(sampleEventDatasource)), notificationRepository);
   }
 
+  @Operation(summary = "Assign a status to a dedicated sample.",
+      description = "Registers the sample with the provided code to be in the provide status. The status is valid from the instant specified.")
+  @ApiResponse(responseCode = "200", description = "The request was fulfilled. The sample was registered to have the provided status.")
   @Put(uri = "/{sampleCode}/status")
   @RolesAllowed("WRITER")
   public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode,
       @Body StatusChangeRequest statusChangeRequest) {
+    log.info(String.format("Request to put sample %s in status %s valid since %s", sampleCode,
+        statusChangeRequest.status, statusChangeRequest.validSince));
     String validSince = statusChangeRequest.validSince;
     String requestedStatus = statusChangeRequest.status;
     if (SampleStatusDto.METADATA_REGISTERED.name().equals(requestedStatus)) {
@@ -67,12 +79,17 @@ public class SamplesControllerV2 {
           "Provided sample status not recognized: "
               + requestedStatus);
     }
+    log.info(String.format("Sample %s is in status %s valid since %s", sampleCode, statusChangeRequest.status, statusChangeRequest.validSince));
     return HttpResponse.ok();
   }
 
+  @Operation(summary = "Request information about the current status of a sample.",
+      description = "Delivers the current status of a sample in the system.")
+  @ApiResponse(responseCode = "200", description = "The request was fulfilled. The current status is provided in the response body.")
   @Get(uri = "/{sampleCode}/status")
   @RolesAllowed("READER")
   public HttpResponse<String> getSampleStatus(@PathVariable String sampleCode) {
+    log.info("Retrieving status for " + sampleCode);
     Status sampleStatus = sampleService.getSampleStatus(sampleCode);
     SampleStatusDto statusDto;
     switch (sampleStatus) {
@@ -100,25 +117,31 @@ public class SamplesControllerV2 {
             "Provided sample status not recognized: "
                 + sampleStatus.name());
     }
+    log.info(String.format("Found sample %s with status %s", sampleCode, statusDto.name()));
     return HttpResponse.ok(statusDto.name());
   }
 
   @Error(InvalidDomainException.class)
-  HttpResponse<String> onDomainError() {
+  HttpResponse<String> onDomainError(InvalidDomainException invalidDomainException) {
+    log.error(invalidDomainException.getMessage(), invalidDomainException);
     return HttpResponse.serverError("Apologies! Your request could not be processed.");
   }
 
   @Error(ApplicationException.class)
-  HttpResponse<String> onApplicationError() {
-    return HttpResponse.serverError("Apologies! Your request could not be processed.");  }
+  HttpResponse<String> onApplicationError(ApplicationException applicationException) {
+    log.error(applicationException.getMessage(), applicationException);
+    return HttpResponse.serverError("Apologies! Your request could not be processed.");
+  }
 
   @Error(IllegalArgumentException.class)
-  HttpResponse<String> onIllegalArguments() {
+  HttpResponse<String> onIllegalArguments(IllegalArgumentException illegalArgumentException) {
+    log.error(illegalArgumentException.getMessage(), illegalArgumentException);
     return HttpResponse.status(HttpStatus.BAD_REQUEST);
   }
 
   @Error(Exception.class)
-  HttpResponse<String> onOtherError() {
+  HttpResponse<String> onOtherError(Exception e) {
+    log.error(e.getMessage(), e);
     return HttpResponse.serverError("Apologies! Your request could not be processed.");
   }
 
