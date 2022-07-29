@@ -35,7 +35,7 @@ class SamplesController {
   INotificationService notificationService
   SamplesControllerV2 controllerV2
 
-  private static final Logger log = LogManager.getLogger(SamplesController.class);
+  private static final Logger log = LogManager.getLogger(SamplesController.class)
 
   @Inject
   SamplesController(ISampleService sampleService, INotificationService notificationService, SamplesControllerV2 controllerV2) {
@@ -91,11 +91,10 @@ class SamplesController {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
     }
     try{
-        sampleService.addNewLocation(sampleId, location)
-        controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
-                StatusMapper.toStatusV2(location.getStatus()).toString(),
-                Instant.now().toString()))
-//        notificationService.sampleChanged(sampleId, location.getStatus())
+      controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+              location.getStatus().toString(),
+              Instant.now().toString()))
+      sampleService.addNewLocation(sampleId, location)
         return HttpResponse.ok(location)
     } catch (IllegalArgumentException illegalArgumentException) {
       log.error(illegalArgumentException)
@@ -127,11 +126,10 @@ class SamplesController {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
     }
     try {
-      sampleService.updateLocation(sampleId, location)
       controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
-              StatusMapper.toStatusV2(location.getStatus()).toString(),
+              location.getStatus().toString(),
               Instant.now().toString()))
-//      notificationService.sampleChanged(sampleId, location.getStatus())
+      sampleService.updateLocation(sampleId, location)
       return HttpResponse.ok(location)
     } catch (IllegalArgumentException illegalArgumentException) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
@@ -157,11 +155,10 @@ class SamplesController {
     }
     try {
       if (null != sampleService.searchSample(sampleId)) {
-        sampleService.updateSampleStatus(sampleId, status)
         controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
-                StatusMapper.toStatusV2(status).toString(),
+                status.toString(),
                 Instant.now().toString()))
-//        notificationService.sampleChanged(sampleId, status)
+        sampleService.updateSampleStatus(sampleId, status)
         return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
       } else {
         return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
