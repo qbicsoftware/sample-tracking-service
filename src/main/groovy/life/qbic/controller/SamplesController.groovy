@@ -19,6 +19,8 @@ import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
 import life.qbic.db.INotificationService
 import life.qbic.service.ISampleService
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
@@ -33,6 +35,7 @@ class SamplesController {
   INotificationService notificationService
   SamplesControllerV2 controllerV2
 
+  private static final Logger log = LogManager.getLogger(SamplesController.class);
 
   @Inject
   SamplesController(ISampleService sampleService, INotificationService notificationService, SamplesControllerV2 controllerV2) {
@@ -69,6 +72,7 @@ class SamplesController {
       }
     }
       catch(Exception e) {
+        log.error(e)
         return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
       }
     }
@@ -94,8 +98,10 @@ class SamplesController {
 //        notificationService.sampleChanged(sampleId, location.getStatus())
         return HttpResponse.ok(location)
     } catch (IllegalArgumentException illegalArgumentException) {
+      log.error(illegalArgumentException)
       return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
     } catch(Exception e) {
+      log.error(e)
         return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
@@ -130,6 +136,7 @@ class SamplesController {
     } catch (IllegalArgumentException illegalArgumentException) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
     } catch(Exception e){
+      log.error(e)
       return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
@@ -161,6 +168,7 @@ class SamplesController {
       }
     }
     catch(Exception e){
+      log.error(e)
       return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
