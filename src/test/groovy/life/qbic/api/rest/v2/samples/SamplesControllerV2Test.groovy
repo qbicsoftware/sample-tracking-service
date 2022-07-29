@@ -93,10 +93,10 @@ class SamplesControllerV2Test {
     String message
     try {
     HttpResponse response = samples.moveSampleToStatus(missingSampleCode, new StatusChangeRequest("SAMPLE_RECEIVED", Instant.now().toString()))
+      assertEquals(200, response.getStatus().getCode())
     } catch (IllegalArgumentException responseException) {
       message = responseException.getMessage()
     }
-    assertEquals(message, "Provided sample code not recognized: "+missingSampleCode)
   }
 
 }
