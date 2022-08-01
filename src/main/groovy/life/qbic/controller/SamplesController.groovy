@@ -73,7 +73,7 @@ class SamplesController {
       return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
     }
     life.qbic.domain.sample.Sample sampleV2 = optionalSample.get()
-    Location dummyLocation = this.dummyLocationService.dummyLocation(sampleV2.currentState().status(), sampleV2.currentState().validFrom().toDate())
+    Location dummyLocation = this.dummyLocationService.dummyLocation(sampleV2.currentState().status(), sampleV2.currentState().validSince().toDate())
 
     Sample sampleV1 = new Sample(code: sampleId, currentLocation: dummyLocation, pastLocations: [])
     return HttpResponse.ok(sampleV1)
