@@ -1,13 +1,5 @@
 package life.qbic.domain.sample;
 
-import life.qbic.domain.InvalidDomainException;
-import life.qbic.domain.sample.events.DataMadeAvailable;
-import life.qbic.domain.sample.events.FailedQualityControl;
-import life.qbic.domain.sample.events.LibraryPrepared;
-import life.qbic.domain.sample.events.MetadataRegistered;
-import life.qbic.domain.sample.events.PassedQualityControl;
-import life.qbic.domain.sample.events.SampleReceived;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +7,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import life.qbic.domain.InvalidDomainException;
+import life.qbic.domain.sample.events.DataMadeAvailable;
+import life.qbic.domain.sample.events.FailedQualityControl;
+import life.qbic.domain.sample.events.LibraryPrepared;
+import life.qbic.domain.sample.events.MetadataRegistered;
+import life.qbic.domain.sample.events.PassedQualityControl;
+import life.qbic.domain.sample.events.SampleReceived;
 
 /**
  * <p>A sample in the context of sample-tracking.</p>
@@ -150,26 +149,32 @@ public class Sample {
 
   private void apply(MetadataRegistered event) {
     currentState.status = Status.METADATA_REGISTERED;
+    currentState.validFrom = event.occurredOn();
   }
 
   private void apply(SampleReceived event) {
     currentState.status = Status.SAMPLE_RECEIVED;
+    currentState.validFrom = event.occurredOn();
   }
 
   private void apply(FailedQualityControl event) {
     currentState.status = Status.SAMPLE_QC_FAILED;
+    currentState.validFrom = event.occurredOn();
   }
 
   private void apply(PassedQualityControl event) {
     currentState.status = Status.SAMPLE_QC_PASSED;
+    currentState.validFrom = event.occurredOn();
   }
 
   private void apply(LibraryPrepared event) {
     currentState.status = Status.LIBRARY_PREP_FINISHED;
+    currentState.validFrom = event.occurredOn();
   }
 
   private void apply(DataMadeAvailable event) {
     currentState.status = Status.DATA_AVAILABLE;
+    currentState.validFrom = event.occurredOn();
   }
 
   /**
@@ -178,6 +183,7 @@ public class Sample {
   public static class CurrentState {
 
     private Status status;
+    private Instant validFrom;
 
     /**
      * The status the sample is in.
@@ -185,6 +191,14 @@ public class Sample {
      */
     public Status status() {
       return status;
+    }
+
+    /**
+     * The instant from which the current state is valid from.
+     * @return the instant of this state
+     */
+    public Instant validFrom() {
+      return validFrom;
     }
   }
 
