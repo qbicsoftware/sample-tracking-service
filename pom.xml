@@ -306,6 +306,7 @@
 					</excludes>
 					<includes>**/*Specification.*</includes>
 					<includes>**/*Test.*</includes>
+					<includes>**/*Spec.*</includes>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -1,6 +1,7 @@
 package life.qbic.controller
 
-
+import life.qbic.api.rest.v2.samples.SamplesControllerV2
+import life.qbic.api.rest.v2.samples.StatusChangeRequest
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
@@ -18,9 +19,12 @@ import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
 import life.qbic.db.INotificationService
 import life.qbic.service.ISampleService
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
+import java.time.Instant
 
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)
@@ -29,11 +33,15 @@ class SamplesController {
 
   ISampleService sampleService
   INotificationService notificationService
+  SamplesControllerV2 controllerV2
+
+  private static final Logger log = LogManager.getLogger(SamplesController.class)
 
   @Inject
-  SamplesController(ISampleService sampleService, INotificationService notificationService) {
+  SamplesController(ISampleService sampleService, INotificationService notificationService, SamplesControllerV2 controllerV2) {
     this.sampleService = sampleService
     this.notificationService = notificationService
+    this.controllerV2 = controllerV2
   }
 
   @Operation(summary = "Request a sample's tracking information",
@@ -64,6 +72,7 @@ class SamplesController {
       }
     }
       catch(Exception e) {
+        log.error(e)
         return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
       }
     }
@@ -82,12 +91,16 @@ class SamplesController {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
     }
     try{
-        sampleService.addNewLocation(sampleId, location)
-        notificationService.sampleChanged(sampleId, location.getStatus())
+      controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+              location.getStatus().toString(),
+              Instant.now().toString()))
+      sampleService.addNewLocation(sampleId, location)
         return HttpResponse.ok(location)
     } catch (IllegalArgumentException illegalArgumentException) {
+      log.error(illegalArgumentException)
       return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
     } catch(Exception e) {
+      log.error(e)
         return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
@@ -113,12 +126,15 @@ class SamplesController {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
     }
     try {
+      controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+              location.getStatus().toString(),
+              Instant.now().toString()))
       sampleService.updateLocation(sampleId, location)
-      notificationService.sampleChanged(sampleId, location.getStatus())
       return HttpResponse.ok(location)
     } catch (IllegalArgumentException illegalArgumentException) {
       return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
     } catch(Exception e){
+      log.error(e)
       return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
@@ -139,14 +155,17 @@ class SamplesController {
     }
     try {
       if (null != sampleService.searchSample(sampleId)) {
+        controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+                status.toString(),
+                Instant.now().toString()))
         sampleService.updateSampleStatus(sampleId, status)
-        notificationService.sampleChanged(sampleId, status)
         return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
       } else {
         return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
       }
     }
     catch(Exception e){
+      log.error(e)
       return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
     }
   }
