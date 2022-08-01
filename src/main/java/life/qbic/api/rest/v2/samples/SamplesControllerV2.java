@@ -3,22 +3,16 @@ package life.qbic.api.rest.v2.samples;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import life.qbic.application.ApplicationException;
-import life.qbic.application.SampleService;
-import life.qbic.domain.InvalidDomainException;
-import life.qbic.domain.notification.INotificationRepository;
-import life.qbic.domain.sample.SampleEventDatasource;
-import life.qbic.domain.sample.SampleEventStore;
-import life.qbic.domain.sample.SampleRepository;
-import life.qbic.domain.sample.Status;
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Error;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
+import io.micronaut.http.annotation.Produces;
 import io.micronaut.http.annotation.Put;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
@@ -26,7 +20,15 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
+import life.qbic.application.ApplicationException;
+import life.qbic.application.SampleService;
 import life.qbic.auth.Authentication;
+import life.qbic.domain.InvalidDomainException;
+import life.qbic.domain.notification.INotificationRepository;
+import life.qbic.domain.sample.SampleEventDatasource;
+import life.qbic.domain.sample.SampleEventStore;
+import life.qbic.domain.sample.SampleRepository;
+import life.qbic.domain.sample.Status;
 import org.slf4j.Logger;
 
 @Requires(beans = Authentication.class)
@@ -88,6 +90,7 @@ public class SamplesControllerV2 {
   @ApiResponse(responseCode = "200", description = "The request was fulfilled. The current status is provided in the response body.")
   @Get(uri = "/{sampleCode}/status")
   @RolesAllowed("READER")
+  @Produces(MediaType.TEXT_PLAIN)
   public HttpResponse<String> getSampleStatus(@PathVariable String sampleCode) {
     log.info("Retrieving status for " + sampleCode);
     Status sampleStatus = sampleService.getSampleStatus(sampleCode);
