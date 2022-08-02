@@ -25,6 +25,7 @@ import life.qbic.application.SampleService;
 import life.qbic.auth.Authentication;
 import life.qbic.domain.InvalidDomainException;
 import life.qbic.domain.notification.INotificationRepository;
+import life.qbic.domain.sample.Sample.CurrentState;
 import life.qbic.domain.sample.SampleEventDatasource;
 import life.qbic.domain.sample.SampleEventStore;
 import life.qbic.domain.sample.SampleRepository;
@@ -54,9 +55,9 @@ public class SamplesControllerV2 {
   public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode,
       @Body StatusChangeRequest statusChangeRequest) {
     log.info(String.format("Request to put sample %s in status %s valid since %s", sampleCode,
-        statusChangeRequest.status, statusChangeRequest.validSince));
-    String validSince = statusChangeRequest.validSince;
-    String requestedStatus = statusChangeRequest.status;
+        statusChangeRequest.status(), statusChangeRequest.validSince()));
+    String validSince = statusChangeRequest.validSince();
+    String requestedStatus = statusChangeRequest.status();
     if (SampleStatusDto.METADATA_REGISTERED.name().equals(requestedStatus)) {
       sampleService.registerMetadata(sampleCode, validSince);
 
@@ -81,7 +82,7 @@ public class SamplesControllerV2 {
           "Provided sample status not recognized: "
               + requestedStatus);
     }
-    log.info(String.format("Sample %s is in status %s valid since %s", sampleCode, statusChangeRequest.status, statusChangeRequest.validSince));
+    log.info(String.format("Sample %s is in status %s valid since %s", sampleCode, statusChangeRequest.status(), statusChangeRequest.validSince()));
     return HttpResponse.ok();
   }
 
@@ -90,10 +91,11 @@ public class SamplesControllerV2 {
   @ApiResponse(responseCode = "200", description = "The request was fulfilled. The current status is provided in the response body.")
   @Get(uri = "/{sampleCode}/status")
   @RolesAllowed("READER")
-  @Produces(MediaType.TEXT_PLAIN)
-  public HttpResponse<String> getSampleStatus(@PathVariable String sampleCode) {
+  @Produces(MediaType.APPLICATION_JSON)
+  public HttpResponse<SampleStatusResponse> getSampleStatus(@PathVariable String sampleCode) {
     log.info("Retrieving status for " + sampleCode);
-    Status sampleStatus = sampleService.getSampleStatus(sampleCode);
+    CurrentState sampleState = sampleService.getSampleState(sampleCode);
+    Status sampleStatus = sampleState.status();
     SampleStatusDto statusDto;
     switch (sampleStatus) {
       case METADATA_REGISTERED:
@@ -121,7 +123,10 @@ public class SamplesControllerV2 {
                 + sampleStatus.name());
     }
     log.info(String.format("Found sample %s with status %s", sampleCode, statusDto.name()));
-    return HttpResponse.ok(statusDto.name());
+    SampleStatusResponse responseBody = new SampleStatusResponse(sampleCode,
+        statusDto.name(),
+        sampleState.validSince());
+    return HttpResponse.ok(responseBody);
   }
 
   @Error(InvalidDomainException.class)
