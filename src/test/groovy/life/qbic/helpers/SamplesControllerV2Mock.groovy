@@ -1,6 +1,7 @@
 package life.qbic.helpers
 
 import io.micronaut.http.HttpResponse
+import life.qbic.api.rest.v2.samples.SampleStatusResponse
 import life.qbic.api.rest.v2.samples.SamplesControllerV2
 import life.qbic.api.rest.v2.samples.StatusChangeRequest
 
@@ -22,7 +23,7 @@ class SamplesControllerV2Mock extends SamplesControllerV2 {
   }
 
   @Override
-  HttpResponse<String> getSampleStatus(String sampleCode) {
+  HttpResponse<SampleStatusResponse> getSampleStatus(String sampleCode) {
     return HttpResponse.ok()
   }
 }
