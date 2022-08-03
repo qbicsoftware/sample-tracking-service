@@ -5,7 +5,10 @@ import life.qbic.datamodel.people.Address
 import life.qbic.datamodel.samples.Location
 import life.qbic.domain.sample.Status
 
+import javax.inject.Singleton
 
+
+@Singleton
 class DummyLocationService implements IDummyLocationFactory {
   @Override
   Location dummyLocation(Status status, Date arrivalDate) {

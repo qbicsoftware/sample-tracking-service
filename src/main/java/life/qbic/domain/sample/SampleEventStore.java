@@ -3,12 +3,14 @@ package life.qbic.domain.sample;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.inject.Singleton;
 
 /**
  * An event store for sample events. The event store is responsible for de-duplication.
  *
  * @since 2.0.0
  */
+@Singleton
 public class SampleEventStore implements ISampleEventStore {
 
   private final SampleEventDatasource sampleEventDatasource;

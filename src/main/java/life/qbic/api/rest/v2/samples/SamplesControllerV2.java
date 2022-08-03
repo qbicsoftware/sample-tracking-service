@@ -21,11 +21,7 @@ import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import life.qbic.application.SampleService;
 import life.qbic.auth.Authentication;
-import life.qbic.domain.notification.INotificationRepository;
 import life.qbic.domain.sample.Sample.CurrentState;
-import life.qbic.domain.sample.SampleEventDatasource;
-import life.qbic.domain.sample.SampleEventStore;
-import life.qbic.domain.sample.SampleRepository;
 import life.qbic.domain.sample.Status;
 import life.qbic.exception.CustomException;
 import life.qbic.exception.ErrorCode;
@@ -42,9 +38,8 @@ public class SamplesControllerV2 {
   SampleService sampleService;
 
   @Inject
-  public SamplesControllerV2(SampleEventDatasource sampleEventDatasource, INotificationRepository notificationRepository) {
-    this.sampleService = new SampleService(
-        new SampleRepository(new SampleEventStore(sampleEventDatasource)), notificationRepository);
+  public SamplesControllerV2(SampleService sampleService) {
+    this.sampleService = sampleService;
   }
 
   @Operation(summary = "Assign a status to a dedicated sample.",

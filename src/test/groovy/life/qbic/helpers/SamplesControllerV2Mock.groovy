@@ -14,7 +14,7 @@ import life.qbic.api.rest.v2.samples.StatusChangeRequest
  */
 class SamplesControllerV2Mock extends SamplesControllerV2 {
   SamplesControllerV2Mock() {
-    super(null, null)
+    super(null)
   }
 
   @Override

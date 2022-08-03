@@ -2,6 +2,7 @@ package life.qbic.application;
 
 import java.time.Instant;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import life.qbic.domain.notification.INotificationRepository;
 import life.qbic.domain.notification.SampleStatusNotification;
 import life.qbic.domain.sample.Sample;
@@ -17,6 +18,7 @@ import life.qbic.exception.ErrorParameters;
  *
  * @since 2.0.0
  */
+@Singleton
 public class SampleService {
 
   private final SampleRepository sampleRepository;
