@@ -112,6 +112,7 @@ class SamplesController {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       throw new CustomException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
+
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
             location.getStatus().toString(),
             location.arrivalDate))
