@@ -2,6 +2,9 @@ package life.qbic.domain.sample;
 
 import java.io.Serializable;
 import life.qbic.controller.RegExValidator;
+import life.qbic.exception.CustomException;
+import life.qbic.exception.ErrorCode;
+import life.qbic.exception.ErrorParameters;
 
 /**
  * <p>The sample code of a sample.</p>
@@ -13,7 +16,8 @@ public class SampleCode implements Serializable {
 
   private SampleCode(String text) {
     if(!RegExValidator.isValidSampleCode(text)) {
-      throw new IllegalArgumentException(String.format("Sample code '%s' is invalid.", text));
+      throw new CustomException(String.format("Sample code '%s' is invalid.", text),
+          ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", text));
     }
     this.text = text;
   }

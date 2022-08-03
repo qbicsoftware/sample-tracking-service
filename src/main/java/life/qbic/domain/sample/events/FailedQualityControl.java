@@ -1,8 +1,8 @@
 package life.qbic.domain.sample.events;
 
+import java.time.Instant;
 import life.qbic.domain.sample.SampleCode;
 import life.qbic.domain.sample.SampleEvent;
-import java.time.Instant;
 
 /**
  * A sample failed quality control in the lab.

@@ -7,13 +7,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import life.qbic.domain.InvalidDomainException;
 import life.qbic.domain.sample.events.DataMadeAvailable;
 import life.qbic.domain.sample.events.FailedQualityControl;
 import life.qbic.domain.sample.events.LibraryPrepared;
 import life.qbic.domain.sample.events.MetadataRegistered;
 import life.qbic.domain.sample.events.PassedQualityControl;
 import life.qbic.domain.sample.events.SampleReceived;
+import life.qbic.exception.CustomException;
 
 /**
  * <p>A sample in the context of sample-tracking.</p>
@@ -52,9 +52,9 @@ public class Sample {
     }
     Optional<SampleCode> containedSampleCode =  events.stream().findAny().map(SampleEvent::sampleCode);
     SampleCode sampleCode = containedSampleCode.orElseThrow(() ->
-        new InvalidDomainException("Could not identify sample code from events: " + events));
+        new CustomException("Could not identify sample code from events: " + events));
     if (events.stream().anyMatch(it -> !it.sampleCode().equals(sampleCode))) {
-      throw new InvalidDomainException(
+      throw new CustomException(
           String.format("Not all events are of the same stream. Expected %s", sampleCode));
     }
     Sample sample = new Sample(sampleCode);
@@ -105,7 +105,7 @@ public class Sample {
       return;
     }
     if (!occurredAfterCurrentState(event)) {
-      throw new InvalidDomainException(
+      throw new CustomException(
           String.format("The sample (%s) was modified after %s", sampleCode, event.occurredOn()));
     }
     apply(event);
@@ -134,7 +134,7 @@ public class Sample {
     } else if (event instanceof DataMadeAvailable) {
       apply((DataMadeAvailable) event);
     } else {
-      throw new InvalidDomainException("Unknown sample event: " + event.getClass().getName());
+      throw new CustomException("Unknown sample event: " + event.getClass().getName());
     }
   }
 
@@ -149,32 +149,32 @@ public class Sample {
 
   private void apply(MetadataRegistered event) {
     currentState.status = Status.METADATA_REGISTERED;
-    currentState.validSince = event.occurredOn();
+    currentState.statusValidSince = event.occurredOn();
   }
 
   private void apply(SampleReceived event) {
     currentState.status = Status.SAMPLE_RECEIVED;
-    currentState.validSince = event.occurredOn();
+    currentState.statusValidSince = event.occurredOn();
   }
 
   private void apply(FailedQualityControl event) {
     currentState.status = Status.SAMPLE_QC_FAILED;
-    currentState.validSince = event.occurredOn();
+    currentState.statusValidSince = event.occurredOn();
   }
 
   private void apply(PassedQualityControl event) {
     currentState.status = Status.SAMPLE_QC_PASSED;
-    currentState.validSince = event.occurredOn();
+    currentState.statusValidSince = event.occurredOn();
   }
 
   private void apply(LibraryPrepared event) {
     currentState.status = Status.LIBRARY_PREP_FINISHED;
-    currentState.validSince = event.occurredOn();
+    currentState.statusValidSince = event.occurredOn();
   }
 
   private void apply(DataMadeAvailable event) {
     currentState.status = Status.DATA_AVAILABLE;
-    currentState.validSince = event.occurredOn();
+    currentState.statusValidSince = event.occurredOn();
   }
 
   /**
@@ -183,7 +183,7 @@ public class Sample {
   public static class CurrentState {
 
     private Status status;
-    private Instant validSince;
+    private Instant statusValidSince;
 
     /**
      * The status the sample is in.
@@ -197,8 +197,8 @@ public class Sample {
      * The instant from which the current state is valid from.
      * @return the instant of this state
      */
-    public Instant validSince() {
-      return validSince;
+    public Instant statusValidSince() {
+      return statusValidSince;
     }
   }
 

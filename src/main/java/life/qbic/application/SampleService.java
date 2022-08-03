@@ -8,6 +8,9 @@ import life.qbic.domain.sample.Sample;
 import life.qbic.domain.sample.Sample.CurrentState;
 import life.qbic.domain.sample.SampleCode;
 import life.qbic.domain.sample.SampleRepository;
+import life.qbic.exception.CustomException;
+import life.qbic.exception.ErrorCode;
+import life.qbic.exception.ErrorParameters;
 
 /**
  * An application service to interact with samples.
@@ -27,8 +30,9 @@ public class SampleService {
 
   public CurrentState getSampleState(String sampleCode) {
     SampleCode code = SampleCode.fromString(sampleCode);
-    Sample sample = sampleRepository.get(code).orElseThrow(() -> new ApplicationException(
-        String.format("Sample %s was not found.", sampleCode)));
+    Sample sample = sampleRepository.get(code).orElseThrow(() ->
+        new CustomException(String.format("Sample %s was not found.", sampleCode),
+            ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleCode)));
     return sample.currentState();
   }
 

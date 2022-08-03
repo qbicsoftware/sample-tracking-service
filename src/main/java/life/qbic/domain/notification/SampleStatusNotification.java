@@ -1,10 +1,10 @@
 package life.qbic.domain.notification;
 
-import life.qbic.domain.sample.SampleCode;
-import life.qbic.domain.sample.Status;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.StringJoiner;
+import life.qbic.domain.sample.SampleCode;
+import life.qbic.domain.sample.Status;
 
 /**
  * A value object representing a notification about samples.

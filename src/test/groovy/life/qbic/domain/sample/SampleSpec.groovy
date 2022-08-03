@@ -1,13 +1,8 @@
 package life.qbic.domain.sample
 
 import life.qbic.datamodel.identifiers.SampleCodeFunctions
-import life.qbic.domain.InvalidDomainException
-import life.qbic.domain.sample.events.DataMadeAvailable
-import life.qbic.domain.sample.events.FailedQualityControl
-import life.qbic.domain.sample.events.LibraryPrepared
-import life.qbic.domain.sample.events.MetadataRegistered
-import life.qbic.domain.sample.events.PassedQualityControl
-import life.qbic.domain.sample.events.SampleReceived
+import life.qbic.domain.sample.events.*
+import life.qbic.exception.CustomException
 import spock.lang.Specification
 
 import java.time.Instant
@@ -48,7 +43,7 @@ class SampleSpec extends Specification {
     stateAfter == stateBefore
   }
 
-  def "given a sample and an event predating the sample state, when the event is added to the sample, then an InvalidDomainException is thrown"() {
+  def "given a sample and an event predating the sample state, when the event is added to the sample, then an Exception is thrown"() {
     given: "a Sample with at least one event"
     SampleCode sampleCode = SampleCode.fromString("QABCD001A0")
     MetadataRegistered metadataRegistered = MetadataRegistered.create(sampleCode, Instant.MAX)
@@ -60,7 +55,7 @@ class SampleSpec extends Specification {
     then: "the event was not added to the sample"
     !sample.events().contains(sampleReceived)
     and: "an exception is thrown"
-    thrown(InvalidDomainException)
+    thrown(CustomException)
   }
 
   def "expect sample creation from events not possible if no events are provided"() {

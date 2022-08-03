@@ -1,9 +1,8 @@
 package life.qbic.domain.sample.events;
 
+import java.time.Instant;
 import life.qbic.domain.sample.SampleCode;
 import life.qbic.domain.sample.SampleEvent;
-
-import java.time.Instant;
 
 /**
  * Whenever data is made available for a sample this domain event is fired.
