@@ -20,6 +20,9 @@ import life.qbic.datamodel.samples.Status
 import life.qbic.db.INotificationService
 import life.qbic.domain.sample.SampleCode
 import life.qbic.domain.sample.SampleRepository
+import life.qbic.exception.CustomException
+import life.qbic.exception.ErrorCode
+import life.qbic.exception.ErrorParameters
 import life.qbic.service.IDummyLocationFactory
 import life.qbic.service.ISampleService
 import org.apache.logging.log4j.LogManager
@@ -58,19 +61,15 @@ class SamplesController {
           responseCode = "200", description = "Returns a sample with tracking information", content = @Content(
                   mediaType = "application/json",
                   schema = @Schema(implementation = Sample.class)))
-  @ApiResponse(responseCode = "400", description = "Bad Request, Sample identifier format does not match")
-  @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample tracking information for the provided identifier not found")
-  @ApiResponse(responseCode = "500", description = "Sample tracking information retrieval failed for an unknown reason")
   @Get(uri = "/{sampleId}", produces = MediaType.APPLICATION_JSON)
   @RolesAllowed([ "READER", "WRITER"])
   HttpResponse<Sample> sample(@PathVariable('sampleId') String sampleId) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+      throw new CustomException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     def optionalSample = this.sampleRepository.get(SampleCode.fromString(sampleId))
     if (!optionalSample.isPresent()) {
-      return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
+      throw new CustomException("Sample with ID ${sampleId} was not found in the system!", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     life.qbic.domain.sample.Sample sampleV2 = optionalSample.get()
     Location dummyLocation = this.dummyLocationService.dummyLocation(sampleV2.currentState().status(), sampleV2.currentState().statusValidSince().toDate())
@@ -84,27 +83,17 @@ class SamplesController {
           description = "Sets a sample current location with the given identifier.",
           tags = "Sample Location")
   @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
-  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
-  @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "500", description = "Update of sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+      throw new CustomException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
-    try{
-      controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
-              location.getStatus().toString(),
-              Instant.now().toString()))
-      sampleService.addNewLocation(sampleId, location)
-        return HttpResponse.ok(location)
-    } catch (IllegalArgumentException illegalArgumentException) {
-      log.error(illegalArgumentException)
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
-    } catch(Exception e) {
-      log.error(e)
-        return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
-    }
+    controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+            location.getStatus().toString(),
+            location.arrivalDate))
+    sampleService.addNewLocation(sampleId, location)
+    return HttpResponse.ok(location)
+
   }
 
   /**
@@ -118,27 +107,16 @@ class SamplesController {
           description = "Updates a sample current location with the given identifier.",
           tags = "Sample Location")
   @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
-  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
-  @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample for the provided identifier not found")
-  @ApiResponse(responseCode = "500", description = "Update of current sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
   HttpResponse<Location> updateLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+      throw new CustomException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
-    try {
-      controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
-              location.getStatus().toString(),
-              Instant.now().toString()))
-      sampleService.updateLocation(sampleId, location)
-      return HttpResponse.ok(location)
-    } catch (IllegalArgumentException illegalArgumentException) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
-    } catch(Exception e){
-      log.error(e)
-      return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
-    }
+    controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+            location.getStatus().toString(),
+            location.arrivalDate))
+    sampleService.updateLocation(sampleId, location)
+    return HttpResponse.ok(location)
   }
 
   @Put("/{sampleId}/currentLocation/{status}")
@@ -146,27 +124,18 @@ class SamplesController {
           description = "Sets a sample current location status with the given identifier.",
           tags = "Sample Status")
   @ApiResponse(responseCode = "201", description = "Current location for sample set successfully")
-  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
-  @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample for the provided identifier not found")
-  @ApiResponse(responseCode = "500", description = "Update of sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
   HttpResponse sampleStatus(@PathVariable('sampleId') String sampleId, @PathVariable('status') Status status) {
     if (!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+      throw new CustomException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     if (!sampleRepository.get(SampleCode.fromString(sampleId)).isPresent()) {
-      return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
+      throw new CustomException("sample $sampleId was not found", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
-    try {
-      controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
-              status.toString(),
-              Instant.now().toString()))
-      sampleService.updateSampleStatus(sampleId, status)
-      return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
-    } catch (Exception e) {
-      log.error(e)
-      return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
-    }
+    controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+            status.toString(),
+            Instant.now().toString()))
+    sampleService.updateSampleStatus(sampleId, status)
+    return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
   }
 }

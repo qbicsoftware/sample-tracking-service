@@ -47,9 +47,9 @@ class LocationsController {
           description = "Provides detailed contact information that is linked to an e-mail",
           tags = "Contact")
   @ApiResponse(responseCode = "200", description = "Current contact associated with the email address",
-                content = @Content(
-                        mediaType = "application/json",
-                        schema = @Schema(implementation = Contact.class)))
+          content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = Contact.class)))
   @ApiResponse(responseCode = "400", description = "The provided e-mail address is invalid")
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Contact for the provided e-mail address not found")
@@ -61,18 +61,14 @@ class LocationsController {
       HttpResponse<Contact> res = HttpResponse.status(HttpStatus.BAD_REQUEST, "${email} is not a valid email address!")
       return res
     }
-    try {
-      Contact contact = locService.searchPersonByEmail(email)
-      if (contact != null) {
-        HttpResponse<Contact> res = HttpResponse.ok(contact)
-        return res
-      } else {
-        String reason = "Email address ${email} was not found in the system!"
-        HttpResponse<Contact> res = HttpResponse.status(HttpStatus.NOT_FOUND, reason);
-        return res
-      }
-    } catch (Exception e) {
-      return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
+    Contact contact = locService.searchPersonByEmail(email)
+    if (contact != null) {
+      HttpResponse<Contact> res = HttpResponse.ok(contact)
+      return res
+    } else {
+      String reason = "Email address ${email} was not found in the system!"
+      HttpResponse<Contact> res = HttpResponse.status(HttpStatus.NOT_FOUND, reason)
+      return res
     }
   }
 
@@ -92,17 +88,11 @@ class LocationsController {
   HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId) {
     HttpResponse<List<Location>> response
     List<Location> searchResult
-    try {
-      searchResult = locService.getLocationsForPerson(userId)
-      if (searchResult != null) {
-        response = HttpResponse.ok(searchResult)
-      } else {
-        response = HttpResponse.status(HttpStatus.NOT_FOUND, "Location information for user ${userId} was not found in the system!")
-      }
-    } catch (IllegalArgumentException ignored) {
-      response = HttpResponse.status(HttpStatus.BAD_REQUEST, ignored.getMessage())
-    } catch (Exception ignored) {
-      response = HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, ignored.getMessage())
+    searchResult = locService.getLocationsForPerson(userId)
+    if (searchResult != null) {
+      response = HttpResponse.ok(searchResult)
+    } else {
+      response = HttpResponse.status(HttpStatus.NOT_FOUND, "Location information for user ${userId} was not found in the system!")
     }
     return response
   }
@@ -119,11 +109,7 @@ class LocationsController {
   @ApiResponse(responseCode = "500", description = "Listing of available locations failed for an unknown reason")
   @RolesAllowed(["READER", "WRITER"])
   HttpResponse<List<Location>> listLocations() {
-    try {
-      List<Location> res = locService.listLocations()
-      return HttpResponse.ok(res)
-    } catch (Exception e) {
-      HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage())
-    }
+    List<Location> res = locService.listLocations()
+    return HttpResponse.ok(res)
   }
 }
