@@ -26,18 +26,18 @@ import org.slf4j.Logger;
  */
 @Produces
 @Singleton
-@Requires(classes = {CustomException.class, ExceptionHandler.class})
-public class CustomExceptionHandler implements ExceptionHandler<CustomException, HttpResponse>{
+@Requires(classes = {NonRecoverableException.class, ExceptionHandler.class})
+public class NonRecoverableExceptionHandler implements ExceptionHandler<NonRecoverableException, HttpResponse<?>>{
 
   private final MessageSource messageSource;
   private final ErrorResponseProcessor<?> errorResponseProcessor;
-  private static final Logger log = getLogger(CustomExceptionHandler.class);
+  private static final Logger log = getLogger(NonRecoverableExceptionHandler.class);
 
   private final String defaultMessage;
   private static final Locale LOCALE_DEFAULT = Locale.US;
 
   @Inject
-  protected CustomExceptionHandler(MessageSource messageSource,
+  protected NonRecoverableExceptionHandler(MessageSource messageSource,
       ErrorResponseProcessor<?> errorResponseProcessor) {
     this.messageSource = messageSource;
     this.errorResponseProcessor = errorResponseProcessor;
@@ -46,32 +46,33 @@ public class CustomExceptionHandler implements ExceptionHandler<CustomException,
   }
 
   @Override
-  public HttpResponse handle(HttpRequest request, CustomException customException) {
-    log.error(customException.getMessage(), customException);
-    String errorMessage = getMessage(customException);
-    MutableHttpResponse<Object> errorResponse = getBaseResponse(customException);
+  public HttpResponse<?> handle(HttpRequest request, NonRecoverableException nonRecoverableException) {
+    log.error(nonRecoverableException.getMessage(), nonRecoverableException);
+    String errorMessage = getMessage(nonRecoverableException);
+    MutableHttpResponse<Object> errorResponse = getBaseResponse(nonRecoverableException);
     return errorResponseProcessor.processResponse(ErrorContext.builder(request)
-        .cause(customException)
+        .cause(nonRecoverableException)
         .errorMessage(errorMessage)
         .build(), errorResponse);
   }
 
-  private static MutableHttpResponse<Object> getBaseResponse(CustomException customException) {
-    if (customException.errorCode().equals(ErrorCode.BAD_SAMPLE_CODE)) {
+  private static MutableHttpResponse<Object> getBaseResponse(
+      NonRecoverableException nonRecoverableException) {
+    if (nonRecoverableException.errorCode().equals(ErrorCode.BAD_SAMPLE_CODE)) {
       return HttpResponse.badRequest();
     }
-    if (customException.errorCode().equals(ErrorCode.BAD_SAMPLE_STATUS)) {
+    if (nonRecoverableException.errorCode().equals(ErrorCode.BAD_SAMPLE_STATUS)) {
       return HttpResponse.badRequest();
     }
-    if (customException.errorCode().equals(ErrorCode.BAD_USER)) {
+    if (nonRecoverableException.errorCode().equals(ErrorCode.BAD_USER)) {
       return HttpResponse.badRequest();
     }
 
     return HttpResponse.serverError();
   }
 
-  private String getMessage(CustomException customException) {
-    return messageSource.getMessage(customException.errorCode().name(),
-        MessageContext.of(LOCALE_DEFAULT, customException.errorParameters().asMap())).orElse(defaultMessage);
+  private String getMessage(NonRecoverableException nonRecoverableException) {
+    return messageSource.getMessage(nonRecoverableException.errorCode().name(),
+        MessageContext.of(LOCALE_DEFAULT, nonRecoverableException.errorParameters().asMap())).orElse(defaultMessage);
   }
 }

@@ -18,9 +18,9 @@ import life.qbic.domain.sample.DomainEventSerializer
 import life.qbic.domain.sample.SampleCode
 import life.qbic.domain.sample.SampleEvent
 import life.qbic.domain.sample.SampleEventDatasource
-import life.qbic.exception.CustomException
 import life.qbic.exception.ErrorCode
 import life.qbic.exception.ErrorParameters
+import life.qbic.exception.NonRecoverableException
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.inject.Inject
@@ -205,9 +205,9 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
       List<GroovyRowResult> rowResults = sql.rows(query)
       rowResults.each { parseLocationFromMap(it).ifPresent(locations::add) }
     } catch (SQLException e) {
-      throw new CustomException("Retrieving locations for $identifier caused an SQLException", e)
+      throw new NonRecoverableException("Retrieving locations for $identifier caused an SQLException", e)
     } catch (Exception e) {
-      throw new CustomException("Retrieving locations for $identifier failed unexpectedly.", e)
+      throw new NonRecoverableException("Retrieving locations for $identifier failed unexpectedly.", e)
     } finally {
       sql?.close()
     }
@@ -227,7 +227,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     if (rowResults.size() == 1) {
       return rowResults.first() as Map
     } else {
-      throw new CustomException("No user or multiple users with the id: '$identifier'.", ErrorCode.BAD_USER, ErrorParameters.create())
+      throw new NonRecoverableException("No user or multiple users with the id: '$identifier'.", ErrorCode.BAD_USER, ErrorParameters.create())
     }
   }
 

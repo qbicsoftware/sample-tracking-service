@@ -9,6 +9,7 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.MutableHttpResponse;
 import io.micronaut.http.annotation.Produces;
+import io.micronaut.http.server.exceptions.ExceptionHandler;
 import io.micronaut.http.server.exceptions.response.ErrorContext;
 import io.micronaut.http.server.exceptions.response.ErrorResponseProcessor;
 import java.util.Locale;
@@ -17,25 +18,26 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 
 /**
- * Handles all exceptions not handled by other handlers. Provides a customizable general error message to the client.
+ * Handles all exceptions not handled by other handlers. Provides a customizable general error
+ * message to the client.
+ *
  * @since 2.0.0
  */
 @Produces
 @Singleton
 @Requires(classes = {Exception.class, io.micronaut.http.server.exceptions.ExceptionHandler.class})
-public class ExceptionHandler implements
-    io.micronaut.http.server.exceptions.ExceptionHandler<Exception, HttpResponse> {
+public class GeneralExceptionHandler implements ExceptionHandler<Exception, HttpResponse<?>> {
 
   private final MessageSource messageSource;
   private final ErrorResponseProcessor<?> errorResponseProcessor;
-  private static final Logger log = getLogger(ExceptionHandler.class);
+  private static final Logger log = getLogger(GeneralExceptionHandler.class);
 
 
   private final String defaultMessage;
   private static final Locale LOCALE_DEFAULT = Locale.US;
 
   @Inject
-  protected ExceptionHandler(MessageSource messageSource,
+  protected GeneralExceptionHandler(MessageSource messageSource,
       ErrorResponseProcessor<?> errorResponseProcessor) {
     this.messageSource = messageSource;
     this.errorResponseProcessor = errorResponseProcessor;
@@ -44,7 +46,7 @@ public class ExceptionHandler implements
   }
 
   @Override
-  public HttpResponse handle(HttpRequest request, Exception e) {
+  public HttpResponse<?> handle(HttpRequest request, Exception e) {
     log.error(e.getMessage(), e);
     String errorMessage = messageSource.getMessage("GENERAL",
         MessageContext.of(LOCALE_DEFAULT)).orElse(defaultMessage);
