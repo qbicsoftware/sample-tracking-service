@@ -1,16 +1,10 @@
 package life.qbic.db
 
-import life.qbic.api.rest.v2.samples.SampleStatusDto
-import life.qbic.domain.notification.INotificationRepository
-import life.qbic.domain.notification.SampleStatusNotification
-import life.qbic.domain.sample.DomainEventSerializer
-import life.qbic.domain.sample.SampleCode
-import life.qbic.domain.sample.SampleEvent
-import life.qbic.domain.sample.SampleEventDatasource
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
 import life.qbic.QBiCDataSource
+import life.qbic.api.rest.v2.samples.SampleStatusDto
 import life.qbic.datamodel.identifiers.SampleCodeFunctions
 import life.qbic.datamodel.people.Address
 import life.qbic.datamodel.people.Contact
@@ -18,6 +12,15 @@ import life.qbic.datamodel.people.Person
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
+import life.qbic.domain.notification.INotificationRepository
+import life.qbic.domain.notification.SampleStatusNotification
+import life.qbic.domain.sample.DomainEventSerializer
+import life.qbic.domain.sample.SampleCode
+import life.qbic.domain.sample.SampleEvent
+import life.qbic.domain.sample.SampleEventDatasource
+import life.qbic.exception.CustomException
+import life.qbic.exception.ErrorCode
+import life.qbic.exception.ErrorParameters
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.inject.Inject
@@ -193,28 +196,18 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
   List<Location> getLocationsForPerson(String identifier) {
     List<Location> locations = new ArrayList<>()
     this.sql = new Sql(dataSource)
-    Map userInformation
-
-    try {
-      userInformation = getPersonById(identifier, sql)
-    } catch (NotFoundException notFoundException) {
-      String msg = "Invalid user id"
-      throw new IllegalArgumentException(msg, notFoundException)
-    }
+    Map userInformation = getPersonById(identifier, sql)
     try {
       // find locations for user
       int userDbId = userInformation.get("id") as int
       String query = "SELECT * FROM locations INNER JOIN persons_locations ON id = location_id INNER JOIN person ON person_id = person.id WHERE person_id = $userDbId;"
 
       List<GroovyRowResult> rowResults = sql.rows(query)
-      rowResults.each { locations.add(parseLocationFromMap(it)) }
-
-    } catch (SQLException sqlException) {
-      String msg = "Retrieving locations for $identifier caused an SQLException"
-      log.error(msg, sqlException)
+      rowResults.each { parseLocationFromMap(it).ifPresent(locations::add) }
+    } catch (SQLException e) {
+      throw new CustomException("Retrieving locations for $identifier caused an SQLException", e)
     } catch (Exception e) {
-      String msg = "Retrieving locations for $identifier failed unexpectedly."
-      log.error(msg, e)
+      throw new CustomException("Retrieving locations for $identifier failed unexpectedly.", e)
     } finally {
       sql?.close()
     }
@@ -234,7 +227,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     if (rowResults.size() == 1) {
       return rowResults.first() as Map
     } else {
-      throw new NotFoundException("No user or multiple users with the id: '$identifier'.")
+      throw new CustomException("No user or multiple users with the id: '$identifier'.", ErrorCode.BAD_USER, ErrorParameters.create())
     }
   }
 
@@ -253,13 +246,14 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
    *     </ul>
    * @return a location with the information provided by the map
    */
-  private static Location parseLocationFromMap(Map input) {
+  private static Optional<Location> parseLocationFromMap(Map input) {
     Collection<String> expectedKeys = ["name", "street", "zip_code", "country", "first_name", "last_name", "email"]
     for (String key : expectedKeys) {
       // the contains key uses the same groovy magic that the get uses later on to extract the fields
       // even though the keys in the keySet of the map are all upper case
       if (!input.containsKey(key)) {
-        throw new IllegalArgumentException("The provided input did not provide the expected key $key.")
+        log.error("The provided input did not provide the expected key $key.")
+        return Optional.empty();
       }
     }
 

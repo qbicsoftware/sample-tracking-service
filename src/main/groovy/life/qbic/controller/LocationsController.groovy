@@ -22,6 +22,8 @@ import life.qbic.service.ILocationService
 import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
 
+import static java.util.Objects.nonNull
+
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Controller("/locations")
@@ -87,9 +89,9 @@ class LocationsController {
   @ApiResponse(responseCode = "500", description = "Retrieval of location information for the provided user failed for an unknown reason")
   HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId) {
     HttpResponse<List<Location>> response
-    List<Location> searchResult
-    searchResult = locService.getLocationsForPerson(userId)
-    if (searchResult != null) {
+
+    List<Location> searchResult = locService.getLocationsForPerson(userId)
+    if (nonNull(searchResult)) {
       response = HttpResponse.ok(searchResult)
     } else {
       response = HttpResponse.status(HttpStatus.NOT_FOUND, "Location information for user ${userId} was not found in the system!")

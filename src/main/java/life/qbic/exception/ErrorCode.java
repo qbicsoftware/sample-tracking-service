@@ -6,5 +6,6 @@ package life.qbic.exception;
 public enum ErrorCode {
   BAD_SAMPLE_CODE,
   BAD_SAMPLE_STATUS,
+  BAD_USER,
   GENERAL
 }

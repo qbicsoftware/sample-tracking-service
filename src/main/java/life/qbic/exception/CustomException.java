@@ -24,6 +24,10 @@ public class CustomException extends RuntimeException {
     this.errorParameters = errorParameters;
   }
 
+  public CustomException(String message, Throwable cause) {
+    this(message, cause, ErrorCode.GENERAL, ErrorParameters.create());
+  }
+
   public CustomException(String message, Throwable cause, ErrorCode errorCode,
       ErrorParameters errorParameters) {
     super(message, cause);

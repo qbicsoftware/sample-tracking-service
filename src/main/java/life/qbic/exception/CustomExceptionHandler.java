@@ -60,6 +60,13 @@ public class CustomExceptionHandler implements ExceptionHandler<CustomException,
     if (customException.errorCode().equals(ErrorCode.BAD_SAMPLE_CODE)) {
       return HttpResponse.badRequest();
     }
+    if (customException.errorCode().equals(ErrorCode.BAD_SAMPLE_STATUS)) {
+      return HttpResponse.badRequest();
+    }
+    if (customException.errorCode().equals(ErrorCode.BAD_USER)) {
+      return HttpResponse.badRequest();
+    }
+
     return HttpResponse.serverError();
   }
 
