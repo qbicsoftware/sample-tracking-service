@@ -7,11 +7,8 @@ import java.util.Locale;
 import javax.inject.Singleton;
 
 /**
- * <b>short description</b>
- *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * This factory provides a concrete implementation of micronaut MessageSource
+ * @since 2.0.0
  */
 @Factory
 public class MessageSourceFactory {

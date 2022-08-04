@@ -18,11 +18,8 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 
 /**
- * <b>short description</b>
- *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * Handles unrecoverable exceptions globally. Returns an appropriate HttpResponse.
+ * @since 2.0.0
  */
 @Produces
 @Singleton

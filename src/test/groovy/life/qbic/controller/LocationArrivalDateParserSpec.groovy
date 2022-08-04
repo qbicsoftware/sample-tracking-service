@@ -9,13 +9,6 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-/**
- * <b>short description</b>
- *
- * <p>detailed description</p>
- *
- * @since <version tag>
- */
 class LocationArrivalDateParserSpec extends Specification {
 
 
