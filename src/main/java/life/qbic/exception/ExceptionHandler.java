@@ -17,11 +17,8 @@ import javax.inject.Singleton;
 import org.slf4j.Logger;
 
 /**
- * <b>short description</b>
- *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * Handles all exceptions not handled by other handlers. Provides a customizable general error message to the client.
+ * @since 2.0.0
  */
 @Produces
 @Singleton
