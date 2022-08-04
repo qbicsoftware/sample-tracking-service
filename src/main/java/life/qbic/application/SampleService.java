@@ -1,19 +1,24 @@
 package life.qbic.application;
 
+import java.time.Instant;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import life.qbic.domain.notification.INotificationRepository;
 import life.qbic.domain.notification.SampleStatusNotification;
 import life.qbic.domain.sample.Sample;
+import life.qbic.domain.sample.Sample.CurrentState;
 import life.qbic.domain.sample.SampleCode;
 import life.qbic.domain.sample.SampleRepository;
-import life.qbic.domain.sample.Status;
-import java.time.Instant;
-import javax.inject.Inject;
+import life.qbic.exception.ErrorCode;
+import life.qbic.exception.ErrorParameters;
+import life.qbic.exception.NonRecoverableException;
 
 /**
  * An application service to interact with samples.
  *
  * @since 2.0.0
  */
+@Singleton
 public class SampleService {
 
   private final SampleRepository sampleRepository;
@@ -25,11 +30,12 @@ public class SampleService {
     this.notificationRepository = notificationRepository;
   }
 
-  public Status getSampleStatus(String sampleCode) {
+  public CurrentState getSampleState(String sampleCode) {
     SampleCode code = SampleCode.fromString(sampleCode);
-    Sample sample = sampleRepository.get(code).orElseThrow(() -> new ApplicationException(
-        String.format("Sample %s was not found.", sampleCode)));
-    return sample.currentState().status();
+    Sample sample = sampleRepository.get(code).orElseThrow(() ->
+        new NonRecoverableException(String.format("Sample %s was not found.", sampleCode),
+            ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleCode)));
+    return sample.currentState();
   }
 
   public void registerMetadata(String sampleCode, String validFrom) {

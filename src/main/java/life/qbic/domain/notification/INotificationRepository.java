@@ -1,5 +1,7 @@
 package life.qbic.domain.notification;
 
+import javax.inject.Singleton;
+
 /**
  * <b>short description</b>
  *
@@ -7,6 +9,7 @@ package life.qbic.domain.notification;
  *
  * @since <version tag>
  */
+@Singleton
 public interface INotificationRepository {
 
   void store(SampleStatusNotification statusNotification);

@@ -21,11 +21,26 @@ public class StatusChangeRequest {
   /**
    * The sample status value.
    */
-  public String status;
+  private String status;
 
   /**
    * The instant from which on this status is valid (e.g. 2022-07-27T00:00:01.352Z);
    */
-  public String validSince;
+  private String validSince;
 
+  public String status() {
+    return status;
+  }
+
+  public void setStatus(String status) {
+    this.status = status;
+  }
+
+  public String validSince() {
+    return validSince;
+  }
+
+  public void setValidSince(String validSince) {
+    this.validSince = validSince;
+  }
 }

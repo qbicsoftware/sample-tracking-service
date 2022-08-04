@@ -2,12 +2,14 @@ package life.qbic.domain.sample;
 
 import java.util.List;
 import java.util.Optional;
+import javax.inject.Singleton;
 
 /**
  * A repository for samples. Used to get samples and store samples in persistence.
  *
  * @since 2.0.0
  */
+@Singleton
 public class SampleRepository {
 
   private final ISampleEventStore sampleEventStore;

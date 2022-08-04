@@ -1,19 +1,15 @@
 package life.qbic.api.rest.v2.samples
 
 import io.micronaut.http.HttpResponse
-import io.micronaut.http.HttpStatus
-import io.micronaut.http.client.exceptions.HttpClientResponseException
-import life.qbic.application.ApplicationException
-import life.qbic.datamodel.samples.Sample
 import life.qbic.domain.notification.INotificationRepository
 import life.qbic.domain.sample.SampleEventDatasource
+import life.qbic.exception.NonRecoverableException
 import org.junit.Before
 import org.junit.Test
 
 import java.time.Instant
 
 import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertNotNull
 
 class SamplesControllerV2Test {
 
@@ -53,7 +49,7 @@ class SamplesControllerV2Test {
     String message
     try {
       HttpResponse response = samples.getSampleStatus(missingSampleCode);
-    } catch (ApplicationException responseException) {
+    } catch (NonRecoverableException responseException) {
       message = responseException.getMessage()
     }
     assertEquals(message, "Sample "+missingSampleCode+ " was not found.")

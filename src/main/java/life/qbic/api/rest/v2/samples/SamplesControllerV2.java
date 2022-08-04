@@ -4,31 +4,28 @@ package life.qbic.api.rest.v2.samples;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import io.micronaut.context.annotation.Requires;
+import io.micronaut.core.async.annotation.SingleResult;
 import io.micronaut.http.HttpResponse;
-import io.micronaut.http.HttpStatus;
-import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Controller;
-import io.micronaut.http.annotation.Error;
 import io.micronaut.http.annotation.Get;
 import io.micronaut.http.annotation.PathVariable;
-import io.micronaut.http.annotation.Produces;
 import io.micronaut.http.annotation.Put;
 import io.micronaut.security.annotation.Secured;
 import io.micronaut.security.rules.SecurityRule;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
-import life.qbic.application.ApplicationException;
 import life.qbic.application.SampleService;
 import life.qbic.auth.Authentication;
-import life.qbic.domain.InvalidDomainException;
-import life.qbic.domain.notification.INotificationRepository;
-import life.qbic.domain.sample.SampleEventDatasource;
-import life.qbic.domain.sample.SampleEventStore;
-import life.qbic.domain.sample.SampleRepository;
+import life.qbic.domain.sample.Sample.CurrentState;
 import life.qbic.domain.sample.Status;
+import life.qbic.exception.ErrorCode;
+import life.qbic.exception.ErrorParameters;
+import life.qbic.exception.NonRecoverableException;
 import org.slf4j.Logger;
 
 @Requires(beans = Authentication.class)
@@ -41,9 +38,8 @@ public class SamplesControllerV2 {
   SampleService sampleService;
 
   @Inject
-  public SamplesControllerV2(SampleEventDatasource sampleEventDatasource, INotificationRepository notificationRepository) {
-    this.sampleService = new SampleService(
-        new SampleRepository(new SampleEventStore(sampleEventDatasource)), notificationRepository);
+  public SamplesControllerV2(SampleService sampleService) {
+    this.sampleService = sampleService;
   }
 
   @Operation(summary = "Assign a status to a dedicated sample.",
@@ -54,9 +50,9 @@ public class SamplesControllerV2 {
   public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode,
       @Body StatusChangeRequest statusChangeRequest) {
     log.info(String.format("Request to put sample %s in status %s valid since %s", sampleCode,
-        statusChangeRequest.status, statusChangeRequest.validSince));
-    String validSince = statusChangeRequest.validSince;
-    String requestedStatus = statusChangeRequest.status;
+        statusChangeRequest.status(), statusChangeRequest.validSince()));
+    String validSince = statusChangeRequest.validSince();
+    String requestedStatus = statusChangeRequest.status();
     if (SampleStatusDto.METADATA_REGISTERED.name().equals(requestedStatus)) {
       sampleService.registerMetadata(sampleCode, validSince);
 
@@ -77,23 +73,27 @@ public class SamplesControllerV2 {
 
     } else {
       /* this is unnecessary in Java 17 using enhanced switch methods should never be reached if all enum values are handled here.*/
-      throw new IllegalArgumentException(
+      throw new NonRecoverableException(
           "Provided sample status not recognized: "
-              + requestedStatus);
+              + requestedStatus, ErrorCode.BAD_SAMPLE_STATUS, ErrorParameters.create().with("sampleStatus", requestedStatus));
     }
-    log.info(String.format("Sample %s is in status %s valid since %s", sampleCode, statusChangeRequest.status, statusChangeRequest.validSince));
+    log.info(String.format("Sample %s is in status %s valid since %s", sampleCode, statusChangeRequest.status(), statusChangeRequest.validSince()));
     return HttpResponse.ok();
   }
 
   @Operation(summary = "Request information about the current status of a sample.",
       description = "Delivers the current status of a sample in the system.")
-  @ApiResponse(responseCode = "200", description = "The request was fulfilled. The current status is provided in the response body.")
+  @ApiResponse(responseCode = "200", description = "The request was fulfilled. The current status is provided in the response body.",
+      content = @Content(
+          mediaType = "application/json",
+          schema = @Schema(implementation = SampleStatusResponse.class)))
   @Get(uri = "/{sampleCode}/status")
   @RolesAllowed("READER")
-  @Produces(MediaType.TEXT_PLAIN)
-  public HttpResponse<String> getSampleStatus(@PathVariable String sampleCode) {
+  @SingleResult
+  public HttpResponse<SampleStatusResponse> getSampleStatus(@PathVariable String sampleCode) {
     log.info("Retrieving status for " + sampleCode);
-    Status sampleStatus = sampleService.getSampleStatus(sampleCode);
+    CurrentState sampleState = sampleService.getSampleState(sampleCode);
+    Status sampleStatus = sampleState.status();
     SampleStatusDto statusDto;
     switch (sampleStatus) {
       case METADATA_REGISTERED:
@@ -116,36 +116,15 @@ public class SamplesControllerV2 {
         break;
       default:
         /* this is unnecessary in Java 17 using enhanced switch methods should never be reached if all enum values are handled here.*/
-        throw new IllegalArgumentException(
-            "Provided sample status not recognized: "
-                + sampleStatus.name());
+        throw new NonRecoverableException(
+            String.format("Could not map internal sample status %s to api status.",
+                sampleStatus.name()));
     }
-    log.info(String.format("Found sample %s with status %s", sampleCode, statusDto.name()));
-    return HttpResponse.ok(statusDto.name());
-  }
-
-  @Error(InvalidDomainException.class)
-  HttpResponse<String> onDomainError(InvalidDomainException invalidDomainException) {
-    log.error(invalidDomainException.getMessage(), invalidDomainException);
-    return HttpResponse.serverError("Apologies! Your request could not be processed.");
-  }
-
-  @Error(ApplicationException.class)
-  HttpResponse<String> onApplicationError(ApplicationException applicationException) {
-    log.error(applicationException.getMessage(), applicationException);
-    return HttpResponse.serverError("Apologies! Your request could not be processed.");
-  }
-
-  @Error(IllegalArgumentException.class)
-  HttpResponse<String> onIllegalArguments(IllegalArgumentException illegalArgumentException) {
-    log.error(illegalArgumentException.getMessage(), illegalArgumentException);
-    return HttpResponse.status(HttpStatus.BAD_REQUEST);
-  }
-
-  @Error(Exception.class)
-  HttpResponse<String> onOtherError(Exception e) {
-    log.error(e.getMessage(), e);
-    return HttpResponse.serverError("Apologies! Your request could not be processed.");
+    log.info(String.format("Found sample %s with status %s. Valid since %s", sampleCode, statusDto.name(), sampleState.statusValidSince()));
+    SampleStatusResponse responseBody = new SampleStatusResponse(sampleCode,
+        statusDto.name(),
+        sampleState.statusValidSince().toString());
+    return HttpResponse.ok(responseBody);
   }
 
 
