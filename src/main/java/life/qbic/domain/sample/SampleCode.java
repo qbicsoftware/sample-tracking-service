@@ -4,7 +4,7 @@ import java.io.Serializable;
 import life.qbic.controller.RegExValidator;
 import life.qbic.exception.ErrorCode;
 import life.qbic.exception.ErrorParameters;
-import life.qbic.exception.NonRecoverableException;
+import life.qbic.exception.UnRecoverableException;
 
 /**
  * <p>The sample code of a sample.</p>

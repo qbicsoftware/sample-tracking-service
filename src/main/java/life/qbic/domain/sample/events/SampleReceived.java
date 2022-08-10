@@ -18,6 +18,10 @@ public class SampleReceived extends SampleEvent {
   private SampleReceived(SampleCode sampleCode, Instant occurredOn) {
     super(sampleCode, occurredOn);
   }
+  @Override
+  public Version version() {
+    return Version.create(1, 0);
+  }
 
   @Override
   public String toString() {

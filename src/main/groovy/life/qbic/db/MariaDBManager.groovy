@@ -14,20 +14,19 @@ import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
 import life.qbic.domain.notification.INotificationRepository
 import life.qbic.domain.notification.SampleStatusNotification
-import life.qbic.domain.sample.DomainEventSerializer
 import life.qbic.domain.sample.SampleCode
 import life.qbic.domain.sample.SampleEvent
 import life.qbic.domain.sample.SampleEventDatasource
 import life.qbic.exception.ErrorCode
 import life.qbic.exception.ErrorParameters
-import life.qbic.exception.NonRecoverableException
+import life.qbic.exception.UnRecoverableException
+import life.qbic.infrastructure.serialization.event.EventDeserializerFactory
+import life.qbic.infrastructure.serialization.event.EventSerializerFactory
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.inject.Inject
 import javax.inject.Singleton
 import javax.sql.DataSource
-import javax.sql.rowset.serial.SerialBlob
-import java.sql.Blob
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
@@ -46,7 +45,6 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
   private static final PERSONS_TABLE = "person"
 
   //TODO as a parameter?
-  private DomainEventSerializer eventSerializer = new DomainEventSerializer();
 
   @Inject
   MariaDBManager(QBiCDataSource dataSource) {
@@ -623,7 +621,9 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
 
   @Override
   <T extends SampleEvent> void store(T sampleEvent) {
-    Blob eventSerialized = new SerialBlob(eventSerializer.serialize(sampleEvent))
+    String eventSerialized = EventSerializerFactory
+            .eventSerializer(sampleEvent.getClass() as Class<SampleEvent>)
+            .serialize(sampleEvent)
 
     String query = "INSERT INTO sample_events (`sample_code`, `event_time`, `event_type`, `event_serialized`) " +
             "VALUES(?, ?, ?, ?);"
@@ -647,8 +647,10 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
       List<GroovyRowResult> results = sql.rows(query)
 
       for (GroovyRowResult rs : results) {
-        byte[] resultValue = rs.get("event_serialized") as byte[]
-        SampleEvent event = eventSerializer.deserialize(resultValue)
+        String resultValue = rs.get("event_serialized")
+        SampleEvent event = EventDeserializerFactory
+                .eventDeserializer(SampleEvent.class)
+                .deserialize(resultValue)
         events.add(event)
       }
       sql.close()

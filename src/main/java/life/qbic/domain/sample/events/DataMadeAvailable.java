@@ -23,4 +23,9 @@ public class DataMadeAvailable extends SampleEvent {
   public String toString() {
     return "DataMadeAvailable{} " + super.toString();
   }
+
+  @Override
+  public Version version() {
+    return Version.create(1, 0);
+  }
 }

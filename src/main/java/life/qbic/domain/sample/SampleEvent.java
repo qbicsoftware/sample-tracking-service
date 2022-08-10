@@ -2,6 +2,7 @@ package life.qbic.domain.sample;
 
 import java.io.Serializable;
 import java.time.Instant;
+import life.qbic.domain.sample.events.Version;
 
 /**
  * A domain event in the sample domain. Contains information on the sample it refers to as well as
@@ -56,4 +57,6 @@ public abstract class SampleEvent implements Serializable {
     result = 31 * result + occurredOn.hashCode();
     return result;
   }
+
+  public abstract Version version();
 }
