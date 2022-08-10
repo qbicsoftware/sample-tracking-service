@@ -2,7 +2,7 @@ package life.qbic.domain.sample
 
 import life.qbic.datamodel.identifiers.SampleCodeFunctions
 import life.qbic.domain.sample.events.*
-import life.qbic.exception.NonRecoverableException
+import life.qbic.exception.UnRecoverableException
 import spock.lang.Specification
 
 import java.time.Instant
@@ -55,7 +55,7 @@ class SampleSpec extends Specification {
     then: "the event was not added to the sample"
     !sample.events().contains(sampleReceived)
     and: "an exception is thrown"
-    thrown(NonRecoverableException)
+    thrown(UnRecoverableException)
   }
 
   def "expect sample creation from events not possible if no events are provided"() {

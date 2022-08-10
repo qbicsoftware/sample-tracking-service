@@ -16,7 +16,7 @@ public class SampleCode implements Serializable {
 
   private SampleCode(String text) {
     if(!RegExValidator.isValidSampleCode(text)) {
-      throw new NonRecoverableException(String.format("Sample code '%s' is invalid.", text),
+      throw new UnRecoverableException(String.format("Sample code '%s' is invalid.", text),
           ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", text));
     }
     this.text = text;
