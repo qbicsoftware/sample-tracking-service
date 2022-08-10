@@ -19,7 +19,7 @@ class EventSerializerFactorySpec extends Specification {
 
   def "test"() {
     given:
-    def serializer = EventSerializerFactory.eventSerializer(DataMadeAvailable.class)
+    def serializer = EventSerializerFactory.eventSerializer()
     expect:
     println serializer.serialize(DataMadeAvailable.create(SampleCode.fromString("QABCD001A0"), Instant.now()))
     println serializer.serialize(FailedQualityControl.create(SampleCode.fromString("QABCD001A0"), Instant.now()))

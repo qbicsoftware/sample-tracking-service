@@ -1,6 +1,5 @@
 package life.qbic.infrastructure.serialization.event;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
@@ -22,25 +21,20 @@ import life.qbic.domain.sample.events.SampleReceived;
 import life.qbic.exception.UnRecoverableException;
 
 /**
- * <b>short description</b>
+ * Provides factory methods for event deserializers.
  *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * @since 2.0.0
  */
 public class EventDeserializerFactory {
 
-  private static final ObjectMapper objectMapper = configureObjectMapper();
 
-  public static <T extends SampleEvent> EventDeserializer<? extends SampleEvent> eventDeserializer(
-      Class<T> clazz) {
-    // decision on deserializer can be made based on clazz
-    // currently all events contain the same information so a generalization can be made.
+  public static EventDeserializer<SampleEvent> sampleEventDeserializer() {
     return new SampleEventDeserializer();
   }
 
-  private static class SampleEventDeserializer extends JsonDeserializer<SampleEvent> implements
-      EventDeserializer<SampleEvent> {
+  private static class SampleEventDeserializer implements EventDeserializer<SampleEvent> {
+
+    private static final ObjectMapper objectMapper = configureObjectMapper();
 
     @Override
     public SampleEvent deserialize(String json) {
@@ -51,49 +45,53 @@ public class EventDeserializerFactory {
       }
     }
 
-    @Override
-    public SampleEvent deserialize(JsonParser jsonParser, DeserializationContext ctxt)
-        throws IOException, JacksonException {
-      JsonNode rootNode = jsonParser.readValueAsTree();
-      String className = rootNode.get("className").textValue();
-      Instant occurredOn = ctxt.readTreeAsValue(rootNode.get("occurredOn"), Instant.class);
-      SampleCode sampleCode = SampleCode.fromString(rootNode.get("sampleCode").textValue());
-      return createEvent(className, occurredOn, sampleCode);
-    }
+    private static class JacksonDeserializer extends JsonDeserializer<SampleEvent> {
 
-    private static SampleEvent createEvent(String className, Instant occurredOn,
-        SampleCode sampleCode) {
-      if (MetadataRegistered.class.getName().equals(className)) {
-        return MetadataRegistered.create(sampleCode, occurredOn);
-      } else if (SampleReceived.class.getName().equals(className)) {
-        return SampleReceived.create(sampleCode, occurredOn);
-      } else if (FailedQualityControl.class.getName().equals(className)) {
-        return FailedQualityControl.create(sampleCode, occurredOn);
-      } else if (PassedQualityControl.class.getName().equals(className)) {
-        return PassedQualityControl.create(sampleCode, occurredOn);
-      } else if (LibraryPrepared.class.getName().equals(className)) {
-        return LibraryPrepared.create(sampleCode, occurredOn);
-      } else if (DataMadeAvailable.class.getName().equals(className)) {
-        return DataMadeAvailable.create(sampleCode, occurredOn);
-      } else {
-        throw new UnRecoverableException(
-            String.format("Event class %s not known.", className));
+
+      @Override
+      public SampleEvent deserialize(JsonParser jsonParser, DeserializationContext ctxt)
+          throws IOException {
+        JsonNode rootNode = jsonParser.readValueAsTree();
+        String className = rootNode.get("className").textValue();
+        Instant occurredOn = ctxt.readTreeAsValue(rootNode.get("occurredOn"), Instant.class);
+        SampleCode sampleCode = SampleCode.fromString(rootNode.get("sampleCode").textValue());
+        return createEvent(className, occurredOn, sampleCode);
+      }
+
+      private static SampleEvent createEvent(String className, Instant occurredOn,
+          SampleCode sampleCode) {
+        if (MetadataRegistered.class.getName().equals(className)) {
+          return MetadataRegistered.create(sampleCode, occurredOn);
+        } else if (SampleReceived.class.getName().equals(className)) {
+          return SampleReceived.create(sampleCode, occurredOn);
+        } else if (FailedQualityControl.class.getName().equals(className)) {
+          return FailedQualityControl.create(sampleCode, occurredOn);
+        } else if (PassedQualityControl.class.getName().equals(className)) {
+          return PassedQualityControl.create(sampleCode, occurredOn);
+        } else if (LibraryPrepared.class.getName().equals(className)) {
+          return LibraryPrepared.create(sampleCode, occurredOn);
+        } else if (DataMadeAvailable.class.getName().equals(className)) {
+          return DataMadeAvailable.create(sampleCode, occurredOn);
+        } else {
+          throw new UnRecoverableException(
+              String.format("Event class %s not known.", className));
+        }
       }
     }
-  }
 
-  private static ObjectMapper configureObjectMapper() {
-    return new ObjectMapper()
-        .registerModule(new SampleEventModule())
-        .findAndRegisterModules()
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-  }
+    private static class SampleEventModule extends SimpleModule {
 
-  private static class SampleEventModule extends SimpleModule {
+      public SampleEventModule() {
+        super();
+        addDeserializer(SampleEvent.class, new JacksonDeserializer());
+      }
+    }
 
-    public SampleEventModule() {
-      super();
-      addDeserializer(SampleEvent.class, new SampleEventDeserializer());
+    private static ObjectMapper configureObjectMapper() {
+      return new ObjectMapper()
+          .registerModule(new SampleEventModule())
+          .findAndRegisterModules()
+          .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
   }
 

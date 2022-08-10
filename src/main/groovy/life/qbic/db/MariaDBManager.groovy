@@ -622,7 +622,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
   @Override
   <T extends SampleEvent> void store(T sampleEvent) {
     String eventSerialized = EventSerializerFactory
-            .eventSerializer(sampleEvent.getClass() as Class<SampleEvent>)
+            .eventSerializer()
             .serialize(sampleEvent)
 
     String query = "INSERT INTO sample_events (`sample_code`, `event_time`, `event_type`, `event_serialized`) " +
@@ -649,7 +649,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
       for (GroovyRowResult rs : results) {
         String resultValue = rs.get("event_serialized")
         SampleEvent event = EventDeserializerFactory
-                .eventDeserializer(SampleEvent.class)
+                .sampleEventDeserializer()
                 .deserialize(resultValue)
         events.add(event)
       }
