@@ -90,7 +90,7 @@ class SamplesController {
     }
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
             location.getStatus().toString(),
-            location.arrivalDate))
+            LocationArrivalDateParser.arrivalTimeInstant(location).toString()))
     sampleService.addNewLocation(sampleId, location)
     return HttpResponse.ok(location)
 
@@ -115,7 +115,7 @@ class SamplesController {
 
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
             location.getStatus().toString(),
-            location.arrivalDate))
+            LocationArrivalDateParser.arrivalTimeInstant(location).toString()))
     sampleService.updateLocation(sampleId, location)
     return HttpResponse.ok(location)
   }
