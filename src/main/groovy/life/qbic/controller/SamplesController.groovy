@@ -22,7 +22,7 @@ import life.qbic.domain.sample.SampleCode
 import life.qbic.domain.sample.SampleRepository
 import life.qbic.exception.ErrorCode
 import life.qbic.exception.ErrorParameters
-import life.qbic.exception.NonRecoverableException
+import life.qbic.exception.UnrecoverableException
 import life.qbic.service.IDummyLocationFactory
 import life.qbic.service.ISampleService
 import org.apache.logging.log4j.LogManager
@@ -65,11 +65,11 @@ class SamplesController {
   @RolesAllowed([ "READER", "WRITER"])
   HttpResponse<Sample> sample(@PathVariable('sampleId') String sampleId) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      throw new NonRecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
+      throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     def optionalSample = this.sampleRepository.get(SampleCode.fromString(sampleId))
     if (!optionalSample.isPresent()) {
-      throw new NonRecoverableException("Sample with ID ${sampleId} was not found in the system!", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
+      throw new UnrecoverableException("Sample with ID ${sampleId} was not found in the system!", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     life.qbic.domain.sample.Sample sampleV2 = optionalSample.get()
     Location dummyLocation = this.dummyLocationService.dummyLocation(sampleV2.currentState().status(), sampleV2.currentState().statusValidSince().toDate())
@@ -86,11 +86,11 @@ class SamplesController {
   @RolesAllowed("WRITER")
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      throw new NonRecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
+      throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
             location.getStatus().toString(),
-            location.arrivalDate))
+            LocationArrivalDateParser.arrivalTimeInstant(location).toString()))
     sampleService.addNewLocation(sampleId, location)
     return HttpResponse.ok(location)
 
@@ -110,12 +110,12 @@ class SamplesController {
   @RolesAllowed("WRITER")
   HttpResponse<Location> updateLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      throw new NonRecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
+      throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
 
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
             location.getStatus().toString(),
-            location.arrivalDate))
+            LocationArrivalDateParser.arrivalTimeInstant(location).toString()))
     sampleService.updateLocation(sampleId, location)
     return HttpResponse.ok(location)
   }
@@ -128,10 +128,10 @@ class SamplesController {
   @RolesAllowed("WRITER")
   HttpResponse sampleStatus(@PathVariable('sampleId') String sampleId, @PathVariable('status') Status status) {
     if (!RegExValidator.isValidSampleCode(sampleId)) {
-      throw new NonRecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
+      throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     if (!sampleRepository.get(SampleCode.fromString(sampleId)).isPresent()) {
-      throw new NonRecoverableException("sample $sampleId was not found", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
+      throw new UnrecoverableException("sample $sampleId was not found", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
             status.toString(),

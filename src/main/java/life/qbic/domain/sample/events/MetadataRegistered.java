@@ -19,6 +19,10 @@ public class MetadataRegistered extends SampleEvent {
   private MetadataRegistered(SampleCode sampleCode, Instant occurredOn) {
     super(sampleCode, occurredOn);
   }
+  @Override
+  public Version version() {
+    return Version.create(1, 0);
+  }
 
   @Override
   public String toString() {

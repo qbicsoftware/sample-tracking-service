@@ -11,7 +11,7 @@ import life.qbic.domain.sample.SampleCode;
 import life.qbic.domain.sample.SampleRepository;
 import life.qbic.exception.ErrorCode;
 import life.qbic.exception.ErrorParameters;
-import life.qbic.exception.NonRecoverableException;
+import life.qbic.exception.UnrecoverableException;
 
 /**
  * An application service to interact with samples.
@@ -33,7 +33,7 @@ public class SampleService {
   public CurrentState getSampleState(String sampleCode) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Sample sample = sampleRepository.get(code).orElseThrow(() ->
-        new NonRecoverableException(String.format("Sample %s was not found.", sampleCode),
+        new UnrecoverableException(String.format("Sample %s was not found.", sampleCode),
             ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleCode)));
     return sample.currentState();
   }
