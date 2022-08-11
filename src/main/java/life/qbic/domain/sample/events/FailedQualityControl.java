@@ -21,6 +21,10 @@ public class FailedQualityControl extends SampleEvent {
   }
 
   @Override
+  public Version version() {
+    return Version.create(1, 0);
+  }
+  @Override
   public String toString() {
     return "FailedQualityControl{} " + super.toString();
   }

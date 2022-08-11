@@ -18,6 +18,10 @@ public class LibraryPrepared extends SampleEvent {
   private LibraryPrepared(SampleCode sampleCode, Instant occurredOn) {
     super(sampleCode, occurredOn);
   }
+  @Override
+  public Version version() {
+    return Version.create(1, 0);
+  }
 
   @Override
   public String toString() {
