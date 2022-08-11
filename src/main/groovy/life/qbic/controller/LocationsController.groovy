@@ -87,6 +87,7 @@ class LocationsController {
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "404", description = "Location information for the provided user identifier not found")
   @ApiResponse(responseCode = "500", description = "Retrieval of location information for the provided user failed for an unknown reason")
+  @Deprecated
   HttpResponse<List<Location>> locations(@PathVariable('user_id') String userId) {
     HttpResponse<List<Location>> response
 
@@ -110,6 +111,7 @@ class LocationsController {
   @ApiResponse(responseCode = "401", description = "Unauthorized access")
   @ApiResponse(responseCode = "500", description = "Listing of available locations failed for an unknown reason")
   @RolesAllowed(["READER", "WRITER"])
+  @Deprecated
   HttpResponse<List<Location>> listLocations() {
     List<Location> res = locService.listLocations()
     return HttpResponse.ok(res)

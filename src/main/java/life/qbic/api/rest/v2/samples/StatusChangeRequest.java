@@ -13,7 +13,7 @@ public class StatusChangeRequest {
   protected StatusChangeRequest() {
   }
 
-  public StatusChangeRequest(String status, String validSince) {
+  public StatusChangeRequest(SampleStatusDto status, String validSince) {
     this.status = status;
     this.validSince = validSince;
   }
@@ -21,23 +21,31 @@ public class StatusChangeRequest {
   /**
    * The sample status value.
    */
-  private String status;
+  private SampleStatusDto status;
 
   /**
    * The instant from which on this status is valid (e.g. 2022-07-27T00:00:01.352Z);
    */
   private String validSince;
 
-  public String status() {
+  public SampleStatusDto status() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public SampleStatusDto getStatus() {
+    return status();
+  }
+
+  public void setStatus(SampleStatusDto status) {
     this.status = status;
   }
 
   public String validSince() {
     return validSince;
+  }
+
+  public String getValidSince() {
+    return validSince();
   }
 
   public void setValidSince(String validSince) {

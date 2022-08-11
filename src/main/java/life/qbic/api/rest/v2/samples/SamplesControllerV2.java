@@ -1,6 +1,5 @@
 package life.qbic.api.rest.v2.samples;
 
-
 import static org.slf4j.LoggerFactory.getLogger;
 
 import io.micronaut.context.annotation.Requires;
@@ -43,7 +42,8 @@ public class SamplesControllerV2 {
   }
 
   @Operation(summary = "Assign a status to a dedicated sample.",
-      description = "Registers the sample with the provided code to be in the provide status. The status is valid from the instant specified.")
+      description = "Registers the sample with the provided code to be in the provide status. The status is valid from the instant specified.",
+      tags = "Sample Status")
   @ApiResponse(responseCode = "200", description = "The request was fulfilled. The sample was registered to have the provided status.")
   @Put(uri = "/{sampleCode}/status")
   @RolesAllowed("WRITER")
@@ -52,23 +52,23 @@ public class SamplesControllerV2 {
     log.info(String.format("Request to put sample %s in status %s valid since %s", sampleCode,
         statusChangeRequest.status(), statusChangeRequest.validSince()));
     String validSince = statusChangeRequest.validSince();
-    String requestedStatus = statusChangeRequest.status();
-    if (SampleStatusDto.METADATA_REGISTERED.name().equals(requestedStatus)) {
+    SampleStatusDto requestedStatus = statusChangeRequest.status();
+    if (SampleStatusDto.METADATA_REGISTERED.equals(requestedStatus)) {
       sampleService.registerMetadata(sampleCode, validSince);
 
-    } else if (SampleStatusDto.SAMPLE_RECEIVED.name().equals(requestedStatus)) {
+    } else if (SampleStatusDto.SAMPLE_RECEIVED.equals(requestedStatus)) {
       sampleService.receiveSample(sampleCode, validSince);
 
-    } else if (SampleStatusDto.SAMPLE_QC_FAIL.name().equals(requestedStatus)) {
+    } else if (SampleStatusDto.SAMPLE_QC_FAIL.equals(requestedStatus)) {
       sampleService.failQualityControl(sampleCode, validSince);
 
-    } else if (SampleStatusDto.SAMPLE_QC_PASS.name().equals(requestedStatus)) {
+    } else if (SampleStatusDto.SAMPLE_QC_PASS.equals(requestedStatus)) {
       sampleService.passQualityControl(sampleCode, validSince);
 
-    } else if (SampleStatusDto.LIBRARY_PREP_FINISHED.name().equals(requestedStatus)) {
+    } else if (SampleStatusDto.LIBRARY_PREP_FINISHED.equals(requestedStatus)) {
       sampleService.prepareLibrary(sampleCode, validSince);
 
-    } else if (SampleStatusDto.DATA_AVAILABLE.name().equals(requestedStatus)) {
+    } else if (SampleStatusDto.DATA_AVAILABLE.equals(requestedStatus)) {
       sampleService.provideData(sampleCode, validSince);
 
     } else {
@@ -82,7 +82,8 @@ public class SamplesControllerV2 {
   }
 
   @Operation(summary = "Request information about the current status of a sample.",
-      description = "Delivers the current status of a sample in the system.")
+      description = "Delivers the current status of a sample in the system.",
+      tags = "Sample Status")
   @ApiResponse(responseCode = "200", description = "The request was fulfilled. The current status is provided in the response body.",
       content = @Content(
           mediaType = "application/json",
@@ -122,7 +123,7 @@ public class SamplesControllerV2 {
     }
     log.info(String.format("Found sample %s with status %s. Valid since %s", sampleCode, statusDto.name(), sampleState.statusValidSince()));
     SampleStatusResponse responseBody = new SampleStatusResponse(sampleCode,
-        statusDto.name(),
+        statusDto,
         sampleState.statusValidSince().toString());
     return HttpResponse.ok(responseBody);
   }
