@@ -25,8 +25,8 @@
     - [Authentication](#authentication)
 - [How to use](#how-to-use)
   - [Common response codes](#common-response-codes)
-  - [Api v1 (Deprecated) ](#deprecated-api-v1)
   - [Api v2](#api-v2)
+  - [Api v1 (Deprecated) ](#api-v1-deprecated)
 - [License](#license)
 
 ## System Integration
@@ -147,8 +147,74 @@ the [REST API status code](https://restfulapi.net/http-status-codes/) terminolog
 #### Endpoint format
 The endpoints formatting follows the [OpenAPI Specifications](https://swagger.io/specification/)
 
+### API v2
+#### Retrieve sample status for sample identified by sample code
+Gets the current sample status. The response provides information from since when the current status is valid.
 
-### (Deprecated) API v1
+##### Endpoint
+```
+  /v2/samples/{sampleCode}/status:
+    get:
+      summary: "GET samples/{sampleId}/status"
+      parameters:
+      - name: "sampleCode"
+        in: "path"
+      responses:
+        "200":
+          description: "OK"
+```
+
+##### Example Request
+
+```
+/v2/samples/QABCD001A0/status
+```
+
+##### Example Response
+```
+{
+  "status": "METADATA_REGISTERED",
+  "statusValidSince": "2022-07-27T00:00:01.352Z",
+  "sampleCode": "QABCD001A0"
+}
+```
+#### Set sample status for sample identified by sample code
+Sets the current status of a sample. The response provides information from since when the current status is valid.
+
+##### Endpoint
+```
+  /v2/samples/{sampleCode}/status:
+    put:
+      summary: "PUT /v2/samples/{sampleCode}/status"
+      parameters:
+      - name: "sampleCode"
+        in: "path"
+      responses:
+        "200":
+          description: "OK"
+```
+
+##### Example Request
+
+```
+PUT /v2/samples/QABCD001A0/status
+
+{
+  "status": "METADATA_REGISTERED",
+  "validSince": "2022-07-27T00:00:01.352Z"
+}
+```
+
+##### Example Response
+```
+{
+  "status": "METADATA_REGISTERED",
+  "statusValidSince": "2022-07-27T00:00:01.352Z",
+  "sampleCode": "QABCD001A0"
+}
+```
+
+### API v1 (Deprecated)
 #### Retrieve sample information from sampleID
 Gets the sample information including current and past locations for a specific sample ID in JSON format
 
@@ -460,74 +526,6 @@ Gets the linked affiliation and person information for an email address in JSON 
   "email": "John.Doe@Templa.te"
 }
 ```
-
-### API v2
-#### Retrieve sample status for sample identified by sample code
-Gets the current sample status. The response provides information from since when the current status is valid.
-
-##### Endpoint
-```
-  /v2/samples/{sampleCode}/status:
-    get:
-      summary: "GET samples/{sampleId}/status"
-      parameters:
-      - name: "sampleCode"
-        in: "path"
-      responses:
-        "200":
-          description: "OK"
-```
-
-##### Example Request
-
-```
-/v2/samples/QABCD001A0/status
-```
-
-##### Example Response
-```
-{
-  "status": "METADATA_REGISTERED",
-  "statusValidSince": "2022-07-27T00:00:01.352Z",
-  "sampleCode": "QABCD001A0"
-}
-```
-#### Set sample status for sample identified by sample code
-Sets the current status of a sample. The response provides information from since when the current status is valid.
-
-##### Endpoint
-```
-  /v2/samples/{sampleCode}/status:
-    put:
-      summary: "PUT /v2/samples/{sampleCode}/status"
-      parameters:
-      - name: "sampleCode"
-        in: "path"
-      responses:
-        "200":
-          description: "OK"
-```
-
-##### Example Request
-
-```
-PUT /v2/samples/QABCD001A0/status
-
-{
-  "status": "METADATA_REGISTERED",
-  "validSince": "2022-07-27T00:00:01.352Z"
-}
-```
-
-##### Example Response
-```
-{
-  "status": "METADATA_REGISTERED",
-  "statusValidSince": "2022-07-27T00:00:01.352Z",
-  "sampleCode": "QABCD001A0"
-}
-```
-
 
 ## License
 
