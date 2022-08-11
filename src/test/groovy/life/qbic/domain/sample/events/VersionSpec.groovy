@@ -3,13 +3,6 @@ package life.qbic.domain.sample.events
 
 import spock.lang.Specification
 
-/**
- * <b>short description</b>
- *
- * <p>detailed description</p>
- *
- * @since <version tag>
- */
 class VersionSpec extends Specification {
   def "equals works for equal objects"() {
     given:
@@ -61,5 +54,10 @@ class VersionSpec extends Specification {
   def "to string is unchanged"() {
     expect:
     Version.create(1, 5).toString() == "1.5"
+  }
+
+  def "parse from string works"() {
+    expect:
+    Version.parse("1.5") == Version.create(1, 5)
   }
 }
