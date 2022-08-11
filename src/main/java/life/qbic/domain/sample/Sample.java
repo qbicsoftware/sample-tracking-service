@@ -13,7 +13,7 @@ import life.qbic.domain.sample.events.LibraryPrepared;
 import life.qbic.domain.sample.events.MetadataRegistered;
 import life.qbic.domain.sample.events.PassedQualityControl;
 import life.qbic.domain.sample.events.SampleReceived;
-import life.qbic.exception.UnRecoverableException;
+import life.qbic.exception.UnrecoverableException;
 
 /**
  * <p>A sample in the context of sample-tracking.</p>
@@ -52,9 +52,9 @@ public class Sample {
     }
     Optional<SampleCode> containedSampleCode =  events.stream().findAny().map(SampleEvent::sampleCode);
     SampleCode sampleCode = containedSampleCode.orElseThrow(() ->
-        new UnRecoverableException("Could not identify sample code from events: " + events));
+        new UnrecoverableException("Could not identify sample code from events: " + events));
     if (events.stream().anyMatch(it -> !it.sampleCode().equals(sampleCode))) {
-      throw new UnRecoverableException(
+      throw new UnrecoverableException(
           String.format("Not all events are of the same stream. Expected %s", sampleCode));
     }
     Sample sample = new Sample(sampleCode);
@@ -105,7 +105,7 @@ public class Sample {
       return;
     }
     if (!occurredAfterCurrentState(event)) {
-      throw new UnRecoverableException(
+      throw new UnrecoverableException(
           String.format("The sample (%s) was modified after %s", sampleCode, event.occurredOn()));
     }
     apply(event);
@@ -134,7 +134,7 @@ public class Sample {
     } else if (event instanceof DataMadeAvailable) {
       apply((DataMadeAvailable) event);
     } else {
-      throw new UnRecoverableException("Unknown sample event: " + event.getClass().getName());
+      throw new UnrecoverableException("Unknown sample event: " + event.getClass().getName());
     }
   }
 

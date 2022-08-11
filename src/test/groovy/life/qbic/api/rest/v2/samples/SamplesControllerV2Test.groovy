@@ -3,7 +3,7 @@ package life.qbic.api.rest.v2.samples
 import io.micronaut.http.HttpResponse
 import life.qbic.domain.notification.INotificationRepository
 import life.qbic.domain.sample.SampleEventDatasource
-import life.qbic.exception.UnRecoverableException
+import life.qbic.exception.UnrecoverableException
 import org.junit.Before
 import org.junit.Test
 
@@ -49,7 +49,7 @@ class SamplesControllerV2Test {
     String message
     try {
       HttpResponse response = samples.getSampleStatus(missingSampleCode);
-    } catch (UnRecoverableException responseException) {
+    } catch (UnrecoverableException responseException) {
       message = responseException.getMessage()
     }
     assertEquals(message, "Sample "+missingSampleCode+ " was not found.")

@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.time.Instant;
 import life.qbic.domain.sample.SampleEvent;
 import life.qbic.domain.sample.events.Version;
-import life.qbic.exception.UnRecoverableException;
+import life.qbic.exception.UnrecoverableException;
 
 /**
  * Adapter for Jackson Json serialization
@@ -27,7 +27,7 @@ class SampleEventSerializer implements EventSerializer<SampleEvent> {
     try {
       return objectMapper.writeValueAsString(sampleEvent);
     } catch (JsonProcessingException e) {
-      throw new UnRecoverableException(e);
+      throw new UnrecoverableException(e);
     }
   }
 

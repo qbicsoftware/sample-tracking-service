@@ -19,7 +19,7 @@ import life.qbic.domain.sample.SampleEvent
 import life.qbic.domain.sample.SampleEventDatasource
 import life.qbic.exception.ErrorCode
 import life.qbic.exception.ErrorParameters
-import life.qbic.exception.UnRecoverableException
+import life.qbic.exception.UnrecoverableException
 import life.qbic.infrastructure.event.deserialization.EventDeserializerFactory
 import life.qbic.infrastructure.event.serialization.EventSerializerFactory
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
@@ -203,9 +203,9 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
       List<GroovyRowResult> rowResults = sql.rows(query)
       rowResults.each { parseLocationFromMap(it).ifPresent(locations::add) }
     } catch (SQLException e) {
-      throw new UnRecoverableException("Retrieving locations for $identifier caused an SQLException", e)
+      throw new UnrecoverableException("Retrieving locations for $identifier caused an SQLException", e)
     } catch (Exception e) {
-      throw new UnRecoverableException("Retrieving locations for $identifier failed unexpectedly.", e)
+      throw new UnrecoverableException("Retrieving locations for $identifier failed unexpectedly.", e)
     } finally {
       sql?.close()
     }
@@ -225,7 +225,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     if (rowResults.size() == 1) {
       return rowResults.first() as Map
     } else {
-      throw new UnRecoverableException("No user or multiple users with the id: '$identifier'.", ErrorCode.BAD_USER, ErrorParameters.create())
+      throw new UnrecoverableException("No user or multiple users with the id: '$identifier'.", ErrorCode.BAD_USER, ErrorParameters.create())
     }
   }
 
@@ -632,7 +632,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
     try (Sql sql = new Sql(connection)) {
       sql.execute(query, sampleEvent.sampleCode().toString(), sampleEvent.occurredOn(), sampleEvent.getClass().getSimpleName(), eventSerialized)
     } catch (SQLException sqlException) {
-      throw new UnRecoverableException("sample event storage logging unsuccessful: $sqlException.message", sqlException)
+      throw new UnrecoverableException("sample event storage logging unsuccessful: $sqlException.message", sqlException)
     }
   }
 
@@ -670,7 +670,7 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
               toNotificationTableEnum(notification.sampleStatus()),
               notification.recodedAt())
     } catch (SQLException sqlException) {
-      throw new UnRecoverableException("could not log $notification: $sqlException.message", sqlException)
+      throw new UnrecoverableException("could not log $notification: $sqlException.message", sqlException)
     }
   }
 

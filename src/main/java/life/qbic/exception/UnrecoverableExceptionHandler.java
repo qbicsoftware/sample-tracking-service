@@ -23,18 +23,18 @@ import org.slf4j.Logger;
  */
 @Produces
 @Singleton
-@Requires(classes = {UnRecoverableException.class, ExceptionHandler.class})
-public class UnRecoverableExceptionHandler implements ExceptionHandler<UnRecoverableException, HttpResponse<?>>{
+@Requires(classes = {UnrecoverableException.class, ExceptionHandler.class})
+public class UnrecoverableExceptionHandler implements ExceptionHandler<UnrecoverableException, HttpResponse<?>>{
 
   private final MessageSource messageSource;
   private final ErrorResponseProcessor<?> errorResponseProcessor;
-  private static final Logger log = getLogger(UnRecoverableExceptionHandler.class);
+  private static final Logger log = getLogger(UnrecoverableExceptionHandler.class);
 
   private final String defaultMessage;
   private static final Locale LOCALE_DEFAULT = Locale.US;
 
   @Inject
-  protected UnRecoverableExceptionHandler(MessageSource messageSource,
+  protected UnrecoverableExceptionHandler(MessageSource messageSource,
       ErrorResponseProcessor<?> errorResponseProcessor) {
     this.messageSource = messageSource;
     this.errorResponseProcessor = errorResponseProcessor;
@@ -43,7 +43,7 @@ public class UnRecoverableExceptionHandler implements ExceptionHandler<UnRecover
   }
 
   @Override
-  public HttpResponse<?> handle(HttpRequest request, UnRecoverableException unRecoverableException) {
+  public HttpResponse<?> handle(HttpRequest request, UnrecoverableException unRecoverableException) {
     log.error(unRecoverableException.getMessage(), unRecoverableException);
     String errorMessage = getMessage(unRecoverableException);
     MutableHttpResponse<Object> errorResponse = getBaseResponse(unRecoverableException);
@@ -54,7 +54,7 @@ public class UnRecoverableExceptionHandler implements ExceptionHandler<UnRecover
   }
 
   private static MutableHttpResponse<Object> getBaseResponse(
-      UnRecoverableException unRecoverableException) {
+      UnrecoverableException unRecoverableException) {
     if (unRecoverableException.errorCode().equals(ErrorCode.BAD_SAMPLE_CODE)) {
       return HttpResponse.badRequest();
     }
@@ -68,7 +68,7 @@ public class UnRecoverableExceptionHandler implements ExceptionHandler<UnRecover
     return HttpResponse.serverError();
   }
 
-  private String getMessage(UnRecoverableException unRecoverableException) {
+  private String getMessage(UnrecoverableException unRecoverableException) {
     return messageSource.getMessage(unRecoverableException.errorCode().name(),
         MessageContext.of(LOCALE_DEFAULT, unRecoverableException.errorParameters().asMap())).orElse(defaultMessage);
   }

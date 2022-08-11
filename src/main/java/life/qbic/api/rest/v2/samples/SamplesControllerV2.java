@@ -25,7 +25,7 @@ import life.qbic.domain.sample.Sample.CurrentState;
 import life.qbic.domain.sample.Status;
 import life.qbic.exception.ErrorCode;
 import life.qbic.exception.ErrorParameters;
-import life.qbic.exception.UnRecoverableException;
+import life.qbic.exception.UnrecoverableException;
 import org.slf4j.Logger;
 
 @Requires(beans = Authentication.class)
@@ -73,7 +73,7 @@ public class SamplesControllerV2 {
 
     } else {
       /* this is unnecessary in Java 17 using enhanced switch methods should never be reached if all enum values are handled here.*/
-      throw new UnRecoverableException(
+      throw new UnrecoverableException(
           "Provided sample status not recognized: "
               + requestedStatus, ErrorCode.BAD_SAMPLE_STATUS, ErrorParameters.create().with("sampleStatus", requestedStatus));
     }
@@ -116,7 +116,7 @@ public class SamplesControllerV2 {
         break;
       default:
         /* this is unnecessary in Java 17 using enhanced switch methods should never be reached if all enum values are handled here.*/
-        throw new UnRecoverableException(
+        throw new UnrecoverableException(
             String.format("Could not map internal sample status %s to api status.",
                 sampleStatus.name()));
     }

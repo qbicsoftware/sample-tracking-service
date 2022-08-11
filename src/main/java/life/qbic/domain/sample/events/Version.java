@@ -2,7 +2,7 @@ package life.qbic.domain.sample.events;
 
 import java.io.Serializable;
 import javax.validation.constraints.NotNull;
-import life.qbic.exception.UnRecoverableException;
+import life.qbic.exception.UnrecoverableException;
 
 /**
  * A semantic version with major and minor part.
@@ -68,7 +68,7 @@ public final class Version implements Comparable<Version>, Serializable {
 
   public static Version parse(String version) {
     if (!version.matches("\\d+\\.\\d+")) {
-      throw new UnRecoverableException(
+      throw new UnrecoverableException(
           String.format("Version %s does not match version pattern major.minor", version));
     }
     String[] split = version.split("\\.");

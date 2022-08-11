@@ -18,7 +18,7 @@ import life.qbic.domain.sample.events.LibraryPrepared;
 import life.qbic.domain.sample.events.MetadataRegistered;
 import life.qbic.domain.sample.events.PassedQualityControl;
 import life.qbic.domain.sample.events.SampleReceived;
-import life.qbic.exception.UnRecoverableException;
+import life.qbic.exception.UnrecoverableException;
 
 /**
  * Adapter for Jackson Json deserialization
@@ -34,7 +34,7 @@ class SampleEventDeserializer implements EventDeserializer<SampleEvent> {
     try {
       return objectMapper.readValue(json, SampleEvent.class);
     } catch (JsonProcessingException e) {
-      throw new UnRecoverableException(e);
+      throw new UnrecoverableException(e);
     }
   }
 
@@ -69,7 +69,7 @@ class SampleEventDeserializer implements EventDeserializer<SampleEvent> {
       } else if (DataMadeAvailable.class.getName().equals(className)) {
         return DataMadeAvailable.create(sampleCode, occurredOn);
       } else {
-        throw new UnRecoverableException(
+        throw new UnrecoverableException(
             String.format("Event class %s not known.", className));
       }
     }
