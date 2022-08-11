@@ -1,0 +1,322 @@
+openapi: 3.0.1
+info:
+  title: Sample Tracking Service
+  description: Information about sample status and location information for QBiC's
+    data management platform.
+  contact:
+    name: Sven Fillinger
+    url: https://github.com/sven1103
+    email: sven.filliner@qbic.uni-tuebingen.de
+  license:
+    name: ""
+    url: ""
+  version: 2.0.0
+paths:
+  /locations/contacts/{email}:
+    get:
+      tags:
+      - Contact
+      summary: Provides the contact information linked to an e-mail
+      description: Provides detailed contact information that is linked to an e-mail
+      operationId: contacts
+      parameters:
+      - name: email
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Current contact associated with the email address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contact'
+        "400":
+          description: The provided e-mail address is invalid
+        "401":
+          description: Unauthorized access
+        "404":
+          description: Contact for the provided e-mail address not found
+        "500":
+          description: Retrieval of contact information failed for an unknown reason
+      deprecated: true
+  /locations/{user_id}:
+    get:
+      tags:
+      - Location
+      summary: Provides the locations information linked to a user identifier
+      description: Provides detailed locations information that is linked to a user
+      operationId: locations
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Location information associated with the user identifier is
+            provided
+          content:
+            application/json:
+              schema:
+                type: array
+        "400":
+          description: Bad Request. The provided user identification is invalid.
+        "401":
+          description: Unauthorized access
+        "404":
+          description: Location information for the provided user identifier not found
+        "500":
+          description: Retrieval of location information for the provided user failed
+            for an unknown reason
+      deprecated: true
+  /locations:
+    get:
+      tags:
+      - Location
+      summary: Provides all available locations
+      description: Provides all available locations
+      operationId: listLocations
+      parameters: []
+      responses:
+        "200":
+          description: All available locations
+          content:
+            application/json:
+              schema:
+                type: array
+        "401":
+          description: Unauthorized access
+        "500":
+          description: Listing of available locations failed for an unknown reason
+      deprecated: true
+  /samples/{sampleId}:
+    get:
+      tags:
+      - Sample
+      summary: Request a sample's tracking information
+      description: Requests a sample resource with the given identifier.
+      operationId: sample
+      parameters:
+      - name: sampleId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns a sample with tracking information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sample'
+      deprecated: true
+  /samples/{sampleId}/currentLocation/:
+    put:
+      tags:
+      - Sample Location
+      summary: Updates a sample's current location
+      description: Updates a sample current location with the given identifier.
+      operationId: updateLocation
+      parameters:
+      - name: sampleId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                location:
+                  $ref: '#/components/schemas/Location'
+        required: true
+      responses:
+        "200":
+          description: Current location for sample set successfully
+      deprecated: true
+    post:
+      tags:
+      - Sample Location
+      summary: Sets a sample's current location
+      description: Sets a sample current location with the given identifier.
+      operationId: newLocation
+      parameters:
+      - name: sampleId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                location:
+                  $ref: '#/components/schemas/Location'
+        required: true
+      responses:
+        "200":
+          description: Current location for sample set successfully
+      deprecated: true
+  /samples/{sampleId}/currentLocation/{status}:
+    put:
+      tags:
+      - Sample Status
+      summary: Sets a sample's current location status
+      description: Sets a sample current location status with the given identifier.
+      operationId: sampleStatus
+      parameters:
+      - name: sampleId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: status
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Status'
+      responses:
+        "201":
+          description: Current location for sample set successfully
+      deprecated: true
+  /v2/samples/{sampleCode}/status:
+    get:
+      tags:
+      - Sample Status
+      summary: Request information about the current status of a sample.
+      description: Delivers the current status of a sample in the system.
+      operationId: getSampleStatus
+      parameters:
+      - name: sampleCode
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The request was fulfilled. The current status is provided in
+            the response body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SampleStatusResponse'
+    put:
+      tags:
+      - Sample Status
+      summary: Assign a status to a dedicated sample.
+      description: Registers the sample with the provided code to be in the provide
+        status. The status is valid from the instant specified.
+      operationId: moveSampleToStatus
+      parameters:
+      - name: sampleCode
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusChangeRequest'
+        required: true
+      responses:
+        "200":
+          description: The request was fulfilled. The sample was registered to have
+            the provided status.
+components:
+  schemas:
+    Contact:
+      type: object
+      properties:
+        fullName:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        email:
+          type: string
+    Address:
+      type: object
+      properties:
+        affiliation:
+          type: string
+        street:
+          type: string
+        zipCode:
+          type: integer
+          format: int32
+        country:
+          type: string
+    Location:
+      type: object
+      properties:
+        name:
+          type: string
+        responsiblePerson:
+          type: string
+        responsibleEmail:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        status:
+          $ref: '#/components/schemas/Status'
+        arrivalDate:
+          type: string
+        forwardDate:
+          type: string
+    Status:
+      type: string
+      enum:
+      - SAMPLE_QC_FAIL
+      - SAMPLE_QC_PASS
+      - SAMPLE_RECEIVED
+      - LIBRARY_PREP_FINISHED
+      - SEQUENCING
+      - SEQUENCING_COMPLETE
+      - METADATA_REGISTERED
+      - WAITING
+      - PROCESSING
+      - FAILED_QC
+      - PROCESSED
+      - DATA_AVAILABLE
+      - DATA_AT_QBIC
+      - MIN_VALUE
+      - MAX_VALUE
+    Sample:
+      type: object
+      properties:
+        code:
+          type: string
+        currentLocation:
+          $ref: '#/components/schemas/Location'
+    StatusChangeRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/SampleStatusDto'
+        validSince:
+          type: string
+    SampleStatusDto:
+      type: string
+      enum:
+      - METADATA_REGISTERED
+      - SAMPLE_RECEIVED
+      - SAMPLE_QC_PASS
+      - SAMPLE_QC_FAIL
+      - LIBRARY_PREP_FINISHED
+      - DATA_AVAILABLE
+    SampleStatusResponse:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/SampleStatusDto'
+        statusValidSince:
+          type: string
+        sampleCode:
+          type: string

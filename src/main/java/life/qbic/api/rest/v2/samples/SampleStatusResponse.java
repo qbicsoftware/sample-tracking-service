@@ -11,7 +11,7 @@ public class SampleStatusResponse {
   protected SampleStatusResponse() {
   }
 
-  public SampleStatusResponse(String sampleCode, String status, String validSince) {
+  public SampleStatusResponse(String sampleCode, SampleStatusDto status, String validSince) {
     this.sampleCode = sampleCode;
     this.status = status;
     this.statusValidSince = validSince;
@@ -20,19 +20,23 @@ public class SampleStatusResponse {
   @JsonProperty("sampleCode")
   private String sampleCode;
   @JsonProperty("status")
-  private String status;
+  private SampleStatusDto status;
   @JsonProperty("statusValidSince")
   private String statusValidSince;
 
-  public String status() {
+  public SampleStatusDto status() {
     return status;
   }
 
-  public void setStatus(String status) {
+  public SampleStatusDto getStatus() {
+    return status();
+  }
+
+  public void setStatus(SampleStatusDto status) {
     this.status = status;
   }
 
-  public String validSince() {
+  public String statusValidSince() {
     return statusValidSince;
   }
 
@@ -42,6 +46,14 @@ public class SampleStatusResponse {
 
   public String sampleCode() {
     return sampleCode;
+  }
+
+  public String getStatusValidSince() {
+    return statusValidSince();
+  }
+
+  public String getSampleCode() {
+    return sampleCode();
   }
 
   public void setSampleCode(String sampleCode) {

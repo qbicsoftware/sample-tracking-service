@@ -63,6 +63,7 @@ class SamplesController {
                   schema = @Schema(implementation = Sample.class)))
   @Get(uri = "/{sampleId}", produces = MediaType.APPLICATION_JSON)
   @RolesAllowed([ "READER", "WRITER"])
+  @Deprecated
   HttpResponse<Sample> sample(@PathVariable('sampleId') String sampleId) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
@@ -84,12 +85,13 @@ class SamplesController {
           tags = "Sample Location")
   @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
   @RolesAllowed("WRITER")
+  @Deprecated
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
-            location.getStatus().toString(),
+            SampleStatusParser.parseStatus(location.getStatus().toString()),
             LocationArrivalDateParser.arrivalTimeInstant(location).toString()))
     sampleService.addNewLocation(sampleId, location)
     return HttpResponse.ok(location)
@@ -108,13 +110,14 @@ class SamplesController {
           tags = "Sample Location")
   @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
   @RolesAllowed("WRITER")
+  @Deprecated
   HttpResponse<Location> updateLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
       throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
 
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
-            location.getStatus().toString(),
+            SampleStatusParser.parseStatus(location.getStatus().toString()),
             LocationArrivalDateParser.arrivalTimeInstant(location).toString()))
     sampleService.updateLocation(sampleId, location)
     return HttpResponse.ok(location)
@@ -126,6 +129,7 @@ class SamplesController {
           tags = "Sample Status")
   @ApiResponse(responseCode = "201", description = "Current location for sample set successfully")
   @RolesAllowed("WRITER")
+  @Deprecated
   HttpResponse sampleStatus(@PathVariable('sampleId') String sampleId, @PathVariable('status') Status status) {
     if (!RegExValidator.isValidSampleCode(sampleId)) {
       throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
@@ -134,7 +138,7 @@ class SamplesController {
       throw new UnrecoverableException("sample $sampleId was not found", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
-            status.toString(),
+            SampleStatusParser.parseStatus(status.toString()),
             Instant.now().toString()))
     sampleService.updateSampleStatus(sampleId, status)
     return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
