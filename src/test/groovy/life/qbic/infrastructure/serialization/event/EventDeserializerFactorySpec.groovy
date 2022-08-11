@@ -27,6 +27,5 @@ class EventDeserializerFactorySpec extends Specification {
             DataMadeAvailable.class
     ]
     className = eventClass.name
-
   }
 }

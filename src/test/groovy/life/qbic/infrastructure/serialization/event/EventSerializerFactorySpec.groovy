@@ -1,30 +1,30 @@
 package life.qbic.infrastructure.serialization.event
 
 import life.qbic.domain.sample.SampleCode
-import life.qbic.domain.sample.events.DataMadeAvailable
-import life.qbic.domain.sample.events.FailedQualityControl
-import life.qbic.domain.sample.events.MetadataRegistered
+import life.qbic.domain.sample.events.*
 import spock.lang.Specification
 
 import java.time.Instant
 
-/**
- * <b>short description</b>
- *
- * <p>detailed description</p>
- *
- * @since <version tag>
- */
 class EventSerializerFactorySpec extends Specification {
 
-  def "test"() {
-    given:
+  def "serializer works for #className"() {
+    when:
     def serializer = EventSerializerFactory.eventSerializer()
-    expect:
-    println serializer.serialize(DataMadeAvailable.create(SampleCode.fromString("QABCD001A0"), Instant.now()))
-    println serializer.serialize(FailedQualityControl.create(SampleCode.fromString("QABCD001A0"), Instant.now()))
-    println serializer.serialize(MetadataRegistered.create(SampleCode.fromString("QABCD001A0"), Instant.now()))
 
+    then:
+    serializer.serialize(event) == expectedJson
 
+    where:
+    event << [
+            MetadataRegistered.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2022-08-03T16:27:00Z")),
+            SampleReceived.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2022-08-03T16:27:00Z")),
+            FailedQualityControl.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2022-08-03T16:27:00Z")),
+            PassedQualityControl.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2022-08-03T16:27:00Z")),
+            LibraryPrepared.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2022-08-03T16:27:00Z")),
+            DataMadeAvailable.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2022-08-03T16:27:00Z"))
+    ]
+    className = event.class.name
+    expectedJson = '{"className":"' + className + '","version":"' + event.version() + '","sampleCode":"' + SampleCode.fromString("QABCD001A0").toString() + '","occurredOn":"' + "2022-08-03T16:27:00Z" + '"}'
   }
 }
