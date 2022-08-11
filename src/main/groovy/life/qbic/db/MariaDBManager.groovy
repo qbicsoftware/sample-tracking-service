@@ -20,8 +20,8 @@ import life.qbic.domain.sample.SampleEventDatasource
 import life.qbic.exception.ErrorCode
 import life.qbic.exception.ErrorParameters
 import life.qbic.exception.UnRecoverableException
-import life.qbic.infrastructure.serialization.event.EventDeserializerFactory
-import life.qbic.infrastructure.serialization.event.EventSerializerFactory
+import life.qbic.infrastructure.event.deserialization.EventDeserializerFactory
+import life.qbic.infrastructure.event.serialization.EventSerializerFactory
 import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.inject.Inject

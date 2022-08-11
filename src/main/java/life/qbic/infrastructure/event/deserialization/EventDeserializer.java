@@ -1,4 +1,4 @@
-package life.qbic.infrastructure.serialization.event;
+package life.qbic.infrastructure.event.deserialization;
 
 public interface EventDeserializer<T> {
 

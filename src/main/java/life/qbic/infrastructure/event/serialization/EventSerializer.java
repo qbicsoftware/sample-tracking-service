@@ -1,4 +1,4 @@
-package life.qbic.infrastructure.serialization.event;
+package life.qbic.infrastructure.event.serialization;
 
 import life.qbic.domain.sample.SampleEvent;
 

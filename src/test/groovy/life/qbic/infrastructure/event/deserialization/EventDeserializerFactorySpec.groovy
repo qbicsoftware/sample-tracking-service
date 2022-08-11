@@ -1,5 +1,4 @@
-package life.qbic.infrastructure.serialization.event
-
+package life.qbic.infrastructure.event.deserialization
 
 import life.qbic.domain.sample.events.*
 import spock.lang.Specification
