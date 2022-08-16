@@ -1,7 +1,6 @@
 package life.qbic.domain.sample
 
 import life.qbic.datamodel.identifiers.SampleCodeFunctions
-import life.qbic.domain.project.ProjectCode
 import life.qbic.domain.sample.events.*
 import life.qbic.exception.UnrecoverableException
 import spock.lang.Specification
@@ -148,12 +147,5 @@ class SampleSpec extends Specification {
     sample.currentState().status() == Status.LIBRARY_PREP_FINISHED
     and: "the sample is aware of the processed event"
     sample.events().contains(libraryPrepared)
-  }
-
-  def "test"() {
-    expect:
-    println new ProjectCode(null)
-
-
   }
 }
