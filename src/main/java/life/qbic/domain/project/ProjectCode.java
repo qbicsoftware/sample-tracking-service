@@ -39,10 +39,6 @@ public class ProjectCode {
     return new ProjectCode(code);
   }
 
-  public boolean matches(SampleCode sampleCode) {
-    return sampleCode.toString().startsWith(code);
-  }
-
   @Override
   public String toString() {
     return code;

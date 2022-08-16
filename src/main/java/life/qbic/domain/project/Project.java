@@ -24,12 +24,21 @@ public class Project {
   }
 
   void addSample(SampleCode sampleCode) {
-    if (!code.matches(sampleCode)) {
+    if (samples.contains(sampleCode)) {
+      return;
+    }
+    if (!canAcceptSample(sampleCode)) {
       throw new UnrecoverableException(
           String.format("Sample with code %s cannot be added to project %s", sampleCode, code));
     }
     samples.add(sampleCode);
   }
+
+
+  boolean canAcceptSample(SampleCode sampleCode) {
+    return sampleCode.toString().startsWith(this.code.toString());
+  }
+
 
   public List<SampleCode> samples() {
     return samples;
