@@ -5,11 +5,9 @@ import java.time.Instant;
 import life.qbic.api.rest.v2.samples.SampleStatusDto;
 
 /**
- * <b>short description</b>
+ * A bean for the SampleStatus that is part of the API.
  *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * @since 2.0.0
  */
 class SampleStatusBean {
 

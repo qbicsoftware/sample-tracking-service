@@ -6,11 +6,8 @@ import life.qbic.api.rest.v2.mapper.SampleStatusDtoMapper;
 import life.qbic.domain.sample.Sample;
 
 /**
- * <b>short description</b>
- *
- * <p>detailed description</p>
- *
- * @since <version tag>
+ * Response providing information about samples in a project, their status and since when the samples have the respective status.
+ * @since 2.0.0
  */
 public class ProjectStatusResponse extends ArrayList<SampleStatusBean> {
 
