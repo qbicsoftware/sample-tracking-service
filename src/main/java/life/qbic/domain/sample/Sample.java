@@ -60,47 +60,47 @@ public class Sample {
     Sample sample = new Sample(sampleCode);
     events.stream()
         .sorted(Comparator.comparing(SampleEvent::occurredOn))
-        .forEachOrdered(sample::addEvent);
+        .forEachOrdered(sample::handle);
     return sample;
   }
 
   public void registerMetadata(Instant occurredOn) {
     MetadataRegistered event = MetadataRegistered.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    addEvent(event);
+    handle(event);
   }
 
   public void receive(Instant occurredOn) {
     SampleReceived event = SampleReceived.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    addEvent(event);
+    handle(event);
   }
 
   public void passQualityControl(Instant occurredOn) {
     PassedQualityControl event = PassedQualityControl.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    addEvent(event);
+    handle(event);
   }
 
   public void failQualityControl(Instant occurredOn) {
     FailedQualityControl event = FailedQualityControl.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    addEvent(event);
+    handle(event);
   }
 
   public void prepareLibrary(Instant occurredOn) {
     LibraryPrepared event = LibraryPrepared.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    addEvent(event);
+    handle(event);
   }
 
   public void provideData(Instant occurredOn) {
     DataMadeAvailable event = DataMadeAvailable.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    addEvent(event);
+    handle(event);
   }
 
-  public <T extends SampleEvent> void addEvent(T event) {
+  public <T extends SampleEvent> void handle(T event) {
     if (events.contains(event)) {
       return;
     }
@@ -120,7 +120,7 @@ public class Sample {
     return event.occurredOn().isAfter(lastEvent.occurredOn());
   }
 
-  private <T extends SampleEvent> void apply(T event) {
+  public <T extends SampleEvent> void apply(T event) {
     if (event instanceof MetadataRegistered) {
       apply((MetadataRegistered) event);
     } else if (event instanceof SampleReceived) {

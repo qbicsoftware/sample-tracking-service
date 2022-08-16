@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
+import life.qbic.api.rest.v2.mapper.SampleStatusDtoMapper;
 import life.qbic.application.SampleService;
 import life.qbic.auth.Authentication;
 import life.qbic.domain.sample.Sample.CurrentState;
@@ -55,22 +56,16 @@ public class SamplesControllerV2 {
     SampleStatusDto requestedStatus = statusChangeRequest.status();
     if (SampleStatusDto.METADATA_REGISTERED.equals(requestedStatus)) {
       sampleService.registerMetadata(sampleCode, validSince);
-
     } else if (SampleStatusDto.SAMPLE_RECEIVED.equals(requestedStatus)) {
       sampleService.receiveSample(sampleCode, validSince);
-
     } else if (SampleStatusDto.SAMPLE_QC_FAIL.equals(requestedStatus)) {
       sampleService.failQualityControl(sampleCode, validSince);
-
     } else if (SampleStatusDto.SAMPLE_QC_PASS.equals(requestedStatus)) {
       sampleService.passQualityControl(sampleCode, validSince);
-
     } else if (SampleStatusDto.LIBRARY_PREP_FINISHED.equals(requestedStatus)) {
       sampleService.prepareLibrary(sampleCode, validSince);
-
     } else if (SampleStatusDto.DATA_AVAILABLE.equals(requestedStatus)) {
       sampleService.provideData(sampleCode, validSince);
-
     } else {
       /* this is unnecessary in Java 17 using enhanced switch methods should never be reached if all enum values are handled here.*/
       throw new UnrecoverableException(
@@ -95,32 +90,7 @@ public class SamplesControllerV2 {
     log.info("Retrieving status for " + sampleCode);
     CurrentState sampleState = sampleService.getSampleState(sampleCode);
     Status sampleStatus = sampleState.status();
-    SampleStatusDto statusDto;
-    switch (sampleStatus) {
-      case METADATA_REGISTERED:
-        statusDto = SampleStatusDto.METADATA_REGISTERED;
-        break;
-      case SAMPLE_RECEIVED:
-        statusDto = SampleStatusDto.SAMPLE_RECEIVED;
-        break;
-      case SAMPLE_QC_PASSED:
-        statusDto = SampleStatusDto.SAMPLE_QC_PASS;
-        break;
-      case SAMPLE_QC_FAILED:
-        statusDto = SampleStatusDto.SAMPLE_QC_FAIL;
-        break;
-      case LIBRARY_PREP_FINISHED:
-        statusDto = SampleStatusDto.LIBRARY_PREP_FINISHED;
-        break;
-      case DATA_AVAILABLE:
-        statusDto = SampleStatusDto.DATA_AVAILABLE;
-        break;
-      default:
-        /* this is unnecessary in Java 17 using enhanced switch methods should never be reached if all enum values are handled here.*/
-        throw new UnrecoverableException(
-            String.format("Could not map internal sample status %s to api status.",
-                sampleStatus.name()));
-    }
+    SampleStatusDto statusDto = SampleStatusDtoMapper.sampleStatusToDto(sampleStatus);
     log.info(String.format("Found sample %s with status %s. Valid since %s", sampleCode, statusDto.name(), sampleState.statusValidSince()));
     SampleStatusResponse responseBody = new SampleStatusResponse(sampleCode,
         statusDto,

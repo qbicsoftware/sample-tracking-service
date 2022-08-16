@@ -1,6 +1,6 @@
 package life.qbic.domain.sample
 
-
+import life.qbic.domain.project.ProjectCode
 import life.qbic.domain.sample.events.MetadataRegistered
 import spock.lang.Specification
 
@@ -32,6 +32,11 @@ class SampleEventStoreSpec extends Specification {
     @Override
     List<SampleEvent> findAllForSample(SampleCode sampleCode) {
       return events
+    }
+
+    @Override
+    List<SampleEvent> findAllMatchingProject(ProjectCode projectCode) {
+      return null
     }
   }
 }
