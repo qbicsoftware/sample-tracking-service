@@ -33,10 +33,10 @@ class SampleSpec extends Specification {
     def sampleCode = SampleCode.fromString("QABCD001A0")
     Sample sample = Sample.create(sampleCode)
     MetadataRegistered metadataRegistered = MetadataRegistered.create(sampleCode, Instant.now())
-    sample.addEvent(metadataRegistered)
+    sample.handle(metadataRegistered)
     when: "the event is added to the sample"
     def stateBefore = sample.currentState()
-    sample.addEvent(metadataRegistered)
+    sample.handle(metadataRegistered)
     def stateAfter = sample.currentState()
 
     then: "the sample will ignore the request"
@@ -51,7 +51,7 @@ class SampleSpec extends Specification {
     and: "an event predating the current state of the sample"
     SampleReceived sampleReceived = SampleReceived.create(sampleCode, Instant.MIN)
     when: "the event is added to the sample"
-    sample.addEvent(sampleReceived)
+    sample.handle(sampleReceived)
     then: "the event was not added to the sample"
     !sample.events().contains(sampleReceived)
     and: "an exception is thrown"
@@ -71,7 +71,7 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "metadata was registered for that sample"
     MetadataRegistered metadataRegistered = MetadataRegistered.create(code, Instant.now())
-    sample.addEvent(metadataRegistered)
+    sample.handle(metadataRegistered)
 
     then: "the sample's state has status METADATA_REGISTERED"
     sample.currentState().status() == Status.METADATA_REGISTERED
@@ -85,7 +85,7 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "the sample was received"
     SampleReceived sampleReceived = SampleReceived.create(code, Instant.now())
-    sample.addEvent(sampleReceived)
+    sample.handle(sampleReceived)
 
     then: "the sample's state has status SAMPLE_RECEIVED"
     sample.currentState().status() == Status.SAMPLE_RECEIVED
@@ -99,7 +99,7 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "when the quality control passed"
     PassedQualityControl passedQualityControl = PassedQualityControl.create(code, Instant.now())
-    sample.addEvent(passedQualityControl)
+    sample.handle(passedQualityControl)
 
     then: "the sample's state has status SAMPLE_QC_PASSED"
     sample.currentState().status() == Status.SAMPLE_QC_PASSED
@@ -113,7 +113,7 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "when the quality control failed"
     FailedQualityControl failedQualityControl = FailedQualityControl.create(code, Instant.now())
-    sample.addEvent(failedQualityControl)
+    sample.handle(failedQualityControl)
 
     then: "the sample's state has status SAMPLE_QC_FAILED"
     sample.currentState().status() == Status.SAMPLE_QC_FAILED
@@ -127,7 +127,7 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "when data has been made available"
     DataMadeAvailable dataMadeAvailable = DataMadeAvailable.create(code, Instant.now())
-    sample.addEvent(dataMadeAvailable)
+    sample.handle(dataMadeAvailable)
 
     then: "the sample's state has status DATA_AVAILABLE"
     sample.currentState().status() == Status.DATA_AVAILABLE
@@ -141,7 +141,7 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "when the library was prepared for that sample"
     LibraryPrepared libraryPrepared = LibraryPrepared.create(code, Instant.now())
-    sample.addEvent(libraryPrepared)
+    sample.handle(libraryPrepared)
 
     then: "the sample's state has status LIBRARY_PREP_FINISHED"
     sample.currentState().status() == Status.LIBRARY_PREP_FINISHED

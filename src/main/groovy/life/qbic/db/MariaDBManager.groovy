@@ -14,6 +14,7 @@ import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
 import life.qbic.domain.notification.INotificationRepository
 import life.qbic.domain.notification.SampleStatusNotification
+import life.qbic.domain.project.ProjectCode
 import life.qbic.domain.sample.SampleCode
 import life.qbic.domain.sample.SampleEvent
 import life.qbic.domain.sample.SampleEventDatasource
@@ -659,12 +660,34 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
   }
 
   @Override
+  List<SampleEvent> findAllMatchingProject(ProjectCode projectCode) {
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+            "not be null.")
+    try (Sql sql = new Sql(connection)) {
+      List<SampleEvent> events = new ArrayList<>()
+      final String query = "SELECT * FROM sample_events WHERE sample_code LIKE '${projectCode.toString()}%' ORDER BY event_time;"
+
+      List<GroovyRowResult> results = sql.rows(query)
+
+      for (GroovyRowResult rs : results) {
+        String resultValue = rs.get("event_serialized")
+        SampleEvent event = EventDeserializerFactory
+                .sampleEventDeserializer()
+                .deserialize(resultValue)
+        events.add(event)
+      }
+      sql.close()
+      return events
+    }
+  }
+
+  @Override
   void store(SampleStatusNotification notification) {
     String query = "INSERT INTO notification (`sample_code`, `sample_status`, `arrival_time`) " +
             "VALUES(?, ?, ?);"
-    try (Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
+    Connection connection = Objects.requireNonNull(dataSource.getConnection(), "Connection must " +
             "not be null.");
-         Sql sql = new Sql(connection)) {
+    try (Sql sql = new Sql(connection)) {
       sql.execute(query,
               notification.sampleCode().toString(),
               toNotificationTableEnum(notification.sampleStatus()),
