@@ -22,17 +22,11 @@
   - [Configuration](#configuration)
     - [Properties](#properties)
     - [Environment variables](#environment-variables)
+    - [Authentication](#authentication)
 - [How to use](#how-to-use)
-  - [Authentication](#authentication)
-  - [Api design](#api-design)
-    - [Common response codes](#common-response-codes)
-    - [Endpoint format](#endpoint-format)
-    - [Retrieve sample information from sampleID](#retrieve-sample-information-from-sampleid)
-    - [Update Sample Status of current location from sampleId and sample status](#update-sample-status-of-current-location-from-sampleid-and-sample-status)
-    - [Retrieve location information for an userId](#retrieve-location-information-for-an-userid)
-    - [Update current location of sampleId](#update-current-location-of-sampleid)
-    - [Retrieve complete location to user linked information](#retrieve-complete-location-to-user-linked-information)
-    - [Retrieve contact Information from email address](#retrieve-contact-information-from-email-address)
+  - [Common response codes](#common-response-codes)
+  - [Api v2](#api-v2)
+  - [Api v1 (Deprecated) ](#api-v1-deprecated)
 - [License](#license)
 
 ## System Integration
@@ -42,9 +36,17 @@ This application requires a database configured to reflect this [data model](#da
 
 The data model that holds sample tracking information is defined by attributes and relations shown
 in the following ER diagram.
-![](models/table-structure.svg)
 
-In the service application however, those attributes are mapped to API classes:
+[//]: # (![]&#40;models/table-structure.svg&#41;)
+![](models/sample_events.svg)
+
+For API version 2 the service uses the following API classes:
+![](models/API-v2-classes.svg)
+
+For the deprecated API version 1, different API classes are used.
+The information provided by those classes might be outdated or not informative.
+The only valid information is contained in the `Location` object. Here the `status`and the `arrivalTime` represent the current `status` and `statusValidSince` information.
+`Location` and `Person` information of any form are discarded from API version 2 on.
 ![](models/API-classes.svg)
 
 
@@ -67,14 +69,14 @@ The JAR file will be created in the ``/target`` folder:
 
 ```
 |-target
-|---sampletracking-1.0.0-jar-with-dependencies.jar
+|---sampletracking-2.0.0-jar-with-dependencies.jar
 |---...
 ```
 
 Now change into the folder and run the sample tracking service with:
 
 ```shell
-java -jar sampletracking-1.0.0-jar-with-dependencies.jar
+java -jar sampletracking-2.0.0-jar-with-dependencies.jar
 ```
 
 ### Configuration
@@ -99,12 +101,13 @@ java -jar -Dserver.port=8085 sampletracking-1.0.0-jar-with-dependencies.jar
 For the application to use the database the following information is read from environment
 variables:
 
-| environment variable | description                               |
-|----------------------|-------------------------------------------|
-| `TR_DB_HOST`         | The sample tracking database host address |
-| `TR_DB_USER`         | The sample tracking database user         |
-| `TR_DB_PWD`          | The sample tracking database user         |
-| `TR_DB_NAME`         | The sample tracking database name         |
+| environment variable | description                                              |
+|----------------------|----------------------------------------------------------|
+| `TR_DB_HOST`         | The sample tracking database host address                |
+| `TR_DB_USER`         | The sample tracking database user                        |
+| `TR_DB_PWD`          | The sample tracking database user                        |
+| `TR_DB_NAME`         | The sample tracking database name                        |
+| `SERVICES_LOG_PATH`  | The path to the folder in which the log file is located. |
 
 ### Authentication
 
@@ -127,25 +130,122 @@ servicewriter:
 
 ## How to use
 
-### API design
-
-#### Common response codes
+### Common response codes
 
 The Response codes in the sample-tracking API follow
 the [REST API status code](https://restfulapi.net/http-status-codes/) terminology:
 
-| RESPONSE CODE | TEXT                  | Purpose   | 
-| -----------   | -----------           | --------- |
-| 200           | OK                    | For successful GET and PUT requests.| 
-| 201           | Created               | The request has created a new resource| 
-| 400           | Bad Request           | Issued when a malformed request was sent.| 
-| 401           | Unauthorized          | Sent when the client provided invalid credentials| 
-| 404           | Not Found             | The accessed resource doesn't exist or couldn't be found.| 
-| 500           | Internal Server Error | When an error has occurred within the API.| 
+| RESPONSE CODE | TEXT                  | Purpose                                                   | 
+|---------------|-----------------------|-----------------------------------------------------------|
+| 200           | OK                    | For successful GET and PUT requests.                      | 
+| 201           | Created               | The request has created a new resource                    | 
+| 400           | Bad Request           | Issued when a malformed request was sent.                 | 
+| 401           | Unauthorized          | Sent when the client provided invalid credentials         | 
+| 404           | Not Found             | The accessed resource doesn't exist or couldn't be found. | 
+| 500           | Internal Server Error | When an error has occurred within the API.                | 
 
 #### Endpoint format
 The endpoints formatting follows the [OpenAPI Specifications](https://swagger.io/specification/)
 
+### API v2
+#### Retrieve sample status for sample identified by sample code
+Gets the current sample status. The response provides information from since when the current status is valid.
+
+##### Endpoint
+```
+  /v2/samples/{sampleCode}/status:
+    get:
+      summary: "GET samples/{sampleId}/status"
+      parameters:
+      - name: "sampleCode"
+        in: "path"
+      responses:
+        "200":
+          description: "OK"
+```
+
+##### Example Request
+
+```
+/v2/samples/QABCD001A0/status
+```
+
+##### Example Response
+```
+{
+  "status": "METADATA_REGISTERED",
+  "statusValidSince": "2022-07-27T00:00:01.352Z",
+  "sampleCode": "QABCD001A0"
+}
+```
+#### Set sample status for sample identified by sample code
+Sets the current status of a sample. The response provides information from since when the current status is valid.
+
+##### Endpoint
+```
+  /v2/samples/{sampleCode}/status:
+    put:
+      summary: "PUT /v2/samples/{sampleCode}/status"
+      parameters:
+      - name: "sampleCode"
+        in: "path"
+      responses:
+        "200":
+          description: "OK"
+```
+
+##### Example Request
+
+```
+PUT /v2/samples/QABCD001A0/status
+
+{
+  "status": "METADATA_REGISTERED",
+  "validSince": "2022-07-27T00:00:01.352Z"
+}
+```
+
+#### Retrieve sample status information for samples from a project
+Gets the current sample statuses of samples matching the project. The response provides information from since when the current status is valid.
+
+##### Endpoint
+```
+  /v2/projects/{projectCode}/status:
+    get:
+      summary: "GET v2/projects/{projectCode}/status"
+      parameters:
+      - name: "projectCode"
+        in: "path"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+```
+
+##### Example Request
+
+```
+/v2/projects/QSTTS/status
+```
+
+##### Example Response
+
+```
+[
+  {
+    "sampleCode": "QSTTS020A1",
+    "status": "SAMPLE_QC_PASS",
+    "statusValidSince": "2022-07-29T12:32:32.432Z"
+  },
+  {
+    "sampleCode": "QSTTS022AH",
+    "status": "SAMPLE_QC_PASS",
+    "statusValidSince": "2022-07-29T12:32:32.432Z"
+  }
+]
+```
+
+### API v1 (Deprecated)
 #### Retrieve sample information from sampleID
 Gets the sample information including current and past locations for a specific sample ID in JSON format
 
@@ -284,7 +384,7 @@ Gets the location information for a given user id in JSON Format:
 
 #### Update current location of sampleId
 
-Updates the current location of a provided sampleId with the provided location information. 
+Updates the current location of a provided sampleId with the provided location information.
 
 ##### Endpoint
 ```
@@ -305,7 +405,7 @@ Updates the current location of a provided sampleId with the provided location i
 /samples/QMUJW064AW/currentLocation/
 ```
 
-Additionally, the location information has to be provided in the JSON Format: 
+Additionally, the location information has to be provided in the JSON Format:
 
 ```
 {
@@ -328,7 +428,7 @@ Additionally, the location information has to be provided in the JSON Format:
 
 ##### Example Response
 
-The sample-tracking-service will return the set location information: 
+The sample-tracking-service will return the set location information:
 
 ```
 {
@@ -463,4 +563,3 @@ Gets the linked affiliation and person information for an email address in JSON 
 This work is licensed under the [MIT license](https://mit-license.org/).
 
 **Note**: This work uses the [Miconaut Framework](https://github.com/micronaut-projects/micronaut-core) which is licensed under [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-

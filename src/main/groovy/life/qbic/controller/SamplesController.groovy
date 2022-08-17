@@ -1,6 +1,5 @@
 package life.qbic.controller
 
-
 import io.micronaut.context.annotation.Requires
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.HttpStatus
@@ -12,15 +11,26 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import life.qbic.api.rest.v2.samples.SamplesControllerV2
+import life.qbic.api.rest.v2.samples.StatusChangeRequest
 import life.qbic.auth.Authentication
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
 import life.qbic.datamodel.samples.Status
 import life.qbic.db.INotificationService
+import life.qbic.domain.sample.SampleCode
+import life.qbic.domain.sample.SampleRepository
+import life.qbic.exception.ErrorCode
+import life.qbic.exception.ErrorParameters
+import life.qbic.exception.UnrecoverableException
+import life.qbic.service.IDummyLocationFactory
 import life.qbic.service.ISampleService
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 import javax.annotation.security.RolesAllowed
 import javax.inject.Inject
+import java.time.Instant
 
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)
@@ -29,11 +39,19 @@ class SamplesController {
 
   ISampleService sampleService
   INotificationService notificationService
+  SamplesControllerV2 controllerV2
+
+  private static final Logger log = LogManager.getLogger(SamplesController.class)
+  private SampleRepository sampleRepository
+  private IDummyLocationFactory dummyLocationService
 
   @Inject
-  SamplesController(ISampleService sampleService, INotificationService notificationService) {
+  SamplesController(ISampleService sampleService, INotificationService notificationService, SamplesControllerV2 controllerV2, SampleRepository sampleRepository, IDummyLocationFactory dummyLocationService) {
     this.sampleService = sampleService
     this.notificationService = notificationService
+    this.controllerV2 = controllerV2
+    this.sampleRepository = sampleRepository
+    this.dummyLocationService = dummyLocationService
   }
 
   @Operation(summary = "Request a sample's tracking information",
@@ -43,53 +61,41 @@ class SamplesController {
           responseCode = "200", description = "Returns a sample with tracking information", content = @Content(
                   mediaType = "application/json",
                   schema = @Schema(implementation = Sample.class)))
-  @ApiResponse(responseCode = "400", description = "Bad Request, Sample identifier format does not match")
-  @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample tracking information for the provided identifier not found")
-  @ApiResponse(responseCode = "500", description = "Sample tracking information retrieval failed for an unknown reason")
   @Get(uri = "/{sampleId}", produces = MediaType.APPLICATION_JSON)
   @RolesAllowed([ "READER", "WRITER"])
+  @Deprecated
   HttpResponse<Sample> sample(@PathVariable('sampleId') String sampleId) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+      throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
+    def optionalSample = this.sampleRepository.get(SampleCode.fromString(sampleId))
+    if (!optionalSample.isPresent()) {
+      throw new UnrecoverableException("Sample with ID ${sampleId} was not found in the system!", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
+    }
+    life.qbic.domain.sample.Sample sampleV2 = optionalSample.get()
+    Location dummyLocation = this.dummyLocationService.dummyLocation(sampleV2.currentState().status(), sampleV2.currentState().statusValidSince().toDate())
 
-    try {
-      Sample sample = sampleService.searchSample(sampleId)
-      if(sample) {
-        return HttpResponse.ok(sample)
-      }
-      else {
-        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
-      }
-    }
-      catch(Exception e) {
-        return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
-      }
-    }
+    Sample sampleV1 = new Sample(code: sampleId, currentLocation: dummyLocation, pastLocations: [])
+    return HttpResponse.ok(sampleV1)
+  }
 
   @Post("/{sampleId}/currentLocation/")
   @Operation(summary = "Sets a sample's current location",
           description = "Sets a sample current location with the given identifier.",
           tags = "Sample Location")
   @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
-  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
-  @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "500", description = "Update of sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
+  @Deprecated
   HttpResponse<Location> newLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+      throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
-    try{
-        sampleService.addNewLocation(sampleId, location)
-        notificationService.sampleChanged(sampleId, location.getStatus())
-        return HttpResponse.ok(location)
-    } catch (IllegalArgumentException illegalArgumentException) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
-    } catch(Exception e) {
-        return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
-    }
+    controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+            SampleStatusParser.parseStatus(location.getStatus().toString()),
+            LocationArrivalDateParser.arrivalTimeInstant(location).toString()))
+    sampleService.addNewLocation(sampleId, location)
+    return HttpResponse.ok(location)
+
   }
 
   /**
@@ -103,24 +109,18 @@ class SamplesController {
           description = "Updates a sample current location with the given identifier.",
           tags = "Sample Location")
   @ApiResponse(responseCode = "200", description = "Current location for sample set successfully")
-  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
-  @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample for the provided identifier not found")
-  @ApiResponse(responseCode = "500", description = "Update of current sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
+  @Deprecated
   HttpResponse<Location> updateLocation(@PathVariable('sampleId') String sampleId, Location location) {
     if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+      throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
-    try {
-      sampleService.updateLocation(sampleId, location)
-      notificationService.sampleChanged(sampleId, location.getStatus())
-      return HttpResponse.ok(location)
-    } catch (IllegalArgumentException illegalArgumentException) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, illegalArgumentException.message)
-    } catch(Exception e){
-      return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
-    }
+
+    controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+            SampleStatusParser.parseStatus(location.getStatus().toString()),
+            LocationArrivalDateParser.arrivalTimeInstant(location).toString()))
+    sampleService.updateLocation(sampleId, location)
+    return HttpResponse.ok(location)
   }
 
   @Put("/{sampleId}/currentLocation/{status}")
@@ -128,26 +128,19 @@ class SamplesController {
           description = "Sets a sample current location status with the given identifier.",
           tags = "Sample Status")
   @ApiResponse(responseCode = "201", description = "Current location for sample set successfully")
-  @ApiResponse(responseCode = "400", description = "Sample identifier format does not match")
-  @ApiResponse(responseCode = "401", description = "Unauthorized access")
-  @ApiResponse(responseCode = "404", description = "Sample for the provided identifier not found")
-  @ApiResponse(responseCode = "500", description = "Update of sample location failed for an unknown reason")
   @RolesAllowed("WRITER")
+  @Deprecated
   HttpResponse sampleStatus(@PathVariable('sampleId') String sampleId, @PathVariable('status') Status status) {
-    if(!RegExValidator.isValidSampleCode(sampleId)) {
-      return HttpResponse.status(HttpStatus.BAD_REQUEST, "${sampleId} is not a valid sample identifier!")
+    if (!RegExValidator.isValidSampleCode(sampleId)) {
+      throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
-    try {
-      if (null != sampleService.searchSample(sampleId)) {
-        sampleService.updateSampleStatus(sampleId, status)
-        notificationService.sampleChanged(sampleId, status)
-        return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
-      } else {
-        return HttpResponse.status(HttpStatus.NOT_FOUND, "Sample with ID ${sampleId} was not found in the system!")
-      }
+    if (!sampleRepository.get(SampleCode.fromString(sampleId)).isPresent()) {
+      throw new UnrecoverableException("sample $sampleId was not found", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
-    catch(Exception e){
-      return HttpResponse.status(HttpStatus.INTERNAL_SERVER_ERROR, e.message)
-    }
+    controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
+            SampleStatusParser.parseStatus(status.toString()),
+            Instant.now().toString()))
+    sampleService.updateSampleStatus(sampleId, status)
+    return HttpResponse.status(HttpStatus.CREATED, "Sample status updated to ${status}.")
   }
 }

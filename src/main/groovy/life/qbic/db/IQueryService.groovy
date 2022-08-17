@@ -1,6 +1,6 @@
 package life.qbic.db
 
-import io.micronaut.http.HttpResponse
+
 import life.qbic.datamodel.people.Contact
 import life.qbic.datamodel.samples.Location
 import life.qbic.datamodel.samples.Sample
