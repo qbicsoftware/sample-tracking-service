@@ -1,6 +1,7 @@
 package life.qbic.api.rest.v2.samples;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
 
 /**
  * Response providing information about a sample, its status and since when the sample has this status.
@@ -9,6 +10,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class SampleStatusResponse {
 
   protected SampleStatusResponse() {
+  }
+
+  public static SampleStatusResponse create(String sampleCode, SampleStatusDto status,
+      Instant validSince) {
+    return new SampleStatusResponse(sampleCode, status, validSince.toString());
   }
 
   public SampleStatusResponse(String sampleCode, SampleStatusDto status, String validSince) {

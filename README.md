@@ -213,6 +213,45 @@ PUT /v2/samples/QABCD001A0/status
   "sampleCode": "QABCD001A0"
 }
 ```
+#### Retrieve sample status information for samples from a project
+Gets the current sample statuses of samples matching the project. The response provides information from since when the current status is valid.
+
+##### Endpoint
+```
+  /v2/projects/{projectCode}/status:
+    get:
+      summary: "GET v2/projects/{projectCode}/status"
+      parameters:
+      - name: "projectCode"
+        in: "path"
+        required: true
+      responses:
+        "200":
+          description: "OK"
+```
+
+##### Example Request
+
+```
+/v2/projects/QSTTS/status
+```
+
+##### Example Response
+
+```
+[
+  {
+    "sampleCode": "QSTTS020A1",
+    "status": "SAMPLE_QC_PASS",
+    "statusValidSince": "2022-07-29T12:32:32.432Z"
+  },
+  {
+    "sampleCode": "QSTTS022AH",
+    "status": "SAMPLE_QC_PASS",
+    "statusValidSince": "2022-07-29T12:32:32.432Z"
+  }
+]
+```
 
 ### API v1 (Deprecated)
 #### Retrieve sample information from sampleID
