@@ -205,14 +205,6 @@ PUT /v2/samples/QABCD001A0/status
 }
 ```
 
-##### Example Response
-```
-{
-  "status": "METADATA_REGISTERED",
-  "statusValidSince": "2022-07-27T00:00:01.352Z",
-  "sampleCode": "QABCD001A0"
-}
-```
 #### Retrieve sample status information for samples from a project
 Gets the current sample statuses of samples matching the project. The response provides information from since when the current status is valid.
 
