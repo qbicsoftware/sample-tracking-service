@@ -50,7 +50,9 @@ public class Sample {
       throw new IllegalArgumentException(
           "Sample creation from events not possible without provided events.");
     }
-    Optional<SampleCode> containedSampleCode =  events.stream().findAny().map(SampleEvent::sampleCode);
+    Optional<SampleCode> containedSampleCode = events.stream()
+        .findAny()
+        .map(SampleEvent::sampleCode);
     SampleCode sampleCode = containedSampleCode.orElseThrow(() ->
         new UnrecoverableException("Could not identify sample code from events: " + events));
     if (events.stream().anyMatch(it -> !it.sampleCode().equals(sampleCode))) {
@@ -104,20 +106,26 @@ public class Sample {
     if (events.contains(event)) {
       return;
     }
-    if (!occurredAfterCurrentState(event)) {
-      throw new UnrecoverableException(
-          String.format("The sample (%s) was modified after %s", sampleCode, event.occurredOn()));
-    }
+    validateEventTimeOrThrowException(event);
     apply(event);
     events.add(event);
   }
 
-  private boolean occurredAfterCurrentState(SampleEvent event) {
+  private void validateEventTimeOrThrowException(SampleEvent event) {
     if (events.isEmpty()) {
-      return true;
+      return;
     }
     SampleEvent lastEvent = events.get(events.size() - 1);
-    return event.occurredOn().isAfter(lastEvent.occurredOn());
+    if (!event.occurredOn().isAfter(lastEvent.occurredOn())) {
+      throw new UnrecoverableException(
+          String.format(
+              "The sample (%s) was last modified at %s by %s. Modification with %s event at %s not possible.",
+              sampleCode,
+              lastEvent.occurredOn(),
+              lastEvent.getClass().getSimpleName(),
+              event.getClass().getSimpleName(),
+              event.occurredOn()));
+    }
   }
 
   public <T extends SampleEvent> void apply(T event) {
@@ -140,6 +148,7 @@ public class Sample {
 
   /**
    * A history of events leading to the current state.
+   *
    * @return all events leading to the current state of the sample
    * @since 2.0.0
    */
@@ -187,6 +196,7 @@ public class Sample {
 
     /**
      * The status the sample is in.
+     *
      * @return the current status
      */
     public Status status() {
@@ -195,6 +205,7 @@ public class Sample {
 
     /**
      * The instant from which the current state is valid from.
+     *
      * @return the instant of this state
      */
     public Instant statusValidSince() {

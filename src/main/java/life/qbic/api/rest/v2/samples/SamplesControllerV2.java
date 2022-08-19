@@ -72,7 +72,7 @@ public class SamplesControllerV2 {
           "Provided sample status not recognized: "
               + requestedStatus, ErrorCode.BAD_SAMPLE_STATUS, ErrorParameters.create().with("sampleStatus", requestedStatus));
     }
-    log.info(String.format("Sample %s is in status %s valid since %s", sampleCode, statusChangeRequest.status(), statusChangeRequest.validSince()));
+    log.info(String.format("Processed request for sample %s to status %s at %s.", sampleCode, statusChangeRequest.status(), statusChangeRequest.validSince()));
     return HttpResponse.ok();
   }
 
