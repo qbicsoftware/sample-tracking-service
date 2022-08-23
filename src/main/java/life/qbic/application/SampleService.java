@@ -34,7 +34,7 @@ public class SampleService {
     SampleCode code = SampleCode.fromString(sampleCode);
     Sample sample = sampleRepository.get(code).orElseThrow(() ->
         new UnrecoverableException(String.format("Sample %s was not found.", sampleCode),
-            ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleCode)));
+            ErrorCode.SAMPLE_NOT_FOUND, ErrorParameters.create().with("sampleCode", sampleCode)));
     return sample.currentState();
   }
 

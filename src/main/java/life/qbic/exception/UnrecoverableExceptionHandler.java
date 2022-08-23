@@ -64,6 +64,9 @@ public class UnrecoverableExceptionHandler implements ExceptionHandler<Unrecover
     if (unRecoverableException.errorCode().equals(ErrorCode.BAD_USER)) {
       return HttpResponse.badRequest();
     }
+    if (unRecoverableException.errorCode().equals(ErrorCode.SAMPLE_NOT_FOUND)) {
+      return HttpResponse.notFound();
+    }
 
     return HttpResponse.serverError();
   }

@@ -70,7 +70,7 @@ class SamplesController {
     }
     def optionalSample = this.sampleRepository.get(SampleCode.fromString(sampleId))
     if (!optionalSample.isPresent()) {
-      throw new UnrecoverableException("Sample with ID ${sampleId} was not found in the system!", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
+      throw new UnrecoverableException("Sample with ID ${sampleId} was not found in the system!", ErrorCode.SAMPLE_NOT_FOUND, ErrorParameters.create().with("sampleCode", sampleId))
     }
     life.qbic.domain.sample.Sample sampleV2 = optionalSample.get()
     Location dummyLocation = this.dummyLocationService.dummyLocation(sampleV2.currentState().status(), sampleV2.currentState().statusValidSince().toDate())
@@ -135,7 +135,7 @@ class SamplesController {
       throw new UnrecoverableException("sample code ${sampleId} is invalid", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
     }
     if (!sampleRepository.get(SampleCode.fromString(sampleId)).isPresent()) {
-      throw new UnrecoverableException("sample $sampleId was not found", ErrorCode.BAD_SAMPLE_CODE, ErrorParameters.create().with("sampleCode", sampleId))
+      throw new UnrecoverableException("sample $sampleId was not found", ErrorCode.SAMPLE_NOT_FOUND, ErrorParameters.create().with("sampleCode", sampleId))
     }
     controllerV2.moveSampleToStatus(sampleId, new StatusChangeRequest(
             SampleStatusParser.parseStatus(status.toString()),
