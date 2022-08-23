@@ -44,13 +44,21 @@ public class UnrecoverableExceptionHandler implements ExceptionHandler<Unrecover
 
   @Override
   public HttpResponse<?> handle(HttpRequest request, UnrecoverableException unRecoverableException) {
-    log.error(unRecoverableException.getMessage(), unRecoverableException);
+    logException(unRecoverableException);
     String errorMessage = getMessage(unRecoverableException);
     MutableHttpResponse<Object> errorResponse = getBaseResponse(unRecoverableException);
     return errorResponseProcessor.processResponse(ErrorContext.builder(request)
         .cause(unRecoverableException)
         .errorMessage(errorMessage)
         .build(), errorResponse);
+  }
+
+  private static void logException(UnrecoverableException unRecoverableException) {
+    if (unRecoverableException.errorCode().equals(ErrorCode.SAMPLE_NOT_FOUND)) {
+      log.warn(unRecoverableException.getMessage());
+    } else {
+      log.error(unRecoverableException.getMessage(), unRecoverableException);
+    }
   }
 
   private static MutableHttpResponse<Object> getBaseResponse(
@@ -73,6 +81,7 @@ public class UnrecoverableExceptionHandler implements ExceptionHandler<Unrecover
 
   private String getMessage(UnrecoverableException unRecoverableException) {
     return messageSource.getMessage(unRecoverableException.errorCode().name(),
-        MessageContext.of(LOCALE_DEFAULT, unRecoverableException.errorParameters().asMap())).orElse(defaultMessage);
+            MessageContext.of(LOCALE_DEFAULT, unRecoverableException.errorParameters().asMap()))
+        .orElse(defaultMessage);
   }
 }
