@@ -107,6 +107,10 @@ public class Sample {
     if (events.contains(event)) {
       return;
     }
+    if (events.isEmpty()) {
+      applyAndAdd(event);
+      return;
+    }
     findEventAt(event.occurredOn()).ifPresent(
         it -> {
           throw new UnrecoverableException(
