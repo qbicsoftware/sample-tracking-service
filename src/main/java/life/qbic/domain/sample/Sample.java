@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import life.qbic.domain.sample.events.DataMadeAvailable;
 import life.qbic.domain.sample.events.FailedQualityControl;
 import life.qbic.domain.sample.events.LibraryPrepared;
@@ -106,26 +107,46 @@ public class Sample {
     if (events.contains(event)) {
       return;
     }
-    validateEventTimeOrThrowException(event);
-    apply(event);
-    events.add(event);
+    findEventAt(event.occurredOn()).ifPresent(
+        it -> {
+          throw new UnrecoverableException(
+              String.format(
+                  "Modification conflict: The sample (%s) was modified at %s by %s. Modification with %s event at %s not possible.",
+                  sampleCode,
+                  it.occurredOn(),
+                  it.getClass().getSimpleName(),
+                  event.getClass().getSimpleName(),
+                  event.occurredOn()));
+        }
+    );
+    SampleEvent lastEvent = events.get(events.size() - 1);
+    if (event.occurredOn().isBefore(lastEvent.occurredOn())) {
+      adjustHistory(event);
+    } else if (event.occurredOn().isAfter(lastEvent.occurredOn())) {
+      applyAndAdd(event);
+    }
   }
 
-  private void validateEventTimeOrThrowException(SampleEvent event) {
-    if (events.isEmpty()) {
-      return;
-    }
-    SampleEvent lastEvent = events.get(events.size() - 1);
-    if (!event.occurredOn().isAfter(lastEvent.occurredOn())) {
-      throw new UnrecoverableException(
-          String.format(
-              "The sample (%s) was last modified at %s by %s. Modification with %s event at %s not possible.",
-              sampleCode,
-              lastEvent.occurredOn(),
-              lastEvent.getClass().getSimpleName(),
-              event.getClass().getSimpleName(),
-              event.occurredOn()));
-    }
+  private Optional<SampleEvent> findEventAt(Instant occurredOn) {
+    return events.stream().filter(it -> it.occurredOn().equals(occurredOn)).findAny();
+  }
+
+  private <T extends SampleEvent> void adjustHistory(T event) {
+    List<SampleEvent> eventsBeforeModification = events.stream()
+        .filter(it -> it.occurredOn().isBefore(event.occurredOn())).collect(Collectors.toList());
+    List<SampleEvent> eventsAfterModification = events.stream()
+        .filter(it -> it.occurredOn().isAfter(event.occurredOn())).collect(Collectors.toList());
+    this.events.clear();
+    this.currentState.clear();
+    eventsBeforeModification.forEach(this::applyAndAdd);
+    applyAndAdd(event);
+    eventsAfterModification.forEach(this::applyAndAdd);
+  }
+
+
+  private <T extends SampleEvent> void applyAndAdd(T event) {
+    apply(event);
+    events.add(event);
   }
 
   public <T extends SampleEvent> void apply(T event) {
@@ -210,6 +231,11 @@ public class Sample {
      */
     public Instant statusValidSince() {
       return statusValidSince;
+    }
+
+    private void clear() {
+      this.status = null;
+      this.statusValidSince = null;
     }
   }
 

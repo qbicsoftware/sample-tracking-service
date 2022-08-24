@@ -43,17 +43,20 @@ class SampleSpec extends Specification {
     stateAfter == stateBefore
   }
 
-  def "given a sample and an event predating the sample state, when the event is added to the sample, then an Exception is thrown"() {
+  def "given a sample and an event predating the sample state, when the event is added to the sample, then the event is integrated in the sample history"() {
     given: "a Sample with at least one event"
     SampleCode sampleCode = SampleCode.fromString("QABCD001A0")
-    MetadataRegistered metadataRegistered = MetadataRegistered.create(sampleCode, Instant.MAX)
-    Sample sample = Sample.fromEvents([metadataRegistered])
+    MetadataRegistered metadataRegistered = MetadataRegistered.create(sampleCode, Instant.MIN)
+    DataMadeAvailable dataMadeAvailable = DataMadeAvailable.create(sampleCode, Instant.MAX)
+    Sample sample = Sample.fromEvents([metadataRegistered, dataMadeAvailable])
     and: "an event predating the current state of the sample"
-    SampleReceived sampleReceived = SampleReceived.create(sampleCode, Instant.MIN)
+    SampleReceived sampleReceived = SampleReceived.create(sampleCode, Instant.parse("2000-01-01T00:00:01.000Z"))
     when: "the event is added to the sample"
     sample.handle(sampleReceived)
-    then: "the event was not added to the sample"
-    !sample.events().contains(sampleReceived)
+    then: "the event was is added in the middle"
+    sample.events().get(0) == metadataRegistered
+    sample.events().get(1) == sampleReceived
+    sample.events().get(2) == dataMadeAvailable
     and: "an exception is thrown"
     thrown(UnrecoverableException)
   }
