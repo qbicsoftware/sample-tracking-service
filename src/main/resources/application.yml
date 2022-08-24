@@ -21,7 +21,7 @@ micronaut:
                 enabled: true
 datasources:
     default:
-        url: jdbc:mariadb://${tr-db-host}/${tr-db-name}?maxPoolSize=20&pool=true
+        url: jdbc:mariadb://${tr-db-host}/${tr-db-name}?maxPoolSize=20&pool=true&useFractionalSeconds=true
         username: ${tr-db-user}
         password: ${tr-db-pwd}
         driverClassName: org.mariadb.jdbc.Driver
