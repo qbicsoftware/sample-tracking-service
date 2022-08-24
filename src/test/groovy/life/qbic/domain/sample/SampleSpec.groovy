@@ -76,9 +76,9 @@ class SampleSpec extends Specification {
     thrown(UnrecoverableException)
 
     where:
-    event << [MetadataRegistered.create(SampleCode.fromString("QABCD001A0"), Instant.MIN),
-              SampleReceived.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2000-01-01T00:00:01.000Z")),
-              DataMadeAvailable.create(SampleCode.fromString("QABCD001A0"), Instant.MAX)]
+    event << [PassedQualityControl.create(SampleCode.fromString("QABCD001A0"), Instant.MIN),
+              FailedQualityControl.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2000-01-01T00:00:01.000Z")),
+              MetadataRegistered.create(SampleCode.fromString("QABCD001A0"), Instant.MAX)]
   }
 
   def "expect sample creation from events not possible if no events are provided"() {
