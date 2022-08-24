@@ -23,7 +23,6 @@ class LocationArrivalDateParserSpec extends Specification {
     Location location = new DummyLocationService().dummyLocation(Status.DATA_AVAILABLE, date)
 
     expect:
-    println "instantWithoutSeconds = $instantWithoutSeconds"
     instantWithoutSeconds == LocationArrivalDateParser.arrivalTimeInstant(location)
   }
 }

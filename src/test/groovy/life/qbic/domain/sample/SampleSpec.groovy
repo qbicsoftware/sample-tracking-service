@@ -23,7 +23,7 @@ class SampleSpec extends Specification {
     sample.sampleCode() == sampleCode
     where:
     expectedStatus             | metadataRegisteredOccurredOn              | sampleReceivedOccurredOn                  | dataAvailableOccurredOn
-    Status.METADATA_REGISTERED | Instant.MAX | Instant.parse("2022-07-27T00:00:01.000Z") | Instant.MIN
+    Status.METADATA_REGISTERED | Instant.MAX                               | Instant.parse("2022-07-27T00:00:01.000Z") | Instant.MIN
     Status.SAMPLE_RECEIVED     | Instant.parse("2022-07-27T00:00:01.000Z") | Instant.MAX                               | Instant.MIN
     Status.DATA_AVAILABLE      | Instant.MIN                               | Instant.parse("2022-07-27T00:00:01.000Z") | Instant.MAX
   }
@@ -57,8 +57,28 @@ class SampleSpec extends Specification {
     sample.events().get(0) == metadataRegistered
     sample.events().get(1) == sampleReceived
     sample.events().get(2) == dataMadeAvailable
-    and: "an exception is thrown"
+    and:
+    sample.currentState().status() == Status.DATA_AVAILABLE
+  }
+
+  def "given a sample that has seen an event and an event at the same time: when the event is added to the sample, then an UnrecoverableException is thrown"() {
+    given: "a sample that has seen an event and an event at the same time"
+    def metadataRegistered = MetadataRegistered.create(SampleCode.fromString("QABCD001A0"), Instant.MIN)
+    def sampleReceived = SampleReceived.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2000-01-01T00:00:01.000Z"))
+    def dataMadeAvailable = DataMadeAvailable.create(SampleCode.fromString("QABCD001A0"), Instant.MAX)
+
+    Sample sample = Sample.fromEvents([metadataRegistered, sampleReceived, dataMadeAvailable])
+
+    when: "the event is added to the sample"
+    sample.handle(event)
+
+    then: "an UnrecoverableException is thrown"
     thrown(UnrecoverableException)
+
+    where:
+    event << [MetadataRegistered.create(SampleCode.fromString("QABCD001A0"), Instant.MIN),
+              SampleReceived.create(SampleCode.fromString("QABCD001A0"), Instant.parse("2000-01-01T00:00:01.000Z")),
+              DataMadeAvailable.create(SampleCode.fromString("QABCD001A0"), Instant.MAX)]
   }
 
   def "expect sample creation from events not possible if no events are provided"() {
