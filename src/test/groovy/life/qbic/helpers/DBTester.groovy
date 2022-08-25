@@ -160,7 +160,6 @@ class DBTester {
   }
 
   void addSample(String code, int locationId) {
-    //    log.info "adding sample "+code+" with location id "+locationId
     String sql = "INSERT INTO samples (id,current_location_id) VALUES (?,?)";
     try {
       connection.prepareStatement(sql).withCloseable { PreparedStatement statement ->
@@ -256,17 +255,13 @@ class DBTester {
     } catch (SQLException e) {
       e.printStackTrace();
     }
-    //    log.info "-----"
     try {
       connection.prepareStatement("SELECT * FROM locations").withCloseable { PreparedStatement statement ->
         statement.executeQuery().withCloseable { ResultSet resultSet ->
-          //          log.info "id---name"
           while (resultSet.next()) {
             int id = resultSet.getInt("id");
             String loc = resultSet.getString("name");
-            //            log.info id+"---"+loc
           }
-          //          log.info "-----"
         }
       }
     } catch (SQLException e) {

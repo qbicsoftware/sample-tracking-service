@@ -50,7 +50,7 @@ public class SamplesControllerV2 {
   @RolesAllowed("WRITER")
   public HttpResponse<?> moveSampleToStatus(@PathVariable String sampleCode,
       @Body StatusChangeRequest statusChangeRequest) {
-    log.info(String.format("Request to put sample %s in status %s valid since %s", sampleCode,
+    log.debug(String.format("Request to put sample %s in status %s valid since %s", sampleCode,
         statusChangeRequest.status(), statusChangeRequest.validSince()));
     String validSince = statusChangeRequest.validSince();
     SampleStatusDto requestedStatus = statusChangeRequest.status();
@@ -72,7 +72,7 @@ public class SamplesControllerV2 {
           "Provided sample status not recognized: "
               + requestedStatus, ErrorCode.BAD_SAMPLE_STATUS, ErrorParameters.create().with("sampleStatus", requestedStatus));
     }
-    log.info(String.format("Processed request for sample %s to status %s at %s.", sampleCode, statusChangeRequest.status(), statusChangeRequest.validSince()));
+    log.debug(String.format("Processed request for sample %s to status %s at %s.", sampleCode, statusChangeRequest.status(), statusChangeRequest.validSince()));
     return HttpResponse.ok();
   }
 
@@ -87,11 +87,11 @@ public class SamplesControllerV2 {
   @RolesAllowed("READER")
   @SingleResult
   public HttpResponse<SampleStatusResponse> getSampleStatus(@PathVariable String sampleCode) {
-    log.info("Retrieving status for " + sampleCode);
+    log.debug("Retrieving status for " + sampleCode);
     CurrentState sampleState = sampleService.getSampleState(sampleCode);
     Status sampleStatus = sampleState.status();
     SampleStatusDto statusDto = SampleStatusDtoMapper.sampleStatusToDto(sampleStatus);
-    log.info(String.format("Found sample %s with status %s. Valid since %s", sampleCode, statusDto.name(), sampleState.statusValidSince()));
+    log.debug(String.format("Found sample %s with status %s. Valid since %s", sampleCode, statusDto.name(), sampleState.statusValidSince()));
     SampleStatusResponse responseBody = new SampleStatusResponse(sampleCode,
         statusDto,
         sampleState.statusValidSince().toString());

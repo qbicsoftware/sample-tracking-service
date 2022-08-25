@@ -88,10 +88,11 @@ class Authentication implements AuthenticationProvider{
         }
         try {
             UserDetails userDetails = tryToAuthenticate(authenticationRequest)
-            log.info("Sucessfull authentication by user '${authenticationRequest.identity}'.")
+            log.debug("Sucessfull authentication by user '${authenticationRequest.identity}'.")
             return Flowable.just(userDetails)
         } catch (AuthenticationException e) {
             log.warn("Unauthorized access!")
+            log.debug("unauthorized access:", e)
             return Flowable.just(new AuthenticationFailed())
         }
     }
