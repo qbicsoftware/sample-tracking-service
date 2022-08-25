@@ -1,5 +1,7 @@
 package life.qbic.api.rest.v2.projects;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Controller;
@@ -16,11 +18,14 @@ import javax.annotation.security.RolesAllowed;
 import life.qbic.application.ProjectStatusService;
 import life.qbic.auth.Authentication;
 import life.qbic.domain.sample.Sample;
+import org.slf4j.Logger;
 
 @Requires(beans = Authentication.class)
 @Secured(SecurityRule.IS_AUTHENTICATED)
 @Controller("/v2/projects")
 public class ProjectsController {
+
+  private static final Logger log = getLogger(ProjectsController.class);
 
   private final ProjectStatusService projectStatusService;
 
@@ -38,7 +43,9 @@ public class ProjectsController {
   @Get("{projectCode}/status")
   @RolesAllowed("READER")
   public HttpResponse<?> sampleStatusInformation(@PathVariable String projectCode) {
+    log.info(String.format("Requested status information for project %s", projectCode));
     List<Sample> samples = projectStatusService.sampleStatuses(projectCode);
+    log.info(String.format("Processed request for project %s", projectCode));
     return HttpResponse.ok(ProjectStatusResponse.from(samples));
   }
 }
