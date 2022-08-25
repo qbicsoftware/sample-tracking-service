@@ -43,9 +43,9 @@ public class ProjectsController {
   @Get("{projectCode}/status")
   @RolesAllowed("READER")
   public HttpResponse<?> sampleStatusInformation(@PathVariable String projectCode) {
-    log.info(String.format("Requested status information for project %s", projectCode));
+    log.debug(String.format("Requested status information for project %s", projectCode));
     List<Sample> samples = projectStatusService.sampleStatuses(projectCode);
-    log.info(String.format("Processed request for project %s", projectCode));
+    log.debug(String.format("Processed request for project %s", projectCode));
     return HttpResponse.ok(ProjectStatusResponse.from(samples));
   }
 }

@@ -16,7 +16,7 @@
     </encoder>
   </appender>
 
-  <root level="info">
+  <root level="${LOG_LEVEL}">
     <appender-ref ref="STDOUT"/>
     <appender-ref ref="RollingFileByDay"/>
   </root>
