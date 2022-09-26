@@ -44,8 +44,8 @@ class QBiCDataSource implements DataSource {
                 log.error("Turn $turn to get connection failed.")
                 log.error("Connection to database server timed out.", e)
             }
-            turn++;
+            turn++
         }
-        return this.source.connection
+        return connection
     }
 }
