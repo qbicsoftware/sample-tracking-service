@@ -1,8 +1,11 @@
 package life.qbic
 
+import groovy.util.logging.Log4j2
+
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.sql.Connection
+import java.sql.SQLTimeoutException
 
 /**
  * <b>QBiCDataSource Class</b>
@@ -12,11 +15,15 @@ import java.sql.Connection
  * @since 1.2.1
  */
 @Singleton
+@Log4j2
 class QBiCDataSource implements DataSource {
+
+    private final static int MAX_RETRY_COUNT = 3
 
     javax.sql.DataSource source
 
-    @Inject QBiCDataSource (javax.sql.DataSource source) {
+    @Inject
+    QBiCDataSource(javax.sql.DataSource source) {
         this.source = source
     }
 
@@ -24,7 +31,21 @@ class QBiCDataSource implements DataSource {
      * {@InheritDocs}
      */
     @Override
-    Connection getConnection() {
+    Connection getConnection() throws TimeOutException {
+        Connection connection = null
+        int turn = 1
+        while (!connection) {
+            if (turn == MAX_RETRY_COUNT) {
+                throw new TimeOutException("Maximum number of tries reached, connection to database server timed out repeatedly.")
+            }
+            try {
+                connection = this.source.getConnection()
+            } catch (SQLTimeoutException e) {
+                log.error("Turn $turn to get connection failed.")
+                log.error("Connection to database server timed out.", e)
+            }
+            turn++;
+        }
         return this.source.connection
     }
 }

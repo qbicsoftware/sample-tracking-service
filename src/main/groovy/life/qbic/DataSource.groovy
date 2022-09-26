@@ -20,6 +20,7 @@ interface DataSource {
      * execution of the connection object with a try-with-resource statement or call the
      * {@link AutoCloseable#close()} method explicitly.</p>
      * @return a connection to the datasource
+     * @throws {@link TimeOutException} when a connection cannot be acquired from the data source
      */
-    Connection getConnection()
+    Connection getConnection() throws TimeOutException
 }
