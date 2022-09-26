@@ -3,7 +3,9 @@ package life.qbic.db
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.util.logging.Log4j2
+import life.qbic.DataSource
 import life.qbic.QBiCDataSource
+import life.qbic.TimeOutException
 import life.qbic.api.rest.v2.samples.SampleStatusDto
 import life.qbic.datamodel.identifiers.SampleCodeFunctions
 import life.qbic.datamodel.people.Address
@@ -27,7 +29,6 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods
 
 import javax.inject.Inject
 import javax.inject.Singleton
-import javax.sql.DataSource
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
@@ -49,7 +50,15 @@ class MariaDBManager implements IQueryService, INotificationService, SampleEvent
 
   @Inject
   MariaDBManager(QBiCDataSource dataSource) {
-    this.dataSource = dataSource.getSource()
+    this.dataSource = dataSource
+  }
+
+  private Connection getConnection() throws UnrecoverableException {
+    try {
+      return dataSource.getConnection()
+    } catch (TimeOutException exception) {
+      throw new UnrecoverableException("Connection to data source timed out", exception)
+    }
   }
 
   void addNewLocation(String sampleId, Location location) throws IllegalArgumentException {
