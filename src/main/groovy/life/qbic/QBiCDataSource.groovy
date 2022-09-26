@@ -20,7 +20,7 @@ class QBiCDataSource implements DataSource {
 
     private final static int MAX_RETRY_COUNT = 3
 
-    javax.sql.DataSource source
+    private final javax.sql.DataSource source
 
     @Inject
     QBiCDataSource(javax.sql.DataSource source) {
@@ -36,7 +36,7 @@ class QBiCDataSource implements DataSource {
         int turn = 1
         while (!connection) {
             if (turn == MAX_RETRY_COUNT) {
-                throw new TimeOutException("Maximum number of tries reached, connection to database server timed out repeatedly.")
+                throw new TimeOutException("Maximum number of tries reached ($MAX_RETRY_COUNT), connection to database server timed out repeatedly.")
             }
             try {
                 connection = this.source.getConnection()
