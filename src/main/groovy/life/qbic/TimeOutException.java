@@ -1,15 +1,16 @@
 package life.qbic;
 
 /**
- * <b><class short description - 1 Line!></b>
+ * Timeout Exception
+ * <p>
+ * Is thrown when connections to a data source cannot be established.
  *
- * <p><More detailed description - When to use, what it solves, etc.></p>
- *
- * @since <version tag>
+ * @since 2.2.3
  */
 public class TimeOutException extends RuntimeException {
 
-  public TimeOutException() {}
+  public TimeOutException() {
+  }
 
   public TimeOutException(String message) {
     super(message);
