@@ -25,7 +25,8 @@ public class SampleService {
   private final INotificationRepository notificationRepository;
 
   @Inject
-  public SampleService(SampleRepository sampleRepository, INotificationRepository notificationRepository) {
+  public SampleService(SampleRepository sampleRepository,
+      INotificationRepository notificationRepository) {
     this.sampleRepository = sampleRepository;
     this.notificationRepository = notificationRepository;
   }
@@ -44,71 +45,88 @@ public class SampleService {
     // restore the status
     Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
     // run the command
-    sample.registerMetadata(performAt);
-    // store events
+    boolean wasSuccessful = sample.registerMetadata(performAt);
+    // store events idempotent
     sampleRepository.store(sample);
-    // inform notification service
-    updateNotificationTable(performAt, sample);
+    if (wasSuccessful) {
+      // inform notification service
+      updateNotificationTable(performAt, sample);
+    }
   }
+
   public void receiveSample(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
     // restore the status
     Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
     // run the command
-    sample.receive(performAt);
+    boolean wasSuccessful = sample.receive(performAt);
     // store events
     sampleRepository.store(sample);
-    // inform notification service
-    updateNotificationTable(performAt, sample);
+    if (wasSuccessful) {
+      // inform notification service
+      updateNotificationTable(performAt, sample);
+    }
   }
+
   public void passQualityControl(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
     // restore the status
     Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
     // run the command
-    sample.passQualityControl(performAt);
+    boolean wasSuccessful = sample.passQualityControl(performAt);
     // store events
     sampleRepository.store(sample);
-    // inform notification service
-    updateNotificationTable(performAt, sample);
+    if (wasSuccessful) {
+      // inform notification service
+      updateNotificationTable(performAt, sample);
+    }
   }
+
   public void failQualityControl(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
     // restore the status
     Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
     // run the command
-    sample.failQualityControl(performAt);
+    boolean wasSuccessful = sample.failQualityControl(performAt);
     // store events
     sampleRepository.store(sample);
-    // inform notification service
-    updateNotificationTable(performAt, sample);
+    if (wasSuccessful) {
+      // inform notification service
+      updateNotificationTable(performAt, sample);
+    }
   }
+
   public void prepareLibrary(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
     // restore the status
     Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
     // run the command
-    sample.prepareLibrary(performAt);
+    boolean wasSuccessful = sample.prepareLibrary(performAt);
     // store events
     sampleRepository.store(sample);
-    // inform notification service
-    updateNotificationTable(performAt, sample);
+    if (wasSuccessful) {
+      // inform notification service
+      updateNotificationTable(performAt, sample);
+    }
   }
+
   public void provideData(String sampleCode, String validFrom) {
     SampleCode code = SampleCode.fromString(sampleCode);
     Instant performAt = Instant.parse(validFrom);
     // restore the status
     Sample sample = sampleRepository.get(code).orElse(Sample.create(code));
     // run the command
-    sample.provideData(performAt);
+    boolean wasSuccessful = sample.provideData(performAt);
     // store events
     sampleRepository.store(sample);
-    // inform notification service
-    updateNotificationTable(performAt, sample);
+    if (wasSuccessful) {
+      // inform notification service
+      updateNotificationTable(performAt, sample);
+    }
   }
 
   private void updateNotificationTable(Instant performAt, Sample sample) {
