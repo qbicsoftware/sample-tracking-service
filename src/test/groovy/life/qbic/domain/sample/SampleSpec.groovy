@@ -36,11 +36,12 @@ class SampleSpec extends Specification {
     sample.handle(metadataRegistered)
     when: "the event is added to the sample"
     def stateBefore = sample.currentState()
-    sample.handle(metadataRegistered)
+    def stateAltered = sample.handle(metadataRegistered)
     def stateAfter = sample.currentState()
 
     then: "the sample will ignore the request"
     stateAfter == stateBefore
+    !stateAltered
   }
 
   def "given a sample and an event predating the sample state, when the event is added to the sample, then the event is integrated in the sample history"() {
@@ -52,13 +53,15 @@ class SampleSpec extends Specification {
     and: "an event predating the current state of the sample"
     SampleReceived sampleReceived = SampleReceived.create(sampleCode, Instant.parse("2000-01-01T00:00:01.000Z"))
     when: "the event is added to the sample"
-    sample.handle(sampleReceived)
+    boolean stateAltered = sample.handle(sampleReceived)
     then: "the event was is added in the middle"
     sample.events().get(0) == metadataRegistered
     sample.events().get(1) == sampleReceived
     sample.events().get(2) == dataMadeAvailable
     and:
     sample.currentState().status() == Status.DATA_AVAILABLE
+    and:
+    stateAltered
   }
 
   def "given a sample that has seen an event and an event at the same time: when the event is added to the sample, then an UnrecoverableException is thrown"() {
@@ -94,12 +97,14 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "metadata was registered for that sample"
     MetadataRegistered metadataRegistered = MetadataRegistered.create(code, Instant.now())
-    sample.handle(metadataRegistered)
+    boolean stateAltered = sample.handle(metadataRegistered)
 
     then: "the sample's state has status METADATA_REGISTERED"
     sample.currentState().status() == Status.METADATA_REGISTERED
     and: "the sample is aware of the processed event"
     sample.events().contains(metadataRegistered)
+    and:
+    stateAltered
   }
 
   def "given a new sample, when the sample was received, then the sample's state has status SAMPLE_RECEIVED"() {
@@ -108,12 +113,14 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "the sample was received"
     SampleReceived sampleReceived = SampleReceived.create(code, Instant.now())
-    sample.handle(sampleReceived)
+    boolean stateAltered = sample.handle(sampleReceived)
 
     then: "the sample's state has status SAMPLE_RECEIVED"
     sample.currentState().status() == Status.SAMPLE_RECEIVED
     and: "the sample is aware of the processed event"
     sample.events().contains(sampleReceived)
+    and:
+    stateAltered
   }
 
   def "given a new sample, when the quality control passed, then the sample's state has status SAMPLE_QC_PASSED"() {
@@ -122,12 +129,14 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "when the quality control passed"
     PassedQualityControl passedQualityControl = PassedQualityControl.create(code, Instant.now())
-    sample.handle(passedQualityControl)
+    boolean stateAltered = sample.handle(passedQualityControl)
 
     then: "the sample's state has status SAMPLE_QC_PASSED"
     sample.currentState().status() == Status.SAMPLE_QC_PASSED
     and: "the sample is aware of the processed event"
     sample.events().contains(passedQualityControl)
+    and:
+    stateAltered
   }
 
   def "given a new sample, when the quality control failed, then the sample's state has status SAMPLE_QC_FAILED"() {
@@ -136,12 +145,14 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "when the quality control failed"
     FailedQualityControl failedQualityControl = FailedQualityControl.create(code, Instant.now())
-    sample.handle(failedQualityControl)
+    boolean stateAltered = sample.handle(failedQualityControl)
 
     then: "the sample's state has status SAMPLE_QC_FAILED"
     sample.currentState().status() == Status.SAMPLE_QC_FAILED
     and: "the sample is aware of the processed event"
     sample.events().contains(failedQualityControl)
+    and:
+    stateAltered
   }
 
   def "given a new sample, when data has been made available for that sample, then the sample's state has status DATA_AVAILABLE"() {
@@ -150,12 +161,14 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "when data has been made available"
     DataMadeAvailable dataMadeAvailable = DataMadeAvailable.create(code, Instant.now())
-    sample.handle(dataMadeAvailable)
+    boolean stateAltered = sample.handle(dataMadeAvailable)
 
     then: "the sample's state has status DATA_AVAILABLE"
     sample.currentState().status() == Status.DATA_AVAILABLE
     and: "the sample is aware of the processed event"
     sample.events().contains(dataMadeAvailable)
+    and:
+    stateAltered
   }
 
   def "given a new sample, when the library was prepared for that sample, then the sample's state has status LIBRARY_PREP_FINISHED"() {
@@ -164,11 +177,13 @@ class SampleSpec extends Specification {
     Sample sample = Sample.create(code)
     when: "when the library was prepared for that sample"
     LibraryPrepared libraryPrepared = LibraryPrepared.create(code, Instant.now())
-    sample.handle(libraryPrepared)
+    boolean stateAltered = sample.handle(libraryPrepared)
 
     then: "the sample's state has status LIBRARY_PREP_FINISHED"
     sample.currentState().status() == Status.LIBRARY_PREP_FINISHED
     and: "the sample is aware of the processed event"
     sample.events().contains(libraryPrepared)
+    and:
+    stateAltered
   }
 }

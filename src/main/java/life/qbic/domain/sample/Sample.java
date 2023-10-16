@@ -67,49 +67,55 @@ public class Sample {
     return sample;
   }
 
-  public void registerMetadata(Instant occurredOn) {
+  public boolean registerMetadata(Instant occurredOn) {
     MetadataRegistered event = MetadataRegistered.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    handle(event);
+    return handle(event);
   }
 
-  public void receive(Instant occurredOn) {
+  public boolean receive(Instant occurredOn) {
     SampleReceived event = SampleReceived.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    handle(event);
+    return handle(event);
   }
 
-  public void passQualityControl(Instant occurredOn) {
+  public boolean passQualityControl(Instant occurredOn) {
     PassedQualityControl event = PassedQualityControl.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    handle(event);
+    return handle(event);
   }
 
-  public void failQualityControl(Instant occurredOn) {
+  public boolean failQualityControl(Instant occurredOn) {
     FailedQualityControl event = FailedQualityControl.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    handle(event);
+    return handle(event);
   }
 
-  public void prepareLibrary(Instant occurredOn) {
+  public boolean prepareLibrary(Instant occurredOn) {
     LibraryPrepared event = LibraryPrepared.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    handle(event);
+    return handle(event);
   }
 
-  public void provideData(Instant occurredOn) {
+  public boolean provideData(Instant occurredOn) {
     DataMadeAvailable event = DataMadeAvailable.create(sampleCode, occurredOn);
     // put domain validation here e.g. if sample in state xyz can it change to abc?
-    handle(event);
+    return handle(event);
   }
 
-  public <T extends SampleEvent> void handle(T event) {
+  /**
+   * Handles the event.
+   * @param event the event to consider
+   * @return true when the event was used to alter the state, false if the event had no effect.
+   * @param <T> the event type
+   */
+  public <T extends SampleEvent> boolean handle(T event) {
     if (events.contains(event)) {
-      return;
+      return false;
     }
     if (events.isEmpty()) {
       applyAndAdd(event);
-      return;
+      return true;
     }
     findEventAt(event.occurredOn()).ifPresent(
         it -> {
@@ -129,6 +135,7 @@ public class Sample {
     } else if (event.occurredOn().isAfter(lastEvent.occurredOn())) {
       applyAndAdd(event);
     }
+    return true;
   }
 
   private Optional<SampleEvent> findEventAt(Instant occurredOn) {
